@@ -52,7 +52,10 @@ SELECT
     pv1.distance_limit as profile1_distance_limit,
     pv2.distance_limit as profile2_distance_limit,
     0.35 +
-    CASE WHEN pv1.worst_uv_ids = pv2.worst_uv_ids THEN 0.35 ELSE 0 END +
+    CASE
+        WHEN pv1.worst_uv_ids = pv2.worst_uv_ids THEN 0.35
+        ELSE array_jaccard_similarity(pv1.worst_uv_ids, pv2.worst_uv_ids) * 0.2
+    END +
     array_jaccard_similarity(pv1.good_uv_ids, pv2.good_uv_ids) * 0.1 +
     array_jaccard_similarity(pv1.bad_uv_ids, pv2.bad_uv_ids) * 0.1 +
     array_jaccard_similarity(pv1.neutral_uv_ids, pv2.neutral_uv_ids) * 0.1

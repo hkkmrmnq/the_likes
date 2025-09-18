@@ -1,7 +1,7 @@
 Backend for The Likes app. Work in progress.
 ===========================================
 
-The Likes is an app designed to find people with the same personal values. More detailed explanation further down below.
+The Likes is an app designed to find people with the same personal values. More detailed explanation (also in Russian) further down below.
 
 #### Tools used:
 - Python 3.12
@@ -91,6 +91,8 @@ Access documrntation: http://127.0.0.1:8000/docs#/
 Introduction for users
 ===========================================
 
+(In Russian below)
+
 The idea of ​​the project is to give you the opportunity to choose values ​​that are close to your own and introduce you to new people who have similar values.
 However, different people often put different meanings into the same words. Therefore, I suggest that you not only choose values ​​that are close to yours, but also choose the meanings that you put into these terms.
 The project is aimed primarily at people who do not feel like they "fit in" in society, but would like to find new friends. I will warn you right away that, due to this approach, finding suitable users can take quite a long time (and will certainly take up on early stage - until there is a sufficient number of different users). I hope this will not scare you off.
@@ -110,3 +112,25 @@ If you want to know in more detail why the project is structured this way - belo
 Thus, ideas A and B are interchangeable in the context of reasoning about what (abstract moral) values ​​are.
 7. A personal hierarchy of values ​​is not directly accessible to either oneself or others. We can try to express it in thoughts, words, actions, or any other means, but there is no way to test a person's values. I will conditionally assume that each person has one hierarchy of moral values, which is guided by his unconscious (or it is simply a set of all previous chocies/decisions/acts/etc), and another - conscious - the one that, conditionally, arises at the moment when a person consciously decides to pursue certain moral guidelines. How similar are the unconscious and conscious value systems of a particular person is a question that is unlikely to be answered.
 8. I assume that The unconscious hierarchy of values ​​can be changed through long-term conscious effort - through self-analysis and, most importantly, through discussion with people who chose similar values.
+
+=================================================
+
+Идея проекта в том, чтобы дать вам возможность выбрать ценности, близкие вашим собственным, и познакомить с новыми людьми, близкими вам по ценностям.
+Однако, нередко разные люди вкладывают разный смысл в одни и те же слова. Поэтому я предлагаю вам не только выбрать ценности, близкие вашим, но и выбрать те смыслы, которые вы вкладываете в эти термины.
+Проект ориентирован, прежде всего, на людей, которые не ощущают себя ""своими"" в обществе, но хотели бы найти новых друзей. Сразу предупрежу, что, в связи с таким подходом, поиск подходящих пользователей может занять довольно продолжительное время (и наверняка займёт на раннем этапе - пока не наберётся достаточное количество разных пользователей). Надеюсь, это вас не отпугнёт.
+
+Если вы хотите узнать подробней, почему проект устроен именно так - ниже позиция, из которой я исхожу.
+
+1. Реальность существует независимо от нас и познаваема посредством опыта. Её можно понимать как совокупность всех возможных описательных утверждений, которые обозначают либо сам факт нашего опыта, либо логически необходимо следуют из всей совокупности фактов.
+2. Ещё один тип утверждений - оценочные. Мы делаем оценочные утверждения - в первую очередь мысленно - о том, какой, по нашему мнению, должна быть реальность. Оценочные утверждения могут иметь такие формы, как «X - это хорошо/плохо, правильно/неправильно» и «следует / не следует сделать X».
+3. Вместе с этим существует понятие ""моральные ценности"" - нечто, вроде ориентиров, опираясь на которые мы и делаем оценочные утверждения.
+4. Описательные утверждения логически связаны с фактами. Оценочные утверждения - так же логически - связаны с моральными ценностями.
+5. Далее я буду употреблять термин ""ценности"" в следующем значении. Ценности - это термины, которые:
+- предельно абстрактны (например, ""любовь"", ""красота"" - эти понятия сами не могут выступать как конкретные/частные по отношению к какому-то более абстрактному понятию - так, чтобы смысл понятий ""любовь"" и ""красота"" не был частично или полностью утерян);
+- работают как моральные ориентиры (действия, слова, мысли, решения, поведение любого человека - всегда в какой-то степени будут направлены к/от ""любви"", ""красоты"" и т.п.);
+- финально не достижимы, но их можно бесконечно эффективно преследовать (невозможно обрести всю возможную любовь во вселенной/реальности/бытии, но любовь можно бесконечно приумножать);
+- нейтральны сами по себе, пока не организованы в иерархию (любовь сама по себе - ни хорошая, ни плохая - мы сами выбираем, в какой степени стремиться к ней / от неё - и только этот выбор создаёт иерархию - помещает любовь выше/ниже других моральных ценностей).
+6. А) У каждого человека есть внутренняя иерархия ценностей, которая оказывает влияние на его эмоции, мысли, язык, решения и поведение и т.д. Б) Даже если такой внутренней иерархии нет - каждая мысль, слово и действие каждого человека оказывает влияние на мир вокруг, изменяя его определённым образом - как-бы смещая (даже если совсем немного) в определённом направлении. В каких-то направлениях человек двигается (и двигает мир) чаще, в каких-то - реже. Набор этих направлений - то же самое, что внутренняя иерархия ценностей.
+Таким образом, представления А и Б взаимозаменяемы в контексте рассуждения о том, что такое (абстрактные моральные) ценности.
+7. Персональная иерархия ценностей недоступна напрямую ни себе, ни другим. Мы можем попытаться выразить её в мыслях, словами, действиями, или любыми другими средствами, но не существует способа проверить ценности человека. Условно предположу, что у каждого человека есть одна иерархия моральных ценностей, которой руководствуется его бессознательное (или же это просто совокупность всех предыдущих выборов/решений/действий и т.д.), и другая - сознательная - та, которая, условно, возникает в момент, когда человек сознательно решает преследовать определённые моральные ориентиры. Насколько схожи бессознательная и сознательная системы ценностей у какого-то конкретного человека - это вопрос, на который вряд ли возможен ответ.
+8. Я предполагаю, что бессознательную иерархию ценностей можно изменить с помощью длительных сознательных усилий - через самоанализ и, что особенно важно, через обсуждение с людьми, имеющими схожие ценности.
