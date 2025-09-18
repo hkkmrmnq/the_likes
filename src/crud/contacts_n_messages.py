@@ -146,18 +146,6 @@ async def read_contact_pair(
     )
 
 
-# async def delete_contact_pair(
-#     me_user_id: UUID,
-#     target_user_id: UUID,
-#     session: AsyncSession,
-# ) -> None:
-#     stmt = delete(md.Contact).where(
-#         (md.Contact.me_user_id == me_user_id)
-#         & (md.Contact.target_user_id == target_user_id)
-#     )
-#     await session.execute(stmt)
-
-
 def create_message(
     *,
     sender_id: UUID,
@@ -211,7 +199,7 @@ async def get_messages(
             md.Message.sender_id == contact_user_id,
             not_(md.Message.is_read),
         )
-        .values(is_read=True)  # TODO 1. transaction? 2. parts?
+        .values(is_read=True)
     )
     select_stmt = (
         select(md.Message)

@@ -98,7 +98,6 @@ async def agree_to_start(
     if contact_pair[1].me_ready_to_start:
         contact_pair[0].status = contact_pair[1].status = 'ongoing'
         message = 'Emails sent'
-        # TODO send emails / start chat
     else:
         message = 'Readiness confirmed. Waiting for other user to confirm.'
     await session.commit()

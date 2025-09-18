@@ -151,7 +151,6 @@ async def _create_attitude_translation_objects(
     return translations
 
 
-# TODO check data consistency IncorrectBasicData
 async def _add_data_to_db() -> None:
     all_sheets = read_excel(get_settings().basic_data_path, sheet_name=None)
     async with async_session_maker() as session:

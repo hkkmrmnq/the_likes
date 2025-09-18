@@ -33,7 +33,7 @@ async def send_email(email_to: str, subject: str, content: str) -> None:
 #     message['Subject'] = subject
 #     message.set_content(content)
 
-#     await aiosmtplib.send(  # TODO handle exceptions
+#     await aiosmtplib.send(
 #         message,
 #         hostname=SMTP_SERVER,
 #         port=SMTP_PORT,
@@ -66,8 +66,7 @@ async def is_password_pwned_async(password: str) -> bool | None:
         return False
 
     except (httpx.RequestError, httpx.TimeoutException, httpx.HTTPStatusError):
-        # TODO Log
-        return None  # → treat as "unknown"
+        return None
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
@@ -93,8 +92,6 @@ class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
         :param request: Optional FastAPI request that
         triggered the operation, defaults to None.
         """
-        # TODO proper format
-        # TODO handle exceptions
         link = f'https://{cnst.APP_DOMAIN}/verify-email?token={token}'
         await send_email(
             user.email,

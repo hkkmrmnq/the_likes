@@ -73,10 +73,8 @@ class Profile(BaseWithIntPK):
     location: Mapped[str | None] = mapped_column(
         Geometry('POINT', srid=4326), nullable=True, default=None
     )
-    distance_limit: Mapped[int] = (
-        mapped_column(  # TODO constraint with location not null
-            Integer, nullable=True, default=None
-        )
+    distance_limit: Mapped[int] = mapped_column(
+        Integer, nullable=True, default=None
     )
     name: Mapped[str | None] = mapped_column(
         String(cnst.USER_NAME_MAX_LENGTH), nullable=True, default=None

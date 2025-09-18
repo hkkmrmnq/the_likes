@@ -32,7 +32,7 @@ async def read_profile_values(
     return profile_values
 
 
-@alru_cache  # TODO check maxsize
+@alru_cache
 async def get_structure_for_profile_values_input(
     session: AsyncSession,
 ) -> dict[int, set]:
