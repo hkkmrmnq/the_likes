@@ -5,9 +5,7 @@ from fastapi_users import FastAPIUsers
 
 from . import exceptions as exc
 from .dependencies import auth_backend, get_user_manager
-from .endpoints.v1.contacts_n_messages import router as contacts_router
-from .endpoints.v1.profiles import router as profile_router
-from .endpoints.v1.values import router as values_router
+from .endpoints import v1 as endpoints_v1
 from .lifespan import lifespan
 from .models import User
 from .schemas.user_n_profile import UserCreate, UserRead, UserUpdate
@@ -40,9 +38,9 @@ app.include_router(
     prefix='/users',
     tags=['users'],
 )
-app.include_router(profile_router, tags=['profile'])
-app.include_router(values_router, tags=['values'])
-app.include_router(contacts_router, tags=['contacts'])
+app.include_router(endpoints_v1.profile_router, tags=['profile'])
+app.include_router(endpoints_v1.values_router, tags=['values'])
+app.include_router(endpoints_v1.contacts_router, tags=['contacts'])
 
 app.add_exception_handler(exc.InactiveUser, exc.handle_inactive_user)
 app.add_exception_handler(exc.UnverifiedUser, exc.handle_unverified_user)

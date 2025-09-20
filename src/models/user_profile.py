@@ -48,13 +48,13 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         'Message',
         back_populates='sender',
         foreign_keys='Message.sender_id',
-        cascade='save-update, merge, refresh-expire',
+        cascade='all, delete-orphan',
     )
     received_messages: Mapped[list['Message']] = relationship(
         'Message',
         back_populates='receiver',
         foreign_keys='Message.receiver_id',
-        cascade='save-update, merge, refresh-expire',
+        cascade='all, delete-orphan',
     )
 
 
@@ -121,13 +121,13 @@ class Profile(BaseWithIntPK):
         'Message',
         foreign_keys='Message.sender_profile_id',
         back_populates='sender_profile',
-        cascade='save-update, merge, refresh-expire',
+        cascade='all, delete-orphan',
     )
     received_messages: Mapped['Message'] = relationship(
         'Message',
         foreign_keys='Message.receiver_profile_id',
         back_populates='receiver_profile',
-        cascade='save-update, merge, refresh-expire',
+        cascade='all, delete-orphan',
     )
     __table_args__ = (
         CheckConstraint(

@@ -62,7 +62,8 @@ SELECT
     as similarity_score,
     CASE
         WHEN p1.location IS NOT NULL AND p2.location IS NOT NULL
-        THEN ST_Distance(p1.location::geography, p2.location::geography)
+        THEN ST_Distance(p1.location::geography,
+                         p2.location::geography)::integer
         ELSE NULL
     END as distance_meters,
     cardinality(array_intersect(p1.languages, p2.languages))
@@ -78,14 +79,14 @@ AND (
         CASE
             WHEN p1.location IS NOT NULL AND p2.location IS NOT NULL
             THEN ST_Distance(p1.location::geography, p2.location::geography)
-            ELSE NULL
+            ELSE 0.0
         END
     ) <= COALESCE(pv1.distance_limit, {cnst.DISTANCE_MAX_LIMIT})::integer
     AND (
         CASE
             WHEN p1.location IS NOT NULL AND p2.location IS NOT NULL
             THEN ST_Distance(p1.location::geography, p2.location::geography)
-            ELSE NULL
+            ELSE 0.0
         END
     ) <= COALESCE(pv2.distance_limit, {cnst.DISTANCE_MAX_LIMIT})::integer;
 """)
@@ -118,14 +119,10 @@ SELECT
 FROM recommendations
 WHERE
     (profile1_id = :profile_id OR profile2_id = :profile_id)
-    AND (
-        CASE
-            WHEN profile1_id = :profile_id THEN profile2_id
-            ELSE profile1_id
-        END
-    ) NOT IN (SELECT target_profile_id
-              FROM contacts
-              WHERE me_profile_id = :profile_id)
+    AND
+    (CASE WHEN profile1_id = :profile_id THEN profile2_id ELSE profile1_id END)
+    NOT IN (SELECT target_profile_id FROM contacts
+                                     WHERE me_profile_id = :profile_id)
 ORDER BY similarity_score DESC
 LIMIT :limit
 """)

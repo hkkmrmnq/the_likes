@@ -12,13 +12,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import constants as cnst
 from .config import get_settings
-from .lifespan import async_session_maker
+from .db import session_factory
 from .models import User
 from .services.user_manager import UserManager
 
 
 async def get_db():
-    async with async_session_maker() as session:
+    async with session_factory() as session:
         yield session
 
 

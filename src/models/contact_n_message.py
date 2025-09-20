@@ -60,16 +60,16 @@ class Contact(Base):
 
 class Message(BaseWithIntPK):
     sender_id: Mapped[UUID_ID] = mapped_column(
-        ForeignKey('users.id', ondelete='SET NULL')
+        ForeignKey('users.id', ondelete='CASCADE')
     )
     receiver_id: Mapped[UUID_ID] = mapped_column(
-        ForeignKey('users.id', ondelete='SET NULL')
+        ForeignKey('users.id', ondelete='CASCADE')
     )
     sender_profile_id: Mapped[int] = mapped_column(
-        ForeignKey('profiles.id', ondelete='SET NULL')
+        ForeignKey('profiles.id', ondelete='CASCADE')
     )
     receiver_profile_id: Mapped[int] = mapped_column(
-        ForeignKey('profiles.id', ondelete='SET NULL')
+        ForeignKey('profiles.id', ondelete='CASCADE')
     )
     content: Mapped[str] = mapped_column(
         String(cnst.MESSAGE_MAX_LENGTH), nullable=False

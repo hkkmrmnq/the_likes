@@ -34,6 +34,7 @@ COMMON_RESPONSES = {
     500: {'description': 'Something went wrong.'},
 }
 MESSAGES_HISTORY_LENGTH_DEFAULT = 20
+RECOMMENDATIONS_UPDATE_INTERVAL_HOURS = 4
 
 
 class ContactStatus(str, Enum):

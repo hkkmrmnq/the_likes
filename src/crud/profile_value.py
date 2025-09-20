@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import constants as cnst
 from .. import models as md
 from .. import schemas as sch
+from . import sql
 from .core_n_profile import get_unique_value_id_by_aspect_ids
 
 
@@ -159,3 +160,18 @@ async def delete_pv_oneline(
     await session.execute(
         delete(md.PVOneLine).where(md.PVOneLine.profile_id == profile_id)
     )
+
+
+async def recommendations_mat_view_exists(session: AsyncSession) -> bool:
+    """Check if materialized view exists - returns True or False"""
+    result = await session.execute(sql.recommendations_exists)
+    return bool(result.scalar())
+
+
+async def create_recommendations_mat_view(session: AsyncSession) -> None:
+    await session.execute(sql.create_array_intersect_func)
+    await session.execute(sql.create_array_jaccard_similarity_func)
+    await session.execute(sql.create_recommendations_mat_view)
+    await session.execute(sql.create_unique_idx_recommendations)
+    await session.execute(sql.create_idx_recommendations_profile1)
+    await session.execute(sql.create_idx_recommendations_profile2)

@@ -11,7 +11,7 @@ from ..exceptions import exceptions as exc
 from . import sql
 
 
-async def check_recommendations(
+async def read_recommendations_for_profile(
     *,
     profile_id: int,
     distance_limit: int | None = None,
@@ -19,8 +19,8 @@ async def check_recommendations(
     session: AsyncSession,
 ) -> list[sch.RecomendationRead]:
     """
-    Read 'recommendations' mat. view for a specific profile.
-    Profile already in contacts are not included.
+    Read auto generated recommendations for a given profile.
+    Profiles already in contacts are not included.
     """
     results = await session.execute(
         sql.read_recommendations_for_user,

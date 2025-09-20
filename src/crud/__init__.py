@@ -1,5 +1,5 @@
 from .contacts_n_messages import (  # noqa
-    check_recommendations,
+    read_recommendations_for_profile,
     get_messages,
     count_uread_messages,
     create_message,
@@ -23,4 +23,7 @@ from .profile_value import (  # noqa
     delete_pv_oneline,
     create_profile_value_links,
     read_profile_value_links,
+    recommendations_mat_view_exists,
+    create_recommendations_mat_view,
 )
+from . import sql  # noqa
