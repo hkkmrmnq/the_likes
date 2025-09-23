@@ -4,8 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import constants as cnst
 from .. import models as md
 from .. import schemas as sch
-from . import sql
-from .core_n_profile import get_unique_value_id_by_aspect_ids
+from .core_n_profile import get_unique_value_id_by_vt_id_and_aspect_ids
 
 
 async def read_profile_value_links(
@@ -77,15 +76,15 @@ async def create_profile_value_links(
     session: AsyncSession,
 ) -> list[md.ProfileValueLink]:
     new_value_links = []
-    for value_link_schema in data.value_links:
+    for vl_schema in data.value_links:
         new_value_link_model = md.ProfileValueLink(
             profile_id=profile.id,
-            value_title_id=value_link_schema.value_title_id,
-            polarity=value_link_schema.polarity,
-            user_order=value_link_schema.user_order,
+            value_title_id=vl_schema.value_title_id,
+            polarity=vl_schema.polarity,
+            user_order=vl_schema.user_order,
         )
         new_aspect_link_models = []
-        for aspect_schema in value_link_schema.aspects:
+        for aspect_schema in vl_schema.aspects:
             new_aspect_link_model = md.ProfileAspectLink(
                 profile_id=profile.id,
                 aspect_id=aspect_schema.aspect_id,
@@ -93,11 +92,10 @@ async def create_profile_value_links(
             )
             new_aspect_link_models.append(new_aspect_link_model)
         new_value_link_model.profile_aspect_links = new_aspect_link_models
-        aspect_ids = [
-            s.aspect_id for s in value_link_schema.aspects if s.included
-        ]
         new_value_link_model.unique_value_id = (
-            await get_unique_value_id_by_aspect_ids(aspect_ids, session)
+            await get_unique_value_id_by_vt_id_and_aspect_ids(
+                vl_schema, session
+            )
         )
         new_value_links.append(new_value_link_model)
     session.add_all(new_value_links)
@@ -160,18 +158,3 @@ async def delete_pv_oneline(
     await session.execute(
         delete(md.PVOneLine).where(md.PVOneLine.profile_id == profile_id)
     )
-
-
-async def recommendations_mat_view_exists(session: AsyncSession) -> bool:
-    """Check if materialized view exists - returns True or False"""
-    result = await session.execute(sql.recommendations_exists)
-    return bool(result.scalar())
-
-
-async def create_recommendations_mat_view(session: AsyncSession) -> None:
-    await session.execute(sql.create_array_intersect_func)
-    await session.execute(sql.create_array_jaccard_similarity_func)
-    await session.execute(sql.create_recommendations_mat_view)
-    await session.execute(sql.create_unique_idx_recommendations)
-    await session.execute(sql.create_idx_recommendations_profile1)
-    await session.execute(sql.create_idx_recommendations_profile2)

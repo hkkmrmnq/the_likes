@@ -11,26 +11,63 @@ from ..exceptions import exceptions as exc
 from . import sql
 
 
-async def read_recommendations_for_profile(
-    *,
-    profile_id: int,
-    distance_limit: int | None = None,
-    limit: int = 20,
-    session: AsyncSession,
-) -> list[sch.RecomendationRead]:
+async def similarity_scores_exists(session: AsyncSession) -> bool:
     """
-    Read auto generated recommendations for a given profile.
-    Profiles already in contacts are not included.
+    Check if similarity_scores materialized view exists - returns True or False
     """
-    results = await session.execute(
-        sql.read_recommendations_for_user,
-        {
-            'profile_id': profile_id,
-            'distance_limit': distance_limit,
-            'limit': limit,
-        },
+    result = await session.execute(sql.similarity_scores_exists)
+    return bool(result.scalar())
+
+
+async def create_similarity_scores(session: AsyncSession) -> None:
+    """
+    Creates needed functions for materialized view similarity_scores,
+    the materialized view similarity_scores itself
+    and indexes.
+    """
+    await session.execute(sql.create_func_array_intersect)
+    await session.execute(sql.create_func_array_jaccard_similarity)
+    await session.execute(sql.create_mat_view_similarity_scores)
+    await session.execute(sql.create_unique_idx_similarity_scores)
+    await session.execute(sql.create_idx_similarity_scores_profile1)
+    await session.execute(sql.create_idx_similarity_scores_profile2)
+
+
+async def recommendations_exists(session: AsyncSession) -> bool:
+    """
+    Check if recommendations materialized view exists - returns True or False
+    """
+    result = await session.execute(sql.recommendations_exists)
+    return bool(result.scalar())
+
+
+async def create_recommendations(session: AsyncSession) -> None:
+    """
+    Creates needed function for materialized view recommendations,
+    the materialized view recommendations itself
+    and index.
+    """
+    await session.execute(sql.create_func_generate_recommendations)
+    await session.execute(sql.create_mat_view_reccomendations)
+    await session.execute(sql.create_unique_index_for_recommendations)
+
+
+async def read_me_recommendation(
+    profile: md.Profile, session: AsyncSession
+) -> sch.RecomendationRead | None:
+    result = await session.execute(
+        sql.read_recommendation, {'profile_id': profile.id}
     )
-    return [sch.RecomendationRead.model_validate(row) for row in results.all()]
+    recommendation = result.one_or_none()
+    if recommendation is None:
+        return None
+    return sch.RecomendationRead.model_validate(
+        {
+            'similar_profile_id': recommendation.similar_profile_id,
+            'similarity_score': recommendation.similarity_score,
+            'distance_meters': recommendation.distance_meters,
+        }
+    )
 
 
 async def read_contacts(
@@ -133,8 +170,8 @@ async def read_contact_pair(
     if number_of_results == 0:
         raise exc.NotFound(
             (
-                'Contact not found for:\n'
-                f'{me_user_id},\n{target_user_id},\n{status=}.'
+                'Contact not found for: '
+                f'{me_user_id}, {target_user_id}, {status=}.'
             )
         )
     all_found = [str((c.me_user_id, c.status, c.target_user_id)) for c in pair]

@@ -37,21 +37,6 @@ async def find_me_awaiting_contact(
     )
 
 
-async def find_match(
-    me_profile: md.Profile,
-    session: AsyncSession,
-) -> sch.RecomendationRead | None:
-    # TODO FIX
-    new_recommendations = await crud.read_recommendations_for_profile(
-        profile_id=me_profile.id,
-        distance_limit=me_profile.distance_limit,
-        session=session,
-    )
-    if len(new_recommendations) == 0:
-        return None
-    return new_recommendations[0]
-
-
 async def check_for_alike(
     me_user: md.User, lan_code: str, session: AsyncSession
 ) -> sch.ContactsRead:
@@ -61,7 +46,7 @@ async def check_for_alike(
         raise exc.NotFound('Profile values have not yet been set.')
     awaiting_contacts_schema = await find_me_awaiting_contact(me_user, session)
     if not awaiting_contacts_schema.found:
-        new_recommendation = await find_match(
+        new_recommendation = await crud.read_me_recommendation(
             profile,
             session,
         )
@@ -147,4 +132,6 @@ async def get_contacts(
     session: AsyncSession,
 ) -> sch.ContactsRead:
     is_active_verified(user)
-    return await crud.read_contacts(me_user_id=user.id, session=session)
+    return await crud.read_contacts(
+        me_user_id=user.id, status='ongoing', session=session
+    )

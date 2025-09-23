@@ -1,7 +1,7 @@
 Backend for The Likes app. Work in progress.
 ===========================================
 
-The Likes is an app designed to find people with the same personal values. More detailed explanation (also in Russian) further down below.
+The Likes is an app designed to find people with the same personal values. More detailed explanation below (also in Russian).
 
 #### Tools used:
 - Python 3.12
@@ -88,8 +88,7 @@ Access documrntation: http://127.0.0.1:8000/docs#/
 
 
 
-Introduction for users
-===========================================
+# Introduction for users
 
 [Russian version](#введение-для-пользователей)
 
@@ -124,8 +123,8 @@ Thus, ideas A and B are interchangeable in the context of reasoning about what (
 8. I assume that The unconscious hierarchy of values ​​can be changed through long—term conscious effort — through self—analysis and, most importantly, through discussion with people who chose similar values.
 
 
-Instructions for users
-===========================================
+# Instructions for users
+
 I offer you a set of terms denoting possible abstract values: Pleasure, Comfort, Happiness, Love, Beauty, Wealth, Status, Power, Violence, Truth, Freedom.
 
 In the first step, you must select components (or subdefinitions) — Aspects — for each value. If you agree that a statement should be included in the value definition, check the box next to it. For example, if you agree that Beauty is (partially or completely) an objective quality, include this aspect in the definition of beauty.
@@ -142,7 +141,7 @@ You can change your value profile later, but frequent changes will reduce your c
 In the third step, you'll choose a statement that characterizes your overall attitude toward values.
 
 
-## Введение для пользователей
+# Введение для пользователей
 
 Проект ориентирован, прежде всего, на людей, которые ощущают нехватку социальных связей и хотели бы найти новых друзей, но устали от неудач в этих попытках. Многие знакомы с термином "отчуждение" — возможно, он подходит для названия той проблемы, которую я надеюсь помочь решить какому—то количеству людей. Не отдаю предпочтение именно этому термину, но использую его для удобства.
 
@@ -174,8 +173,7 @@ In the third step, you'll choose a statement that characterizes your overall att
 8. Я предполагаю, что бессознательную иерархию ценностей можно изменить с помощью длительных сознательных усилий — через самоанализ и, что особенно важно, через обсуждение с людьми, имеющими схожие ценности.
 
 
-Инструкция для пользователей
-=================================================
+# Инструкция для пользователей
 
 Предлагаю вам набор терминов, означающих возможные абстрактные ценности: Удовольствие, Комфорт, Счастье, Любовь, Красота, Богатство, Статус, Власть, Насилие, Истина, Свобода.
 

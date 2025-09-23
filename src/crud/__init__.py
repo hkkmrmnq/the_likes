@@ -1,5 +1,9 @@
 from .contacts_n_messages import (  # noqa
-    read_recommendations_for_profile,
+    similarity_scores_exists,
+    create_similarity_scores,
+    recommendations_exists,
+    create_recommendations,
+    read_me_recommendation,
     get_messages,
     count_uread_messages,
     create_message,
@@ -11,6 +15,7 @@ from .core_n_profile import (  # noqa
     create_profile,
     read_attitudes,
     read_definitions,
+    read_unique_values,
     read_profile_by_id,
     read_profile_by_user,
     update_profile,
@@ -23,7 +28,5 @@ from .profile_value import (  # noqa
     delete_pv_oneline,
     create_profile_value_links,
     read_profile_value_links,
-    recommendations_mat_view_exists,
-    create_recommendations_mat_view,
 )
 from . import sql  # noqa

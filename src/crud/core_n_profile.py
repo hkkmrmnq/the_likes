@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from .. import constants as cnst
 from .. import models as md
+from .. import schemas as sch
 from ..exceptions import exceptions as exc
 
 
@@ -98,16 +99,20 @@ async def read_unique_values(
     return result.all()
 
 
-@alru_cache
-async def get_mapped_uvs(session: AsyncSession) -> dict[tuple, int]:
-    uvs = await read_unique_values(session)
-    mapped_uvs = {tuple(sorted(uv.aspect_ids)): uv.id for uv in uvs}
-    return mapped_uvs
-
-
-async def get_unique_value_id_by_aspect_ids(
-    aspect_ids: list[int],
+async def get_unique_value_id_by_vt_id_and_aspect_ids(
+    vl_schema: sch.ProfileValueLinkCreate,
     session: AsyncSession,
 ) -> int:
-    mapped_uvs = await get_mapped_uvs(session)
-    return mapped_uvs[tuple(sorted(aspect_ids))]
+    aspect_ids = [al.aspect_id for al in vl_schema.aspects if al.included]
+    uvs = await read_unique_values(session)
+    for uv in uvs:
+        if uv.value_title_id == vl_schema.value_title_id and sorted(
+            uv.aspect_ids
+        ) == sorted(aspect_ids):
+            return uv.id
+    raise exc.ServerError(
+        (
+            'Unique Values not fount for value_title_id='
+            f'{vl_schema.value_title_id}, aspect_ids={aspect_ids}'
+        )
+    )

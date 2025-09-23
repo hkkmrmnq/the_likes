@@ -15,10 +15,14 @@ async def lifespan(app: FastAPI):
         await session.execute(select(1))
         await crud.read_definitions(cnst.LANGUAGE_DEFAULT, session)
         await crud.read_attitudes(cnst.LANGUAGE_DEFAULT, session)
-        if await crud.recommendations_mat_view_exists(session):
-            await session.execute(crud.sql.refresh_recommendations)
+        if await crud.similarity_scores_exists(session):
+            await session.execute(crud.sql.refresh_mat_view_similarity_scores)
         else:
-            await crud.create_recommendations_mat_view(session)
+            await crud.create_similarity_scores(session)
+        if await crud.recommendations_exists(session):
+            await session.execute(crud.sql.refresh_mat_view_recommendations)
+        else:
+            await crud.create_recommendations(session)
         await session.commit()
     scheduler = start_scheduler(session_factory)
     yield

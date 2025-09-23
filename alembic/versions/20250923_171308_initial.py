@@ -1,8 +1,8 @@
 """Initial
 
-Revision ID: 4b5312105509
+Revision ID: 2f1b871fb490
 Revises:
-Create Date: 2025-09-16 22:23:31.094843
+Create Date: 2025-09-23 17:13:08.960530
 
 """
 
@@ -16,7 +16,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 from src import constants as cnst
 
-revision: str = '4b5312105509'
+revision: str = '2f1b871fb490'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -110,11 +110,7 @@ def upgrade() -> None:
     )
     op.create_table(
         'profiles',
-        sa.Column(
-            'user_id',
-            GUID(),
-            nullable=False,
-        ),
+        sa.Column('user_id', GUID(), nullable=False),
         sa.Column('attitude_id', sa.Integer(), nullable=True),
         sa.Column('languages', postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column(
@@ -319,16 +315,16 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ['receiver_id'], ['users.id'], ondelete='SET NULL'
+            ['receiver_id'], ['users.id'], ondelete='CASCADE'
         ),
         sa.ForeignKeyConstraint(
-            ['receiver_profile_id'], ['profiles.id'], ondelete='SET NULL'
+            ['receiver_profile_id'], ['profiles.id'], ondelete='CASCADE'
         ),
         sa.ForeignKeyConstraint(
-            ['sender_id'], ['users.id'], ondelete='SET NULL'
+            ['sender_id'], ['users.id'], ondelete='CASCADE'
         ),
         sa.ForeignKeyConstraint(
-            ['sender_profile_id'], ['profiles.id'], ondelete='SET NULL'
+            ['sender_profile_id'], ['profiles.id'], ondelete='CASCADE'
         ),
         sa.PrimaryKeyConstraint('id'),
     )
