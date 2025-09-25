@@ -102,7 +102,7 @@ There are many opinions and approaches to solving the problem of alienation. I p
 
 If successful, this project should become a rational push for the beginning of new, long—term, and strong relationships.
 To do this, I propose defining your values — and based on this, the algorithm will select participants with similar values.
-However, different people often attach different meanings to the same words. Therefore, I suggest you not only choose values ​​that are close to yours, but also choose the meanings you attach to these terms.
+Different people often attach different meanings to the same words. Therefore, I suggest you not only choose values ​​that are close to yours, but also choose the meanings you attach to these terms.
 
 I should warn you right away that, due to this approach, finding suitable users may take quite a while — and will certainly take time in the early stages, until a sufficient number of users have been recruited. I hope this won't discourage you.
 
@@ -152,7 +152,7 @@ In the third step, you'll choose a statement that characterizes your overall att
 
 В случае успеха, этот проект должен стать таким рациональным толчком для начала новых длительных и крепких отношений.
 Для этого предлагаю определить ваши ценности — и на основе этого алгоритм подберёт участников с близкими вам ценностями.
-Однако, нередко разные люди вкладывают разный смысл в одни и те же слова. Поэтому я предлагаю вам не только выбрать ценности, близкие вашим, но и выбрать те смыслы, которые вы вкладываете в эти термины.
+Нередко разные люди вкладывают разный смысл в одни и те же слова. Поэтому я предлагаю вам не только выбрать ценности, близкие вашим, но и выбрать те смыслы, которые вы вкладываете в эти термины.
 
 Сразу предупрежу, что, в связи с таким подходом, поиск подходящих пользователей может занять довольно продолжительное время — и наверняка займёт на раннем этапе — пока не наберётся достаточное количество пользователей. Надеюсь, это вас не отпугнёт.
 

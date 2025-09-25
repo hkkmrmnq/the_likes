@@ -1,8 +1,6 @@
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
-# async not needed, used for consistency
-
 
 async def handle_unverified_user(request: Request, exc):
     return JSONResponse(

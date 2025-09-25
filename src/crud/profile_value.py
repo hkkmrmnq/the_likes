@@ -1,9 +1,9 @@
 from sqlalchemy import delete, func, orm, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import constants as cnst
 from .. import models as md
 from .. import schemas as sch
+from ..config import constants as CNST
 from .core_n_profile import get_unique_value_id_by_vt_id_and_aspect_ids
 
 
@@ -23,7 +23,7 @@ async def read_profile_value_links(
             ).joinedload(md.ProfileAspectLink.aspect),
         )
     )
-    if lan_code != cnst.LANGUAGE_DEFAULT:
+    if lan_code != CNST.LANGUAGE_DEFAULT:
         stmt = stmt.options(
             orm.joinedload(md.ProfileValueLink.value_title).joinedload(
                 md.ValueTitle.translations
@@ -124,14 +124,14 @@ async def add_pv_oneline(
     att_n_best, good, neutral, bad, worst = [attitude_id], [], [], [], []
     for vl in profile_values_links:
         if vl.polarity == 'positive':
-            if vl.user_order <= cnst.NUMBER_OF_BEST_UVS:
+            if vl.user_order <= CNST.NUMBER_OF_BEST_UVS:
                 att_n_best.append(vl.unique_value_id)
             else:
                 good.append(vl.unique_value_id)
         elif vl.polarity == 'negative':
             if (
                 vl.user_order
-                > cnst.UNIQUE_VALUE_MAX_ORDER - cnst.NUMBER_OF_WORST_UVS
+                > CNST.UNIQUE_VALUE_MAX_ORDER - CNST.NUMBER_OF_WORST_UVS
             ):
                 worst.append(vl.unique_value_id)
             else:

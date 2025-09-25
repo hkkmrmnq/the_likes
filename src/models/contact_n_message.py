@@ -10,7 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .. import constants as cnst
+from ..config import constants as CNST
 from .base import Base, BaseWithIntPK
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class Contact(Base):
     me_ready_to_start: Mapped[bool] = mapped_column(
         Boolean, nullable=True, default=False
     )
-    status: Mapped[str] = mapped_column(cnst.ContactStatusEnum)
+    status: Mapped[str] = mapped_column(CNST.ContactStatusEnum)
     me_user: Mapped['User'] = relationship(
         'User',
         foreign_keys=[me_user_id],
@@ -72,7 +72,7 @@ class Message(BaseWithIntPK):
         ForeignKey('profiles.id', ondelete='CASCADE')
     )
     content: Mapped[str] = mapped_column(
-        String(cnst.MESSAGE_MAX_LENGTH), nullable=False
+        String(CNST.MESSAGE_MAX_LENGTH), nullable=False
     )
     is_read: Mapped[bool] = mapped_column(default=False, nullable=False)
     sender: Mapped['User'] = relationship(

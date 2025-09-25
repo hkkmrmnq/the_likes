@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-from .. import constants as cnst
+from ..config import constants as CNST
 
 create_func_array_intersect = text("""
 CREATE OR REPLACE FUNCTION array_intersect(arr1 ANYARRAY, arr2 ANYARRAY)
@@ -82,14 +82,14 @@ AND (
             THEN ST_Distance(p1.location::geography, p2.location::geography)
             ELSE 0.0
         END
-    ) <= COALESCE(pv1.distance_limit, {cnst.DISTANCE_MAX_LIMIT})::integer
+    ) <= COALESCE(pv1.distance_limit, {CNST.DISTANCE_MAX_LIMIT})::integer
     AND (
         CASE
             WHEN p1.location IS NOT NULL AND p2.location IS NOT NULL
             THEN ST_Distance(p1.location::geography, p2.location::geography)
             ELSE 0.0
         END
-    ) <= COALESCE(pv2.distance_limit, {cnst.DISTANCE_MAX_LIMIT})::integer;
+    ) <= COALESCE(pv2.distance_limit, {CNST.DISTANCE_MAX_LIMIT})::integer;
 """)
 
 

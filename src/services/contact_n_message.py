@@ -40,7 +40,7 @@ async def find_me_awaiting_contact(
 async def check_for_alike(
     me_user: md.User, lan_code: str, session: AsyncSession
 ) -> sch.ContactsRead:
-    is_active_verified(me_user)
+    await is_active_verified(me_user)
     profile = await read_profile(me_user, lan_code, session)
     if not await profile_values_exist(profile, session):
         raise exc.NotFound('Profile values have not yet been set.')
@@ -55,7 +55,7 @@ async def check_for_alike(
         target_profile = await crud.read_profile_by_id(
             new_recommendation.similar_profile_id, session
         )
-        crud.create_contact_pair(
+        await crud.create_contact_pair(
             profile, target_profile, new_recommendation, session
         )
         await session.commit()
@@ -70,7 +70,7 @@ async def check_for_alike(
 async def agree_to_start(
     me_user: md.User, target_user_id: UUID, session: AsyncSession
 ) -> str:
-    is_active_verified(me_user)
+    await is_active_verified(me_user)
     contact_pair = await crud.read_contact_pair(
         me_user_id=me_user.id,
         target_user_id=target_user_id,
@@ -90,14 +90,14 @@ async def agree_to_start(
 async def send_message(
     sender: md.User, data: sch.MessageCreate, session: AsyncSession
 ) -> md.Message:
-    is_active_verified(sender)
+    await is_active_verified(sender)
     contact_pair = await crud.read_contact_pair(
         me_user_id=sender.id,
         target_user_id=data.receiver_id,
         status='ongoing',
         session=session,
     )
-    new_message = crud.create_message(
+    new_message = await crud.create_message(
         sender_id=sender.id,
         sender_profile_id=contact_pair[0].me_profile_id,
         data=data,
@@ -112,7 +112,7 @@ async def send_message(
 async def count_unread_messages(
     *, user: md.User, session: AsyncSession
 ) -> sch.UnreadMessagesTotalCount:
-    is_active_verified(user)
+    await is_active_verified(user)
     return await crud.count_uread_messages(user, session)
 
 
@@ -131,7 +131,7 @@ async def get_contacts(
     user: md.User,
     session: AsyncSession,
 ) -> sch.ContactsRead:
-    is_active_verified(user)
+    await is_active_verified(user)
     return await crud.read_contacts(
         me_user_id=user.id, status='ongoing', session=session
     )

@@ -7,13 +7,13 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from src import models as md
-from src.config import get_settings
+from src.config import CNF
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-config.set_main_option('sqlalchemy.url', get_settings().database_url)
+config.set_main_option('sqlalchemy.url', CNF.DATABASE_URL)
 
 target_metadata = md.Base.metadata
 

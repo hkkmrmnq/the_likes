@@ -10,8 +10,8 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from .. import constants as cnst
 from .. import exceptions as exc
+from ..config import constants as CNST
 from ..context import get_current_language
 from .base import BaseWithIntPK
 
@@ -35,7 +35,7 @@ def _translate_attribute(self: 'ValueTitle | Aspect | Attitude'):
     if current_frame is None or current_frame.f_back is None:
         raise exc.ServerError('current_frame / current_frame.f_back is None')
     attr_name = current_frame.f_back.f_code.co_name
-    if lan_code != cnst.LANGUAGE_DEFAULT and self.translations:
+    if lan_code != CNST.LANGUAGE_DEFAULT and self.translations:
         for translation in self.translations:
             if translation.language_code == lan_code:
                 return getattr(translation, attr_name)
@@ -44,7 +44,7 @@ def _translate_attribute(self: 'ValueTitle | Aspect | Attitude'):
 
 class ValueTitle(BaseWithIntPK):
     name_default: Mapped[str] = mapped_column(
-        String(cnst.VALUE_NAME_MAX_LENGTH), unique=True, nullable=False
+        String(CNST.VALUE_NAME_MAX_LENGTH), unique=True, nullable=False
     )
     aspects: Mapped[list['Aspect']] = relationship(
         'Aspect', back_populates='value_title', cascade='all, delete-orphan'
@@ -73,10 +73,10 @@ class ValueTitle(BaseWithIntPK):
 
 class Aspect(BaseWithIntPK):
     key_phrase_default: Mapped[str] = mapped_column(
-        String(cnst.SUBDEF_KEY_PHRASE_MAXLENGTH), nullable=False
+        String(CNST.SUBDEF_KEY_PHRASE_MAXLENGTH), nullable=False
     )
     statement_default: Mapped[str] = mapped_column(
-        String(cnst.SUBDEF_STATEMENT_MAX_LENGTH), nullable=False
+        String(CNST.SUBDEF_STATEMENT_MAX_LENGTH), nullable=False
     )
     value_title_id: Mapped[int] = mapped_column(
         ForeignKey('valuetitles.id', ondelete='CASCADE')
@@ -144,7 +144,7 @@ class UniqueValue(BaseWithIntPK):
 
 class Attitude(BaseWithIntPK):
     statement_default: Mapped[str] = mapped_column(
-        String(cnst.ATTITUDE_TEXT_MAX_LENGTH), unique=True
+        String(CNST.ATTITUDE_TEXT_MAX_LENGTH), unique=True
     )
     profiles: Mapped[list['Profile']] = relationship(
         'Profile', back_populates='attitude'

@@ -14,7 +14,7 @@ from fastapi_users_db_sqlalchemy.generics import GUID
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
-from src import constants as cnst
+from src.config import constants as CNST
 
 revision: str = '2f1b871fb490'
 down_revision: Union[str, Sequence[str], None] = None
@@ -417,7 +417,7 @@ def upgrade() -> None:
                 'cardinality(good_uv_ids) + cardinality(neutral_uv_ids) + '
                 'cardinality(bad_uv_ids) + cardinality(worst_uv_ids)'
                 ')'
-                f' = {cnst.UNIQUE_VALUE_MAX_ORDER + 1}'
+                f' = {CNST.UNIQUE_VALUE_MAX_ORDER + 1}'
             ),
             name='check_total_uvs_number',
         ),
@@ -425,7 +425,7 @@ def upgrade() -> None:
             (
                 '('
                 'cardinality(attitude_id_and_best_uv_ids)'
-                f' = {cnst.NUMBER_OF_BEST_UVS + 1}'
+                f' = {CNST.NUMBER_OF_BEST_UVS + 1}'
                 ')'
                 ' OR '
                 '(cardinality(good_uv_ids) = 0)'
@@ -436,7 +436,7 @@ def upgrade() -> None:
             (
                 '('
                 'cardinality(worst_uv_ids) = '
-                f'{cnst.NUMBER_OF_WORST_UVS}'
+                f'{CNST.NUMBER_OF_WORST_UVS}'
                 ')'
                 ' OR '
                 '(cardinality(bad_uv_ids) = 0)'
@@ -446,7 +446,7 @@ def upgrade() -> None:
         sa.CheckConstraint(
             (
                 'distance_limit IS NULL OR (distance_limit > 0'
-                f' AND distance_limit <= {cnst.DISTANCE_MAX_LIMIT})'
+                f' AND distance_limit <= {CNST.DISTANCE_MAX_LIMIT})'
             ),
             name='check_min_max_distance_limit_if_not_null',
         ),

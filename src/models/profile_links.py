@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .. import constants as cnst
+from ..config import constants as CNST
 from .base import Base, BaseWithIntPK
 
 if TYPE_CHECKING:
@@ -74,11 +74,11 @@ class ProfileValueLink(BaseWithIntPK):
     )
     __table_args__ = (
         CheckConstraint(
-            f'user_order <= {cnst.UNIQUE_VALUE_MAX_ORDER}',
+            f'user_order <= {CNST.UNIQUE_VALUE_MAX_ORDER}',
             name='max_user_order',
         ),
         CheckConstraint(
-            f'user_order >= {cnst.UNIQUE_VALUE_MIN_ORDER}',
+            f'user_order >= {CNST.UNIQUE_VALUE_MIN_ORDER}',
             name='min_user_order',
         ),
         UniqueConstraint(

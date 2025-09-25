@@ -11,15 +11,11 @@ from fastapi_users import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from zxcvbn import zxcvbn
 
-from .. import constants as cnst
 from .. import models as md
 from .. import schemas as sch
 from .. import services as srv
-from ..config import get_settings
-
-EMAIL_APP_EMAIL = get_settings().email_app_email
-# EMAIL_APP_NAME = get_settings().email_app_name
-EMAIL_APP_PASSWORD = get_settings().email_app_password
+from ..config import CNF
+from ..config import constants as CNST
 
 
 async def send_email(email_to: str, subject: str, content: str) -> None:
@@ -28,7 +24,7 @@ async def send_email(email_to: str, subject: str, content: str) -> None:
 
 # async def send_email(email_to: str, subject: str, content: str) -> None:
 #     message = EmailMessage()
-#     message['From'] = EMAIL_APP_EMAIL
+#     message['From'] = CNF.EMAIL_APP_EMAIL
 #     message['To'] = email_to
 #     message['Subject'] = subject
 #     message.set_content(content)
@@ -37,12 +33,12 @@ async def send_email(email_to: str, subject: str, content: str) -> None:
 #         message,
 #         hostname=SMTP_SERVER,
 #         port=SMTP_PORT,
-#         username=EMAIL_APP_EMAIL,
-#         password=EMAIL_APP_PASSWORD,
+#         username=CNF.EMAIL_APP_EMAIL,
+#         password=CNF.EMAIL_APP_PASSWORD,
 #     )
 
 
-async def is_password_pwned_async(password: str) -> bool | None:
+async def is_password_pwned(password: str) -> bool | None:
     """
     Returns:
         True if password was pwned.
@@ -70,8 +66,8 @@ async def is_password_pwned_async(password: str) -> bool | None:
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
-    reset_password_token_secret = get_settings().reset_password_token_secret
-    verification_token_secret = get_settings().verification_token_secret
+    reset_password_token_secret = CNF.RESET_PASSWORD_TOKEN_SECRET
+    verification_token_secret = CNF.VERIFICATION_TOKEN_SECRET
 
     async def on_after_register(
         self, user: md.User, request: Request | None = None
@@ -92,7 +88,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
         :param request: Optional FastAPI request that
         triggered the operation, defaults to None.
         """
-        link = f'https://{cnst.APP_DOMAIN}/verify-email?token={token}'
+        link = f'https://{CNST.APP_DOMAIN}/verify-email?token={token}'
         await send_email(
             user.email,
             'Welcome to APPNAME!',
@@ -124,7 +120,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
         :param request: Optional FastAPI request that
         triggered the operation, defaults to None.
         """
-        link = f'https://{cnst.APP_DOMAIN}/reset-password?token={token}'
+        link = f'https://{CNST.APP_DOMAIN}/reset-password?token={token}'
         await send_email(
             user.email,
             'Password reset requested.',
@@ -160,11 +156,11 @@ class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
             user_inputs=[user.email],
         )
 
-        if result['score'] < cnst.PASSWORD_MIN_SCORE:
+        if result['score'] < CNST.PASSWORD_MIN_SCORE:
             raise InvalidPasswordException(
                 f'Password too weak: {result["feedback"]["suggestions"]}'
             )
-        is_pwned = await is_password_pwned_async(password)
+        is_pwned = await is_password_pwned(password)
         if is_pwned:
             raise InvalidPasswordException(
                 (

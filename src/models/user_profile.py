@@ -14,8 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .. import constants as cnst
-from ..constants import SUPPORTED_LANGUAGES as sl
+from ..config import constants as CNST
 from .base import Base, BaseWithIntPK
 
 if TYPE_CHECKING:
@@ -77,10 +76,10 @@ class Profile(BaseWithIntPK):
         Integer, nullable=True, default=None
     )
     name: Mapped[str | None] = mapped_column(
-        String(cnst.USER_NAME_MAX_LENGTH), nullable=True, default=None
+        String(CNST.USER_NAME_MAX_LENGTH), nullable=True, default=None
     )
     avatar: Mapped[HttpUrl | None] = mapped_column(
-        String(cnst.URL_MAX_LENGTH), default=None
+        String(CNST.URL_MAX_LENGTH), default=None
     )
     value_links: Mapped[list['ProfileValueLink']] = relationship(
         'ProfileValueLink',
@@ -131,10 +130,10 @@ class Profile(BaseWithIntPK):
     )
     __table_args__ = (
         CheckConstraint(
-            f'languages <@ ARRAY[{", ".join(f"'{c}'" for c in sl)}]::varchar[]'
+            f'languages <@ ARRAY[{", ".join(f"'{c}'" for c in CNST.SUPPORTED_LANGUAGES)}]::varchar[]'  # noqa
         ),
         CheckConstraint('distance_limit > 0'),
-        CheckConstraint(f'distance_limit <= {cnst.DISTANCE_MAX_LIMIT}'),
+        CheckConstraint(f'distance_limit <= {CNST.DISTANCE_MAX_LIMIT}'),
     )
 
 
@@ -191,7 +190,7 @@ class PVOneLine(BaseWithIntPK):
         CheckConstraint(  # if no positive UVs
             (
                 '(cardinality(attitude_id_and_best_uv_ids)'
-                f' = {cnst.NUMBER_OF_BEST_UVS + 1})'
+                f' = {CNST.NUMBER_OF_BEST_UVS + 1})'
                 ' OR cardinality(good_uv_ids) = 0'
             ),
             name='check_positive_consistency',
@@ -199,7 +198,7 @@ class PVOneLine(BaseWithIntPK):
         CheckConstraint(  # if no negative UVs
             (
                 '(cardinality(worst_uv_ids)'
-                f' = {cnst.NUMBER_OF_WORST_UVS})'
+                f' = {CNST.NUMBER_OF_WORST_UVS})'
                 ' OR cardinality(bad_uv_ids) = 0'
             ),
             name='check_negative_consistency',
@@ -211,14 +210,14 @@ class PVOneLine(BaseWithIntPK):
                 ' + cardinality(neutral_uv_ids)'
                 ' + cardinality(bad_uv_ids)'
                 ' + cardinality(worst_uv_ids))'
-                f' = {cnst.UNIQUE_VALUE_MAX_ORDER + 1}'
+                f' = {CNST.UNIQUE_VALUE_MAX_ORDER + 1}'
             ),
             name='check_total_uvs_number',
         ),
         CheckConstraint(
             (
                 'distance_limit IS NULL OR (distance_limit > 0 AND'
-                f' distance_limit <= {cnst.DISTANCE_MAX_LIMIT})'
+                f' distance_limit <= {CNST.DISTANCE_MAX_LIMIT})'
             ),
             name='check_min_max_distance_limit_if_not_null',
         ),

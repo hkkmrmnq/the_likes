@@ -10,14 +10,13 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src import constants as cnst
 from src import models as md
 from src import schemas as sch
-from src.config import get_settings
+from src.config import CNF
+from src.config import constants as CNST
 from src.services.user_manager import UserManager
 
-DATABASE_URL = get_settings().database_url
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(CNF.DATABASE_URL, echo=True)
 async_session_maker = async_sessionmaker(
     engine,
     expire_on_commit=False,
@@ -104,7 +103,7 @@ async def _create_value_translation_objects(
         result = await session.scalars(select(md.ValueTitle))
         vn_mapped = {vn.name: vn.id for vn in result.all()}
         for row in sheet.itertuples():
-            name_en = getattr(row, cnst.LANGUAGE_DEFAULT)
+            name_en = getattr(row, CNST.LANGUAGE_DEFAULT)
             translation = md.ValueTitleTranslation(
                 language_code=lan_code,
                 name=getattr(row, lan_code),
@@ -140,7 +139,7 @@ async def _create_attitude_translation_objects(
     attitude_ids = {a.statement: a.id for a in attitudes}
     for lan_code in lan_codes:
         for row in sheet.itertuples():
-            statement_en = getattr(row, cnst.LANGUAGE_DEFAULT)
+            statement_en = getattr(row, CNST.LANGUAGE_DEFAULT)
             translations.append(
                 md.AttitudeTranslation(
                     attitude_id=attitude_ids[statement_en],
@@ -152,7 +151,7 @@ async def _create_attitude_translation_objects(
 
 
 async def _add_data_to_db() -> None:
-    all_sheets = read_excel(get_settings().basic_data_path, sheet_name=None)
+    all_sheets = read_excel(CNF.BASIC_DATA_PATH, sheet_name=None)
     async with async_session_maker() as session:
         result = await session.scalar(select(md.ValueTitle).limit(1))
         assert result is None, (
@@ -171,7 +170,7 @@ async def _add_data_to_db() -> None:
         session.add_all(uvsls)
         session.add_all(uvs)
         lan_codes = [
-            c for c in cnst.SUPPORTED_LANGUAGES if c != cnst.LANGUAGE_DEFAULT
+            c for c in CNST.SUPPORTED_LANGUAGES if c != CNST.LANGUAGE_DEFAULT
         ]
         vn_translations = await _create_value_translation_objects(
             all_sheets['Values'], lan_codes, session

@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from .. import constants as cnst
+from ..config import constants as CNST
 
 
 class ProfileAspectLinkRead(BaseModel):
@@ -35,7 +35,7 @@ class ProfileValueLinkCreate(BaseModel):
     value_title_id: int
     polarity: Literal['positive', 'negative', 'neutral']
     user_order: int = Field(
-        ge=cnst.UNIQUE_VALUE_MIN_ORDER, le=cnst.UNIQUE_VALUE_MAX_ORDER
+        ge=CNST.UNIQUE_VALUE_MIN_ORDER, le=CNST.UNIQUE_VALUE_MAX_ORDER
     )
     aspects: list['ProfileAspectLinkCreate']
 

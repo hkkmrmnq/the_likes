@@ -14,7 +14,7 @@ from pydantic import (
 )
 from pydantic_extra_types.coordinate import Latitude, Longitude
 
-from .. import constants as cnst
+from ..config import constants as CNST
 
 
 class UserRead(schemas.BaseUser[UUID]):
@@ -27,24 +27,24 @@ class UserRead(schemas.BaseUser[UUID]):
 
 class UserCreate(schemas.BaseUserCreate):
     email: EmailStr = Field(
-        max_length=cnst.EMAIL_MAX_LENGTH, examples=['johndoe@example.com']
+        max_length=CNST.EMAIL_MAX_LENGTH, examples=['johndoe@example.com']
     )
     password: str = Field(
-        min_length=cnst.PASSWORD_MIN_LENGTH,
-        max_length=cnst.PASSWORD_MAX_LENGTH,
+        min_length=CNST.PASSWORD_MIN_LENGTH,
+        max_length=CNST.PASSWORD_MAX_LENGTH,
         examples=['z2t6KUyJu3QB'],
     )
 
 
 class UserUpdate(schemas.BaseUserUpdate):
     email: EmailStr | None = Field(
-        max_length=cnst.EMAIL_MAX_LENGTH,
+        max_length=CNST.EMAIL_MAX_LENGTH,
         examples=['johndoe@example.com'],
         default=None,
     )
     password: str | None = Field(
-        min_length=cnst.PASSWORD_MIN_LENGTH,
-        max_length=cnst.PASSWORD_MAX_LENGTH,
+        min_length=CNST.PASSWORD_MIN_LENGTH,
+        max_length=CNST.PASSWORD_MAX_LENGTH,
         examples=['z2t6KUyJu3QB'],
         default=None,
     )
@@ -82,7 +82,7 @@ class ComputedLocationMixin(BaseModel):
 
 
 class AvatarFieldMixin(BaseModel):
-    avatar: HttpUrl | None = Field(max_length=cnst.URL_MAX_LENGTH)
+    avatar: HttpUrl | None = Field(max_length=CNST.URL_MAX_LENGTH)
 
     @field_serializer('avatar')
     def serialize_avatar(self, avatar: HttpUrl | None) -> str | None:
@@ -91,15 +91,15 @@ class AvatarFieldMixin(BaseModel):
 
 class ProfileUpdate(AvatarFieldMixin, ComputedLocationMixin):
     name: str | None = Field(
-        max_length=cnst.USER_NAME_MAX_LENGTH,
+        max_length=CNST.USER_NAME_MAX_LENGTH,
         examples=['John Doe'],
     )
-    distance_limit: int | None = Field(gt=0, le=cnst.DISTANCE_MAX_LIMIT)
+    distance_limit: int | None = Field(gt=0, le=CNST.DISTANCE_MAX_LIMIT)
     languages: list[str]
 
     @field_validator('languages', mode='after')
     def validate_languages(cls, languages):
-        wrong = set(languages) - set(cnst.SUPPORTED_LANGUAGES)
+        wrong = set(languages) - set(CNST.SUPPORTED_LANGUAGES)
         if len(wrong) > 0:
             raise ValidationError(
                 f'Incorrect language(s): {", ".join([lang for lang in wrong])}'

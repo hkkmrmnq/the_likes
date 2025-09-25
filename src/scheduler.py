@@ -3,7 +3,7 @@ import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from . import constants as cnst
+from .config import constants as CNST
 from .crud import sql
 
 
@@ -45,7 +45,7 @@ def start_scheduler(session_factory) -> AsyncIOScheduler:
         refresh_sim_scores_n_recommendations,
         args=[session_factory],
         trigger=IntervalTrigger(
-            hours=cnst.RECOMMENDATIONS_UPDATE_INTERVAL_HOURS
+            hours=CNST.RECOMMENDATIONS_UPDATE_INTERVAL_HOURS
         ),
         id='refresh_similarity_scores',
         name='Refresh similarity_scores materialized view',

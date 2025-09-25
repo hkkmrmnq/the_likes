@@ -10,7 +10,7 @@ from ..models.core import Attitude, ValueTitle
 from ..models.user_profile import Profile, User
 
 
-def is_active_verified(user: User) -> None:
+async def is_active_verified(user: User) -> None:
     if not user.is_active:
         raise exc.InactiveUser
     if not user.is_verified:
@@ -20,7 +20,7 @@ def is_active_verified(user: User) -> None:
 async def read_definitions(
     user: User, lan_code: str, session: AsyncSession
 ) -> Sequence[ValueTitle]:
-    is_active_verified(user)
+    await is_active_verified(user)
     set_current_language(lan_code)
     definitions = await crud.read_definitions(lan_code, session)
     return definitions
@@ -29,7 +29,7 @@ async def read_definitions(
 async def read_attitudes(
     user: User, lan_code: str, session: AsyncSession
 ) -> Sequence[Attitude]:
-    is_active_verified(user)
+    await is_active_verified(user)
     set_current_language(lan_code)
     attitudes = await crud.read_attitudes(lan_code, session)
     return attitudes
@@ -39,7 +39,7 @@ async def create_profile(
     user: User,
     session: AsyncSession,
 ) -> None:
-    crud.create_profile(user, session)
+    await crud.create_profile(user, session)
     await session.commit()
 
 
@@ -48,7 +48,7 @@ async def read_profile(
     lan_code: str,
     session: AsyncSession,
 ) -> Profile:
-    is_active_verified(user)
+    await is_active_verified(user)
     profile = await crud.read_profile_by_user(user, lan_code, session)
     return profile
 
@@ -56,7 +56,7 @@ async def read_profile(
 async def update_profile(
     user: User, lan_code: str, schema: sch.ProfileUpdate, session: AsyncSession
 ) -> Profile | None:
-    is_active_verified(user)
+    await is_active_verified(user)
     profile = await crud.read_profile_by_user(user, lan_code, session)
     data = schema.model_dump(exclude={'longitude', 'latitude'})
     if all(

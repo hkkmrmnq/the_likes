@@ -5,13 +5,13 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from .. import constants as cnst
 from .. import models as md
 from .. import schemas as sch
+from ..config import constants as CNST
 from ..exceptions import exceptions as exc
 
 
-def create_profile(
+async def create_profile(
     user: md.User,
     session: AsyncSession,
 ) -> None:
@@ -22,7 +22,7 @@ async def read_profile_by_user(
     user: md.User, lan_code: str, session: AsyncSession
 ) -> md.Profile:
     options = joinedload(md.Profile.attitude)
-    if lan_code != cnst.LANGUAGE_DEFAULT:
+    if lan_code != CNST.LANGUAGE_DEFAULT:
         options = options.joinedload(md.Attitude.translations)
     stmt = (
         select(md.Profile)
@@ -62,7 +62,7 @@ async def update_profile(
 async def read_definitions(
     lan_code: str, session: AsyncSession
 ) -> list[md.ValueTitle]:
-    if lan_code == cnst.LANGUAGE_DEFAULT:
+    if lan_code == CNST.LANGUAGE_DEFAULT:
         stmt = select(md.ValueTitle).options(joinedload(md.ValueTitle.aspects))
     else:
         stmt = select(md.ValueTitle).options(
@@ -82,7 +82,7 @@ async def read_attitudes(
     lan_code: str, session: AsyncSession
 ) -> list[md.Attitude]:
     stmt = select(md.Attitude)
-    if lan_code != cnst.LANGUAGE_DEFAULT:
+    if lan_code != CNST.LANGUAGE_DEFAULT:
         stmt = stmt.options(joinedload(md.Attitude.translations))
     result = await session.scalars(stmt)
     attitudes = list(result.unique().all())

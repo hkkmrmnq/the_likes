@@ -10,8 +10,8 @@ from fastapi_users.authentication.authenticator import Authenticator
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import constants as cnst
-from .config import get_settings
+from .config import CNF
+from .config import constants as CNST
 from .db import session_factory
 from .models import User
 from .services.user_manager import UserManager
@@ -27,8 +27,8 @@ bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
 
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(
-        secret=get_settings().jwt_secret,
-        lifetime_seconds=get_settings().jwt_access_lifetime,
+        secret=CNF.JWT_SECRET,
+        lifetime_seconds=CNF.JWT_ACCESS_LIFETIME,
     )
 
 
@@ -60,7 +60,7 @@ def with_common_responses(
     extra_responses: dict[int, dict[str, str]] = {},
 ) -> dict[int | str, dict[str, Any]] | None:
     """Dependency that adds common responses to endpoints."""
-    needed_responces = {k: cnst.COMMON_RESPONSES[k] for k in codes}
+    needed_responces = {k: CNST.COMMON_RESPONSES[k] for k in codes}
     return {**needed_responces, **extra_responses}
 
 
@@ -71,10 +71,10 @@ def get_language(
 ) -> str:
     """Dependency to extract and validate language."""
     if not accept_language:
-        return cnst.LANGUAGE_DEFAULT
+        return CNST.LANGUAGE_DEFAULT
     language = accept_language.split(',')[0][:2].lower()
     return (
         language
-        if language in cnst.SUPPORTED_LANGUAGES
-        else cnst.LANGUAGE_DEFAULT
+        if language in CNST.SUPPORTED_LANGUAGES
+        else CNST.LANGUAGE_DEFAULT
     )

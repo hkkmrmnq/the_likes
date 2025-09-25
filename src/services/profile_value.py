@@ -1,10 +1,10 @@
 from async_lru import alru_cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import constants as cnst
 from .. import crud
 from .. import models as md
 from .. import schemas as sch
+from ..config import constants as CNST
 from ..context import set_current_language
 from ..exceptions import exceptions as exc
 from .core_n_profile import is_active_verified, read_profile
@@ -21,7 +21,7 @@ async def profile_values_exist(
 async def read_profile_values(
     user: md.User, lan_code: str, session: AsyncSession
 ) -> sch.ProfileValuesRead:
-    is_active_verified(user)
+    await is_active_verified(user)
     set_current_language(lan_code)
     profile = await read_profile(user, lan_code, session)
     if not await profile_values_exist(profile, session):
@@ -37,7 +37,7 @@ async def get_structure_for_profile_values_input(
     session: AsyncSession,
 ) -> dict[int, set]:
     expected_structure = {}
-    definitions = await crud.read_definitions(cnst.LANGUAGE_DEFAULT, session)
+    definitions = await crud.read_definitions(CNST.LANGUAGE_DEFAULT, session)
     for vn in definitions:
         expected_structure[vn.id] = set([a.id for a in vn.aspects])
     return expected_structure
@@ -55,7 +55,7 @@ async def check_profile_values_input(
     if not poalrity_consistent:
         raise exc.IncorrectBodyStructure('Inconsistent polarity/user_order.')
     expected_attitudes = await crud.read_attitudes(
-        cnst.LANGUAGE_DEFAULT, session
+        CNST.LANGUAGE_DEFAULT, session
     )
     expected_attitude_ids = [attitude.id for attitude in expected_attitudes]
     if data.attitude_id not in expected_attitude_ids:
@@ -93,7 +93,7 @@ async def create_profile_values(
     data: sch.ProfileValuesCreateUpdate,
     session: AsyncSession,
 ) -> sch.ProfileValuesRead:
-    is_active_verified(user)
+    await is_active_verified(user)
     profile = await read_profile(user, lan_code, session)
     if await profile_values_exist(profile, session):
         raise exc.AlreadyExists('Profile values are already set.')
@@ -125,7 +125,7 @@ async def update_profile_values(
     data: sch.ProfileValuesCreateUpdate,
     session: AsyncSession,
 ) -> sch.ProfileValuesRead:
-    is_active_verified(user)
+    await is_active_verified(user)
     profile = await read_profile(user, lan_code, session)
     if not await profile_values_exist(profile, session):
         raise exc.NotFound('Profile values have not yet been set.')

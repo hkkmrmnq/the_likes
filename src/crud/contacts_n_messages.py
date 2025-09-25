@@ -4,9 +4,9 @@ from sqlalchemy import func, not_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from .. import constants as cnst
 from .. import models as md
 from .. import schemas as sch
+from ..config import constants as CNST
 from ..exceptions import exceptions as exc
 from . import sql
 
@@ -104,7 +104,7 @@ async def read_contacts(
     return schema
 
 
-def create_contact_pair(
+async def create_contact_pair(
     me_profile: md.Profile,
     target_profile: md.Profile,
     recommendation: sch.RecomendationRead,
@@ -183,7 +183,7 @@ async def read_contact_pair(
     )
 
 
-def create_message(
+async def create_message(
     *,
     sender_id: UUID,
     sender_profile_id: int,
@@ -226,7 +226,7 @@ async def get_messages(
     *,
     me_user: md.User,
     contact_user_id: UUID,
-    limit: int | None = cnst.MESSAGES_HISTORY_LENGTH_DEFAULT,
+    limit: int | None = CNST.MESSAGES_HISTORY_LENGTH_DEFAULT,
     session: AsyncSession,
 ) -> list[sch.MessageRead]:
     await session.execute(

@@ -3,8 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-from .. import constants as cnst
-from ..constants import ContactStatus
+from ..config import constants as CNST
 
 
 class RecomendationRead(BaseModel):
@@ -29,7 +28,7 @@ class RecomendationRead(BaseModel):
 
 class ContactRead(BaseModel):
     name: str | None
-    status: ContactStatus
+    status: CNST.ContactStatus
     similarity_score: float
     distance: float | None
     me_ready_to_start: bool
@@ -65,7 +64,7 @@ class UnreadMessagesTotalCount(BaseModel):
 
 class MessageCreate(BaseModel):
     receiver_id: UUID
-    content: str = Field(max_length=cnst.MESSAGE_MAX_LENGTH)
+    content: str = Field(max_length=CNST.MESSAGE_MAX_LENGTH)
 
 
 class MessageRead(BaseModel):
@@ -74,7 +73,7 @@ class MessageRead(BaseModel):
     sender_name: str | None
     receiver_id: UUID
     receiver_name: str | None
-    content: str = Field(max_length=cnst.MESSAGE_MAX_LENGTH)
+    content: str = Field(max_length=CNST.MESSAGE_MAX_LENGTH)
     created_at: datetime
 
     class Config:
