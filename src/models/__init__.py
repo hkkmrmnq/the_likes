@@ -11,4 +11,4 @@ from .translations import (  ## noqa
     AttitudeTranslation,
     ValueTitleTranslation,
 )
-from .user_profile import Profile, PVOneLine, User  ## noqa
+from .user_profile import Profile, User  # noqa PVOneLine,

@@ -14,8 +14,7 @@ async def profile_values_exist(
     profile: md.Profile, session: AsyncSession
 ) -> bool:
     pvl_count = await crud.count_profile_value_links(profile, session)
-    pv_onelines_count = await crud.count_pv_onelines(profile, session)
-    return bool(pvl_count + pv_onelines_count)
+    return bool(pvl_count)
 
 
 async def read_profile_values(
@@ -98,15 +97,7 @@ async def create_profile_values(
     if await profile_values_exist(profile, session):
         raise exc.AlreadyExists('Profile values are already set.')
     await check_profile_values_input(data, session)
-    new_value_links = await crud.create_profile_value_links(
-        profile, data, session
-    )
-    await crud.add_pv_oneline(
-        attitude_id=data.attitude_id,
-        distance_limit=profile.distance_limit,
-        profile_values_links=new_value_links,
-        session=session,
-    )
+    await crud.create_profile_value_links(profile, data, session)
     await crud.update_profile(user, {'attitude_id': data.attitude_id}, session)
     await session.commit()
     await session.refresh(profile)
@@ -131,16 +122,7 @@ async def update_profile_values(
         raise exc.NotFound('Profile values have not yet been set.')
     await check_profile_values_input(data, session)
     await crud.delete_profile_value_links(profile, session)
-    await crud.delete_pv_oneline(profile.id, session)
-    new_value_links = await crud.create_profile_value_links(
-        profile, data, session
-    )
-    await crud.add_pv_oneline(
-        attitude_id=data.attitude_id,
-        distance_limit=profile.distance_limit,
-        profile_values_links=new_value_links,
-        session=session,
-    )
+    await crud.create_profile_value_links(profile, data, session)
     await crud.update_profile(user, {'attitude_id': data.attitude_id}, session)
     await session.commit()
     await session.refresh(profile)

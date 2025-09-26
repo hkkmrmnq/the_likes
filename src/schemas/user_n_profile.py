@@ -94,7 +94,7 @@ class ProfileUpdate(AvatarFieldMixin, ComputedLocationMixin):
         max_length=CNST.USER_NAME_MAX_LENGTH,
         examples=['John Doe'],
     )
-    distance_limit: int | None = Field(gt=0, le=CNST.DISTANCE_MAX_LIMIT)
+    distance_limit: int | None = Field(gt=0, le=CNST.DISTANCE_LIMIT_MAX)
     languages: list[str]
 
     @field_validator('languages', mode='after')

@@ -2,8 +2,93 @@ from sqlalchemy import text
 
 from ..config import constants as CNST
 
-create_func_array_intersect = text("""
-CREATE OR REPLACE FUNCTION array_intersect(arr1 ANYARRAY, arr2 ANYARRAY)
+prepare_pv_aggregated: list[str] = [
+    """
+CREATE MATERIALIZED VIEW pv_aggregated AS
+SELECT
+p.id AS profile_id,
+p.distance_limit,
+p.attitude_id,
+
+ARRAY(
+    SELECT pvl.unique_value_id
+    FROM profilevaluelinks pvl
+    WHERE pvl.profile_id = p.id
+    AND pvl.polarity = 'positive'
+    AND pvl.user_order < 3
+    ORDER BY pvl.user_order
+) AS best_uv_ids,
+
+ARRAY(
+    SELECT pvl.unique_value_id
+    FROM profilevaluelinks pvl
+    WHERE pvl.profile_id = p.id
+    AND pvl.polarity = 'positive'
+    AND pvl.user_order > 2
+    ORDER BY pvl.user_order
+) AS good_uv_ids,
+
+ARRAY(
+    SELECT pvl.unique_value_id
+    FROM profilevaluelinks pvl
+    WHERE pvl.profile_id = p.id
+    AND pvl.polarity = 'neutral'
+    ORDER BY pvl.user_order
+) AS neutral_uv_ids,
+
+ARRAY(
+    SELECT pvl.unique_value_id
+    FROM profilevaluelinks pvl
+    WHERE pvl.profile_id = p.id
+    AND pvl.polarity = 'negative'
+    AND pvl.user_order < 10
+    ORDER BY pvl.user_order
+) AS bad_uv_ids,
+
+ARRAY(
+    SELECT pvl.unique_value_id
+    FROM profilevaluelinks pvl
+    WHERE pvl.profile_id = p.id
+    AND pvl.polarity = 'negative'
+    AND pvl.user_order > 9
+    ORDER BY pvl.user_order
+) AS worst_uv_ids
+
+FROM profiles p
+WHERE EXISTS (SELECT 1 FROM profilevaluelinks WHERE profile_id = p.id)
+""",
+    """
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pv_aggregated_profile_id_unique
+ON pv_aggregated (profile_id)
+""",
+    """
+CREATE INDEX IF NOT EXISTS idx_pv_aggregated_best_uv_ids
+ON pv_aggregated USING gin (best_uv_ids)
+""",
+    """
+CREATE INDEX IF NOT EXISTS idx_pv_aggregated_good_uv_ids
+ON pv_aggregated USING gin (good_uv_ids)
+""",
+    """
+CREATE INDEX IF NOT EXISTS idx_pv_aggregated_neutral_uv_ids
+ON pv_aggregated USING gin (neutral_uv_ids)
+""",
+    """
+CREATE INDEX IF NOT EXISTS idx_pv_aggregated_bad_uv_ids
+ON pv_aggregated USING gin (bad_uv_ids)
+""",
+    """
+CREATE INDEX IF NOT EXISTS idx_pv_aggregated_worst_uv_ids
+ON pv_aggregated USING gin (worst_uv_ids)
+""",
+]
+
+prepare_similarity_scores: list[str] = [
+    """
+DROP FUNCTION IF EXISTS array_intersect(arr1 ANYARRAY, arr2 ANYARRAY)
+""",
+    """
+CREATE FUNCTION array_intersect(arr1 ANYARRAY, arr2 ANYARRAY)
 RETURNS ANYARRAY AS $$
     SELECT ARRAY(
         SELECT UNNEST(arr1)
@@ -11,12 +96,12 @@ RETURNS ANYARRAY AS $$
         SELECT UNNEST(arr2)
     );
 $$ LANGUAGE sql
-""")
-
-
-create_func_array_jaccard_similarity = text("""
-CREATE OR REPLACE FUNCTION
-array_jaccard_similarity(arr1 ANYARRAY, arr2 ANYARRAY)
+    """,
+    """
+DROP FUNCTION IF EXISTS array_jaccard_similarity(arr1 ANYARRAY, arr2 ANYARRAY)
+""",
+    """
+CREATE FUNCTION array_jaccard_similarity(arr1 ANYARRAY, arr2 ANYARRAY)
 RETURNS FLOAT AS $$
 DECLARE
     intersection INT;
@@ -34,24 +119,19 @@ BEGIN
     END;
 END;
 $$ LANGUAGE plpgsql
-""")
-
-
-similarity_scores_exists = text("""
-SELECT EXISTS (
-    SELECT 1 FROM pg_matviews
-    WHERE matviewname = 'similarity_scores'
-    )""")
-
-
-create_mat_view_similarity_scores = text(f"""
+    """,
+    f"""
 CREATE MATERIALIZED VIEW similarity_scores AS
 SELECT
     pv1.profile_id as profile1_id,
     pv2.profile_id as profile2_id,
     pv1.distance_limit as profile1_distance_limit,
     pv2.distance_limit as profile2_distance_limit,
-    0.35 +
+
+    CASE
+        WHEN pv1.best_uv_ids = pv2.best_uv_ids THEN 0.35
+        ELSE array_jaccard_similarity(pv1.best_uv_ids, pv2.best_uv_ids) * 0.2
+    END +
     CASE
         WHEN pv1.worst_uv_ids = pv2.worst_uv_ids THEN 0.35
         ELSE array_jaccard_similarity(pv1.worst_uv_ids, pv2.worst_uv_ids) * 0.2
@@ -60,6 +140,7 @@ SELECT
     array_jaccard_similarity(pv1.bad_uv_ids, pv2.bad_uv_ids) * 0.1 +
     array_jaccard_similarity(pv1.neutral_uv_ids, pv2.neutral_uv_ids) * 0.1
     as similarity_score,
+
     CASE
         WHEN p1.location IS NOT NULL AND p2.location IS NOT NULL
         THEN ST_Distance(p1.location::geography,
@@ -68,13 +149,14 @@ SELECT
     END as distance_meters,
     cardinality(array_intersect(p1.languages, p2.languages))
     as common_languages_count,
-    pv1.attitude_id_and_best_uv_ids as attitude_id_and_best_uv_ids
-FROM pvonelines pv1
-JOIN pvonelines pv2 ON pv1.id < pv2.id
+    pv1.attitude_id as attitude_id
+FROM pv_aggregated pv1
+JOIN pv_aggregated pv2 ON pv1.profile_id < pv2.profile_id
 JOIN profiles p1 ON pv1.profile_id = p1.id
 JOIN profiles p2 ON pv2.profile_id = p2.id
 WHERE
-    pv1.attitude_id_and_best_uv_ids = pv2.attitude_id_and_best_uv_ids
+    pv1.attitude_id = pv2.attitude_id
+    AND array_jaccard_similarity(pv1.best_uv_ids, pv2.best_uv_ids) = 1
     AND p1.languages && p2.languages
 AND (
         CASE
@@ -82,15 +164,47 @@ AND (
             THEN ST_Distance(p1.location::geography, p2.location::geography)
             ELSE 0.0
         END
-    ) <= COALESCE(pv1.distance_limit, {CNST.DISTANCE_MAX_LIMIT})::integer
+    ) <= COALESCE(pv1.distance_limit, {CNST.DISTANCE_LIMIT_MAX})::integer
     AND (
         CASE
             WHEN p1.location IS NOT NULL AND p2.location IS NOT NULL
             THEN ST_Distance(p1.location::geography, p2.location::geography)
             ELSE 0.0
         END
-    ) <= COALESCE(pv2.distance_limit, {CNST.DISTANCE_MAX_LIMIT})::integer;
+    ) <= COALESCE(pv2.distance_limit, {CNST.DISTANCE_LIMIT_MAX})::integer;
+""",
+    """
+CREATE UNIQUE INDEX idx_similarity_scores_unique
+ON similarity_scores (profile1_id, profile2_id)
+""",
+    """
+CREATE INDEX idx_similarity_scores_profile1
+ON similarity_scores (profile1_id)
+""",
+    """
+CREATE INDEX idx_similarity_scores_profile2
+ON similarity_scores (profile2_id)
+""",
+]
+
+
+mat_view_exists = text("""
+SELECT EXISTS (
+    SELECT 1 FROM pg_matviews
+    WHERE matviewname = :name
+    )""")
+
+
+refresh_mat_view_pv_aggregated = text("""
+REFRESH MATERIALIZED VIEW CONCURRENTLY pv_aggregated
 """)
+
+
+# similarity_scores_exists = text("""
+# SELECT EXISTS (
+#     SELECT 1 FROM pg_matviews
+#     WHERE matviewname = 'similarity_scores'
+#     )""")
 
 
 refresh_mat_view_similarity_scores = text("""
@@ -98,43 +212,29 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY similarity_scores
 """)
 
 
-create_unique_idx_similarity_scores = text("""
-CREATE UNIQUE INDEX idx_similarity_scores_unique
-ON similarity_scores (profile1_id, profile2_id)
-""")
-
-create_idx_similarity_scores_profile1 = text("""
-CREATE INDEX idx_similarity_scores_profile1
-ON similarity_scores (profile1_id)
-""")
-
-
-create_idx_similarity_scores_profile2 = text("""
-CREATE INDEX idx_similarity_scores_profile2
-ON similarity_scores (profile2_id)
-""")
-
-recommendations_exists = text("""
-SELECT EXISTS (
-    SELECT 1 FROM pg_matviews
-    WHERE matviewname = 'recommendations'
-    )""")
+# recommendations_exists = text("""
+# SELECT EXISTS (
+#     SELECT 1 FROM pg_matviews
+#     WHERE matviewname = 'recommendations'
+#     )""")
 
 
 refresh_mat_view_recommendations = text("""
 REFRESH MATERIALIZED VIEW CONCURRENTLY recommendations
 """)
 
-
-create_func_generate_recommendations = text("""
-CREATE OR REPLACE FUNCTION generate_recommendations()
+prepare_recommendations = [
+    """
+DROP FUNCTION IF EXISTS generate_recommendations()
+""",
+    """
+CREATE FUNCTION generate_recommendations()
 RETURNS TABLE (
     profile_id INTEGER,
     similar_profile_id INTEGER,
     distance_meters FLOAT,
     similarity_score FLOAT,
-    matched_at TIMESTAMP,
-    attitude_id_and_best_uv_ids INTEGER[]
+    matched_at TIMESTAMP
 ) AS $$
 DECLARE
     rec RECORD;
@@ -158,7 +258,6 @@ BEGIN
         distance_meters := rec.distance_meters;
         similarity_score := rec.similarity_score;
         matched_at := NOW();
-        attitude_id_and_best_uv_ids := rec.attitude_id_and_best_uv_ids;
         RETURN NEXT;
 
         profile_id := rec.profile2_id;
@@ -167,18 +266,16 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql
-""")
-
-create_mat_view_reccomendations = text("""
+""",
+    """
 CREATE MATERIALIZED VIEW recommendations AS
 SELECT * FROM generate_recommendations()
-""")
-
-
-create_unique_index_for_recommendations = text("""
+""",
+    """
 CREATE UNIQUE INDEX idx_recommendations_unique
 ON recommendations (profile_id)
-""")
+""",
+]
 
 
 read_recommendation = text("""

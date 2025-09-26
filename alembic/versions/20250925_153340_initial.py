@@ -1,8 +1,8 @@
 """Initial
 
-Revision ID: 2f1b871fb490
+Revision ID: 30cba0d844bf
 Revises:
-Create Date: 2025-09-23 17:13:08.960530
+Create Date: 2025-09-25 15:33:40.653228
 
 """
 
@@ -16,7 +16,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 from src.config import constants as CNST
 
-revision: str = '2f1b871fb490'
+revision: str = '30cba0d844bf'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -110,7 +110,11 @@ def upgrade() -> None:
     )
     op.create_table(
         'profiles',
-        sa.Column('user_id', GUID(), nullable=False),
+        sa.Column(
+            'user_id',
+            GUID(),
+            nullable=False,
+        ),
         sa.Column('attitude_id', sa.Integer(), nullable=True),
         sa.Column('languages', postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column(
@@ -140,8 +144,8 @@ def upgrade() -> None:
             server_default=sa.text('now()'),
             nullable=False,
         ),
-        sa.CheckConstraint("languages <@ ARRAY['en', 'ru']::varchar[]"),
-        sa.CheckConstraint('distance_limit <= 20037509'),
+        sa.CheckConstraint(CNST.LANGUAGES_CHECK_CONSTRAINT_TEXT),
+        sa.CheckConstraint(f'distance_limit <= {CNST.DISTANCE_LIMIT_MAX}'),
         sa.CheckConstraint('distance_limit > 0'),
         sa.ForeignKeyConstraint(
             ['attitude_id'], ['attitudes.id'], ondelete='SET NULL'
@@ -354,8 +358,12 @@ def upgrade() -> None:
             server_default=sa.text('now()'),
             nullable=False,
         ),
-        sa.CheckConstraint('user_order <= 11', name='max_user_order'),
-        sa.CheckConstraint('user_order >= 1', name='min_user_order'),
+        sa.CheckConstraint(
+            CNST.MAX_USER_ORDER_CONSTRAINT_TEXT, name='max_user_order'
+        ),
+        sa.CheckConstraint(
+            CNST.MIN_USER_ORDER_CONSTRAINT_TEXT, name='min_user_order'
+        ),
         sa.ForeignKeyConstraint(
             ['profile_id'], ['profiles.id'], ondelete='CASCADE'
         ),
@@ -375,121 +383,6 @@ def upgrade() -> None:
         'profilevaluelinks',
         ['profile_id', 'value_title_id', 'user_order'],
         unique=True,
-    )
-    op.create_table(
-        'pvonelines',
-        sa.Column('profile_id', sa.Integer(), nullable=False),
-        sa.Column('distance_limit', sa.Integer(), nullable=True),
-        sa.Column(
-            'attitude_id_and_best_uv_ids',
-            postgresql.ARRAY(sa.Integer()),
-            nullable=False,
-        ),
-        sa.Column(
-            'good_uv_ids', postgresql.ARRAY(sa.Integer()), nullable=False
-        ),
-        sa.Column(
-            'neutral_uv_ids', postgresql.ARRAY(sa.Integer()), nullable=False
-        ),
-        sa.Column(
-            'bad_uv_ids', postgresql.ARRAY(sa.Integer()), nullable=False
-        ),
-        sa.Column(
-            'worst_uv_ids', postgresql.ARRAY(sa.Integer()), nullable=False
-        ),
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column(
-            'created_at',
-            sa.DateTime(),
-            server_default=sa.text('now()'),
-            nullable=False,
-        ),
-        sa.Column(
-            'updated_at',
-            sa.DateTime(),
-            server_default=sa.text('now()'),
-            nullable=False,
-        ),
-        sa.CheckConstraint(
-            (
-                '('
-                'cardinality(attitude_id_and_best_uv_ids) + '
-                'cardinality(good_uv_ids) + cardinality(neutral_uv_ids) + '
-                'cardinality(bad_uv_ids) + cardinality(worst_uv_ids)'
-                ')'
-                f' = {CNST.UNIQUE_VALUE_MAX_ORDER + 1}'
-            ),
-            name='check_total_uvs_number',
-        ),
-        sa.CheckConstraint(
-            (
-                '('
-                'cardinality(attitude_id_and_best_uv_ids)'
-                f' = {CNST.NUMBER_OF_BEST_UVS + 1}'
-                ')'
-                ' OR '
-                '(cardinality(good_uv_ids) = 0)'
-            ),
-            name='check_positive_consistency',
-        ),
-        sa.CheckConstraint(
-            (
-                '('
-                'cardinality(worst_uv_ids) = '
-                f'{CNST.NUMBER_OF_WORST_UVS}'
-                ')'
-                ' OR '
-                '(cardinality(bad_uv_ids) = 0)'
-            ),
-            name='check_negative_consistency',
-        ),
-        sa.CheckConstraint(
-            (
-                'distance_limit IS NULL OR (distance_limit > 0'
-                f' AND distance_limit <= {CNST.DISTANCE_MAX_LIMIT})'
-            ),
-            name='check_min_max_distance_limit_if_not_null',
-        ),
-        sa.ForeignKeyConstraint(
-            ['profile_id'], ['profiles.id'], ondelete='CASCADE'
-        ),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('profile_id'),
-    )
-    op.create_index(
-        'ix_attitude_id_and_best_uv_ids',
-        'pvonelines',
-        ['attitude_id_and_best_uv_ids'],
-        unique=False,
-        postgresql_using='gin',
-    )
-    op.create_index(
-        'ix_bad_uv_ids',
-        'pvonelines',
-        ['bad_uv_ids'],
-        unique=False,
-        postgresql_using='gin',
-    )
-    op.create_index(
-        'ix_good_uv_ids',
-        'pvonelines',
-        ['good_uv_ids'],
-        unique=False,
-        postgresql_using='gin',
-    )
-    op.create_index(
-        'ix_neutral_uv_ids',
-        'pvonelines',
-        ['neutral_uv_ids'],
-        unique=False,
-        postgresql_using='gin',
-    )
-    op.create_index(
-        'ix_worst_uv_ids',
-        'pvonelines',
-        ['worst_uv_ids'],
-        unique=False,
-        postgresql_using='gin',
     )
     op.create_table(
         'aspecttranslations',
@@ -581,24 +474,6 @@ def downgrade() -> None:
     op.drop_table('uniquevalueaspectlinks')
     op.drop_table('profileaspectlinks')
     op.drop_table('aspecttranslations')
-    op.drop_index(
-        'ix_worst_uv_ids', table_name='pvonelines', postgresql_using='gin'
-    )
-    op.drop_index(
-        'ix_neutral_uv_ids', table_name='pvonelines', postgresql_using='gin'
-    )
-    op.drop_index(
-        'ix_good_uv_ids', table_name='pvonelines', postgresql_using='gin'
-    )
-    op.drop_index(
-        'ix_bad_uv_ids', table_name='pvonelines', postgresql_using='gin'
-    )
-    op.drop_index(
-        'ix_attitude_id_and_best_uv_ids',
-        table_name='pvonelines',
-        postgresql_using='gin',
-    )
-    op.drop_table('pvonelines')
     op.drop_index('unique_profile_value_order', table_name='profilevaluelinks')
     op.drop_table('profilevaluelinks')
     op.drop_table('messages')

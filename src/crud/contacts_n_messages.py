@@ -11,47 +11,6 @@ from ..exceptions import exceptions as exc
 from . import sql
 
 
-async def similarity_scores_exists(session: AsyncSession) -> bool:
-    """
-    Check if similarity_scores materialized view exists - returns True or False
-    """
-    result = await session.execute(sql.similarity_scores_exists)
-    return bool(result.scalar())
-
-
-async def create_similarity_scores(session: AsyncSession) -> None:
-    """
-    Creates needed functions for materialized view similarity_scores,
-    the materialized view similarity_scores itself
-    and indexes.
-    """
-    await session.execute(sql.create_func_array_intersect)
-    await session.execute(sql.create_func_array_jaccard_similarity)
-    await session.execute(sql.create_mat_view_similarity_scores)
-    await session.execute(sql.create_unique_idx_similarity_scores)
-    await session.execute(sql.create_idx_similarity_scores_profile1)
-    await session.execute(sql.create_idx_similarity_scores_profile2)
-
-
-async def recommendations_exists(session: AsyncSession) -> bool:
-    """
-    Check if recommendations materialized view exists - returns True or False
-    """
-    result = await session.execute(sql.recommendations_exists)
-    return bool(result.scalar())
-
-
-async def create_recommendations(session: AsyncSession) -> None:
-    """
-    Creates needed function for materialized view recommendations,
-    the materialized view recommendations itself
-    and index.
-    """
-    await session.execute(sql.create_func_generate_recommendations)
-    await session.execute(sql.create_mat_view_reccomendations)
-    await session.execute(sql.create_unique_index_for_recommendations)
-
-
 async def read_me_recommendation(
     profile: md.Profile, session: AsyncSession
 ) -> sch.RecomendationRead | None:

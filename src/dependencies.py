@@ -10,7 +10,7 @@ from fastapi_users.authentication.authenticator import Authenticator
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .config import CNF
+from .config import CFG
 from .config import constants as CNST
 from .db import session_factory
 from .models import User
@@ -27,8 +27,8 @@ bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
 
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(
-        secret=CNF.JWT_SECRET,
-        lifetime_seconds=CNF.JWT_ACCESS_LIFETIME,
+        secret=CFG.JWT_SECRET,
+        lifetime_seconds=CFG.JWT_ACCESS_LIFETIME,
     )
 
 

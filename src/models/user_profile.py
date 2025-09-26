@@ -7,7 +7,6 @@ from pydantic import HttpUrl
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
-    Index,
     Integer,
     String,
 )
@@ -99,11 +98,6 @@ class Profile(BaseWithIntPK):
         back_populates='profile',
         cascade='all, delete-orphan',
     )
-    values_agg: Mapped['PVOneLine'] = relationship(
-        'PVOneLine',
-        back_populates='profile',
-        cascade='all, delete-orphan',
-    )
     me_contacts: Mapped[list['Contact']] = relationship(
         'Contact',
         foreign_keys='Contact.me_profile_id',
@@ -129,96 +123,7 @@ class Profile(BaseWithIntPK):
         cascade='all, delete-orphan',
     )
     __table_args__ = (
-        CheckConstraint(
-            f'languages <@ ARRAY[{", ".join(f"'{c}'" for c in CNST.SUPPORTED_LANGUAGES)}]::varchar[]'  # noqa
-        ),
+        CheckConstraint(CNST.LANGUAGES_CHECK_CONSTRAINT_TEXT),
         CheckConstraint('distance_limit > 0'),
-        CheckConstraint(f'distance_limit <= {CNST.DISTANCE_MAX_LIMIT}'),
-    )
-
-
-class PVOneLine(BaseWithIntPK):
-    profile_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey('profiles.id', ondelete='CASCADE'),
-        unique=True,
-        nullable=False,
-    )
-    distance_limit: Mapped[int] = mapped_column(
-        Integer, nullable=True, default=None
-    )
-    attitude_id_and_best_uv_ids: Mapped[list[int]] = mapped_column(
-        ARRAY(Integer), nullable=False, default=[]
-    )
-    good_uv_ids: Mapped[list[int]] = mapped_column(
-        ARRAY(Integer), nullable=False, default=[]
-    )
-    neutral_uv_ids: Mapped[list[int]] = mapped_column(
-        ARRAY(Integer), nullable=False, default=[]
-    )
-    bad_uv_ids: Mapped[list[int]] = mapped_column(
-        ARRAY(Integer), nullable=False, default=[]
-    )
-    worst_uv_ids: Mapped[list[int]] = mapped_column(
-        ARRAY(Integer), nullable=False, default=[]
-    )
-    profile: Mapped[Profile] = relationship(
-        Profile, back_populates='values_agg'
-    )
-    __table_args__ = (
-        Index(
-            'ix_attitude_id_and_best_uv_ids',
-            attitude_id_and_best_uv_ids,
-            postgresql_using='gin',
-        ),
-        Index(
-            'ix_good_uv_ids',
-            good_uv_ids,
-            postgresql_using='gin',
-        ),
-        Index('ix_neutral_uv_ids', neutral_uv_ids, postgresql_using='gin'),
-        Index(
-            'ix_bad_uv_ids',
-            bad_uv_ids,
-            postgresql_using='gin',
-        ),
-        Index(
-            'ix_worst_uv_ids',
-            worst_uv_ids,
-            postgresql_using='gin',
-        ),
-        CheckConstraint(  # if no positive UVs
-            (
-                '(cardinality(attitude_id_and_best_uv_ids)'
-                f' = {CNST.NUMBER_OF_BEST_UVS + 1})'
-                ' OR cardinality(good_uv_ids) = 0'
-            ),
-            name='check_positive_consistency',
-        ),
-        CheckConstraint(  # if no negative UVs
-            (
-                '(cardinality(worst_uv_ids)'
-                f' = {CNST.NUMBER_OF_WORST_UVS})'
-                ' OR cardinality(bad_uv_ids) = 0'
-            ),
-            name='check_negative_consistency',
-        ),
-        CheckConstraint(
-            (
-                '(cardinality(attitude_id_and_best_uv_ids)'
-                ' + cardinality(good_uv_ids)'
-                ' + cardinality(neutral_uv_ids)'
-                ' + cardinality(bad_uv_ids)'
-                ' + cardinality(worst_uv_ids))'
-                f' = {CNST.UNIQUE_VALUE_MAX_ORDER + 1}'
-            ),
-            name='check_total_uvs_number',
-        ),
-        CheckConstraint(
-            (
-                'distance_limit IS NULL OR (distance_limit > 0 AND'
-                f' distance_limit <= {CNST.DISTANCE_MAX_LIMIT})'
-            ),
-            name='check_min_max_distance_limit_if_not_null',
-        ),
+        CheckConstraint(f'distance_limit <= {CNST.DISTANCE_LIMIT_MAX}'),
     )

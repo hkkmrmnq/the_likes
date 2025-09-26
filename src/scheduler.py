@@ -7,33 +7,23 @@ from .config import constants as CNST
 from .crud import sql
 
 
-async def refresh_sim_scores_n_recommendations(session_factory):
-    """
-    Task to refresh the similarity_scores and recommendations
+async def refresh_materialized_views(session_factory):
+    f"""
+    Task to refresh {', '.join(CNST.MATERIALIZED_VIEW_NAMES)}
     materialized views.
     """
 
-    try:
-        start_time = asyncio.get_event_loop().time()
-        async with session_factory() as session:
-            await session.execute(sql.refresh_mat_view_similarity_scores)
-            await session.commit()
+    for name in CNST.MATERIALIZED_VIEW_NAMES:
+        try:
+            start_time = asyncio.get_event_loop().time()
+            async with session_factory() as session:
+                await session.execute(getattr(sql, f'refresh_mat_view_{name}'))
+                await session.commit()
             duration = asyncio.get_event_loop().time() - start_time
-            print(f'similarity_scores refreshed in {duration}')
+            print(f'{name} refreshed in {duration}')
 
-    except Exception as e:
-        raise e
-
-    try:
-        start_time = asyncio.get_event_loop().time()
-        async with session_factory() as session:
-            await session.execute(sql.refresh_mat_view_recommendations)
-            await session.commit()
-            duration = asyncio.get_event_loop().time() - start_time
-            print(f'recommendations refreshed in {duration}')
-
-    except Exception as e:
-        raise e
+        except Exception as e:
+            raise e
 
 
 def start_scheduler(session_factory) -> AsyncIOScheduler:
@@ -42,7 +32,7 @@ def start_scheduler(session_factory) -> AsyncIOScheduler:
     """
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
-        refresh_sim_scores_n_recommendations,
+        refresh_materialized_views,
         args=[session_factory],
         trigger=IntervalTrigger(
             hours=CNST.RECOMMENDATIONS_UPDATE_INTERVAL_HOURS

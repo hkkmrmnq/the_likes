@@ -12,11 +12,11 @@ from sqlalchemy.orm import selectinload
 
 from src import models as md
 from src import schemas as sch
-from src.config import CNF
+from src.config import CFG
 from src.config import constants as CNST
 from src.services.user_manager import UserManager
 
-engine = create_async_engine(CNF.DATABASE_URL, echo=True)
+engine = create_async_engine(CFG.DATABASE_URL, echo=True)
 async_session_maker = async_sessionmaker(
     engine,
     expire_on_commit=False,
@@ -151,7 +151,7 @@ async def _create_attitude_translation_objects(
 
 
 async def _add_data_to_db() -> None:
-    all_sheets = read_excel(CNF.BASIC_DATA_PATH, sheet_name=None)
+    all_sheets = read_excel(CFG.BASIC_DATA_PATH, sheet_name=None)
     async with async_session_maker() as session:
         result = await session.scalar(select(md.ValueTitle).limit(1))
         assert result is None, (

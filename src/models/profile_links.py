@@ -74,11 +74,11 @@ class ProfileValueLink(BaseWithIntPK):
     )
     __table_args__ = (
         CheckConstraint(
-            f'user_order <= {CNST.UNIQUE_VALUE_MAX_ORDER}',
+            CNST.MAX_USER_ORDER_CONSTRAINT_TEXT,
             name='max_user_order',
         ),
         CheckConstraint(
-            f'user_order >= {CNST.UNIQUE_VALUE_MIN_ORDER}',
+            CNST.MIN_USER_ORDER_CONSTRAINT_TEXT,
             name='min_user_order',
         ),
         UniqueConstraint(

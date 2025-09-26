@@ -61,15 +61,6 @@ async def count_profile_value_links(
     return result if result is not None else 0
 
 
-async def count_pv_onelines(profile: md.Profile, session: AsyncSession) -> int:
-    result = await session.scalar(
-        select(func.count())
-        .select_from(md.PVOneLine)
-        .where(md.PVOneLine.profile_id == profile.id)
-    )
-    return result if result is not None else 0
-
-
 async def create_profile_value_links(
     profile: md.Profile,
     data: sch.ProfileValuesCreateUpdate,
@@ -110,51 +101,4 @@ async def delete_profile_value_links(
         delete(md.ProfileValueLink).where(
             md.ProfileValueLink.profile_id == profile.id
         )
-    )
-
-
-async def add_pv_oneline(
-    *,
-    attitude_id: int,
-    distance_limit: int | None = None,
-    profile_values_links: list[md.ProfileValueLink],
-    session: AsyncSession,
-) -> None:
-    profile_values_links.sort(key=lambda x: x.user_order)
-    att_n_best, good, neutral, bad, worst = [attitude_id], [], [], [], []
-    for vl in profile_values_links:
-        if vl.polarity == 'positive':
-            if vl.user_order <= CNST.NUMBER_OF_BEST_UVS:
-                att_n_best.append(vl.unique_value_id)
-            else:
-                good.append(vl.unique_value_id)
-        elif vl.polarity == 'negative':
-            if (
-                vl.user_order
-                > CNST.UNIQUE_VALUE_MAX_ORDER - CNST.NUMBER_OF_WORST_UVS
-            ):
-                worst.append(vl.unique_value_id)
-            else:
-                bad.append(vl.unique_value_id)
-        else:
-            neutral.append(vl.unique_value_id)
-    session.add(
-        md.PVOneLine(
-            profile_id=profile_values_links[0].profile_id,
-            attitude_id_and_best_uv_ids=att_n_best,
-            distance_limit=distance_limit,
-            neutral_uv_ids=neutral,
-            good_uv_ids=good,
-            worst_uv_ids=worst,
-            bad_uv_ids=bad,
-        )
-    )
-
-
-async def delete_pv_oneline(
-    profile_id: int,
-    session: AsyncSession,
-) -> None:
-    await session.execute(
-        delete(md.PVOneLine).where(md.PVOneLine.profile_id == profile_id)
     )

@@ -14,7 +14,7 @@ from zxcvbn import zxcvbn
 from .. import models as md
 from .. import schemas as sch
 from .. import services as srv
-from ..config import CNF
+from ..config import CFG
 from ..config import constants as CNST
 
 
@@ -66,8 +66,8 @@ async def is_password_pwned(password: str) -> bool | None:
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
-    reset_password_token_secret = CNF.RESET_PASSWORD_TOKEN_SECRET
-    verification_token_secret = CNF.VERIFICATION_TOKEN_SECRET
+    reset_password_token_secret = CFG.RESET_PASSWORD_TOKEN_SECRET
+    verification_token_secret = CFG.VERIFICATION_TOKEN_SECRET
 
     async def on_after_register(
         self, user: md.User, request: Request | None = None
@@ -99,16 +99,6 @@ class UserManager(UUIDIDMixin, BaseUserManager[md.User, uuid.UUID]):
                 f'{link}'
             ),
         )
-
-    # async def on_after_verify(
-    #     self, user: User, request: Request | None = None
-    # ) -> None:
-    #     """
-    #     Perform logic after successful user verification.
-    #     :param user: The verified user.
-    #     :param request: Optional FastAPI request that
-    #     triggered the operation, defaults to None.
-    #     """
 
     async def on_after_forgot_password(
         self, user: md.User, token: str, request: Request | None = None
