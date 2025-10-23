@@ -4,11 +4,27 @@ from uuid import UUID
 from sqlalchemy import delete, func, orm, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import db as db
-from ..config import constants as CNST
-from ..services._utils import (
-    get_uniquevalue_id_by_valuetitle_id_and_aspect_ids,
-)
+from src import db
+from src import exceptions as exc
+from src.config import constants as CNST
+from src.crud.core import read_unique_values
+
+
+async def get_uniquevalue_id_by_valuetitle_id_and_aspect_ids(
+    *,
+    value_title_id: int,
+    aspect_ids: list[int],
+    a_session: AsyncSession,
+) -> int:
+    uvs = await read_unique_values(a_session=a_session)
+    for uv in uvs:
+        if uv.value_title_id == value_title_id and sorted(
+            uv.aspect_ids
+        ) == sorted(aspect_ids):
+            return uv.id
+    raise exc.ServerError(
+        f'UniqueValue not fount for {value_title_id=}, aspect_ids={aspect_ids}'
+    )
 
 
 async def read_personal_values(

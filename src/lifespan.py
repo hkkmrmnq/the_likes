@@ -3,10 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy import text
 
-from . import crud
-from .config import constants as CNST
-from .crud import sql
-from .sessions import a_session_factory, async_engine
+from src import crud
+from src.crud import sql
+from src.sessions import a_session_factory, async_engine
 
 
 async def check_basic_data():

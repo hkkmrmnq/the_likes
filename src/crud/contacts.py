@@ -11,11 +11,11 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from .. import db
-from .. import exceptions as exc
-from ..config import constants as CNST
-from ..config.enums import ContactStatus
-from . import sql
+from src import db
+from src import exceptions as exc
+from src.config import constants as CNST
+from src.config.enums import ContactStatus
+from src.crud import sql
 
 
 async def read_user_recommendations(

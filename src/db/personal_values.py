@@ -10,11 +10,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..config import constants as CNST
-from ..config.enums import PolarityPG
-from .base import Base, BaseWithIntPK
-from .core import Aspect, UniqueValue, ValueTitle
-from .profile_and_user import User
+from src.config import constants as CNST
+from src.config.enums import PolarityPG
+from src.db.base import Base, BaseWithIntPK
+from src.db.core import Aspect, UniqueValue, ValueTitle
+from src.db.profile_and_user import User
 
 
 class UniqueValueAspectLink(Base):

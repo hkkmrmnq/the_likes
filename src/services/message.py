@@ -2,10 +2,10 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import crud, db
-from .. import models as md
-from ..config.enums import ContactStatus
-from ..exceptions import exceptions as exc
+from src import crud, db
+from src import models as md
+from src.config.enums import ContactStatus
+from src.exceptions import exceptions as exc
 
 
 async def count_unread_messages(

@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 # from celery.schedules import crontab
-from .enums import ContactStatus
+from src.config.enums import ContactStatus
 
 USER_NAME_MAX_LENGTH = 100
 PASSWORD_MIN_LENGTH = 8

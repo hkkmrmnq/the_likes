@@ -12,7 +12,7 @@ from pydantic import (
 )
 from pydantic_extra_types.coordinate import Latitude, Longitude
 
-from ..config import constants as CNST
+from src.config import constants as CNST
 
 
 class UserRead(fu_schemas.BaseUser[UUID]):

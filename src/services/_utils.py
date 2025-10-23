@@ -7,10 +7,10 @@ import httpx
 from async_lru import alru_cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import crud, db
-from .. import models as md
-from ..config import constants as CNST
-from ..exceptions import exceptions as exc
+from src import crud, db
+from src import models as md
+from src.config import constants as CNST
+from src.exceptions import exceptions as exc
 
 
 async def is_password_pwned(*, password: str) -> bool | None:
@@ -91,23 +91,6 @@ async def personal_values_to_read_model(
         }
     )
     return moral_profile_model
-
-
-async def get_uniquevalue_id_by_valuetitle_id_and_aspect_ids(
-    *,
-    value_title_id: int,
-    aspect_ids: list[int],
-    a_session: AsyncSession,
-) -> int:
-    uvs = await crud.read_unique_values(a_session=a_session)
-    for uv in uvs:
-        if uv.value_title_id == value_title_id and sorted(
-            uv.aspect_ids
-        ) == sorted(aspect_ids):
-            return uv.id
-    raise exc.ServerError(
-        f'UniqueValue not fount for {value_title_id=}, aspect_ids={aspect_ids}'
-    )
 
 
 @alru_cache

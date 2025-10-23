@@ -1,11 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import db
-from .. import models as md
-from . import _utils as utl
-from . import contact as cnct
-from . import message as msg
-from .profile import get_profile
+from src import db
+from src import models as md
+from src.services import _utils as utl
+from src.services import contact as cnct
+from src.services import message as msg
+from src.services.profile import get_profile
 
 
 async def get_update(

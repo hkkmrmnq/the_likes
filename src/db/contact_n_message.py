@@ -2,10 +2,10 @@ from fastapi_users_db_sqlalchemy import UUID_ID
 from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..config import constants as CNST
-from ..config.enums import ContactStatus, ContactStatusPG
-from .base import Base, BaseWithIntPK
-from .profile_and_user import User
+from src.config import constants as CNST
+from src.config.enums import ContactStatus, ContactStatusPG
+from src.db.base import Base, BaseWithIntPK
+from src.db.profile_and_user import User
 
 
 class Contact(Base):

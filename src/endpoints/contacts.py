@@ -3,11 +3,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import dependencies as dp
-from .. import models as md
-from .. import services as srv
-from ..db import User
-from ..services.user_manager import UserManager
+from src import dependencies as dp
+from src import models as md
+from src import services as srv
+from src.db import User
+from src.services.user_manager import UserManager
 
 router = APIRouter()
 

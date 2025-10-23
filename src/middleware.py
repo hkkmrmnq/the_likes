@@ -1,8 +1,8 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from .config import constants as CNST
-from .context import set_current_language
+from src.config import constants as CNST
+from src.context import set_current_language
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):

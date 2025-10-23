@@ -1,10 +1,10 @@
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..config import constants as CNST
-from .base import BaseWithIntPK
-from .core import Aspect, ValueTitle
-from .profile_and_user import Attitude
+from src.config import constants as CNST
+from src.db.base import BaseWithIntPK
+from src.db.core import Aspect, ValueTitle
+from src.db.profile_and_user import Attitude
 
 
 class TranslationBase(BaseWithIntPK):

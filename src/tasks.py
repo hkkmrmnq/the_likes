@@ -4,9 +4,10 @@ from uuid import UUID
 import redis
 from celery import Celery
 
-from . import crud
-from .config import constants as CNST
-from .sessions import s_session_factory
+from src import crud
+from src.config import constants as CNST
+from src.crud import sql
+from src.sessions import s_session_factory
 
 redis_client = redis.Redis(
     host='localhost', port=6379, db=0, decode_responses=True
@@ -114,10 +115,10 @@ def refresh_materialized_views():
 
     try:
         with s_session_factory() as session:
-            session.execute(crud.sql.refresh_moral_profiles)
+            session.execute(sql.refresh_moral_profiles)
             session.commit()
         with s_session_factory() as session:
-            session.execute(crud.sql.refresh_recommendations)
+            session.execute(sql.refresh_recommendations)
             session.commit()
 
     except Exception as e:

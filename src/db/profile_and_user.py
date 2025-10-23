@@ -11,15 +11,14 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    # text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..config import constants as CNST
-from ..config.enums import SearchAllowedStatusPG
-from .base import Base, BaseWithIntPK
-from .core import Attitude
+from src.config import constants as CNST
+from src.config.enums import SearchAllowedStatusPG
+from src.db.base import Base, BaseWithIntPK
+from src.db.core import Attitude
 
 if TYPE_CHECKING:
     from .contact_n_message import Contact, Message

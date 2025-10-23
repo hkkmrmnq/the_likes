@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import crud, db
-from .. import models as md
-from ..exceptions import exceptions as exc
-from ._utils import personal_values_already_set
+from src import crud, db
+from src import models as md
+from src.exceptions import exceptions as exc
+from src.services._utils import personal_values_already_set
 
 
 async def get_profile(

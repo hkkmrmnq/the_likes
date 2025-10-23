@@ -3,8 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from ..config import constants as CNST
-from ..config.enums import ContactStatus
+from src.config import constants as CNST
+from src.config.enums import ContactStatus
 
 
 class UserToNotifyOfMatchRead(BaseModel):

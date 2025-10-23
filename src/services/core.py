@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import crud
-from .. import models as md
+from src import crud
+from src import models as md
 
 
 async def read_definitions(

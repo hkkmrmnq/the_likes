@@ -3,10 +3,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 
-from .. import db as db
-from ..config import constants as CNST
-from ..context import get_current_language
-from ..exceptions import exceptions as exc
+from src import db
+from src.config import constants as CNST
+from src.context import get_current_language
+from src.exceptions import exceptions as exc
 
 
 async def read_definitions(*, a_session: AsyncSession) -> list[db.ValueTitle]:

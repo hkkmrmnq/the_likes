@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from ..config import constants as CNST
+from src.config import constants as CNST
 
 
 class PersonalAspectRead(BaseModel):

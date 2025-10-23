@@ -11,17 +11,17 @@ from fastapi_users.models import UserProtocol
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from zxcvbn import zxcvbn
 
-from .. import db
-from ..config import CFG
-from ..config import constants as CNST
-from ..config.enums import SearchAllowedStatus
-from ..models.profile_and_user import UserCreate
-from ..tasks import (
+from src import db
+from src.config import CFG
+from src.config import constants as CNST
+from src.config.enums import SearchAllowedStatus
+from src.models.profile_and_user import UserCreate
+from src.services._utils import is_password_pwned
+from src.tasks import (
     send_email_confirmation_token,
     send_password_reset_notification,
     send_password_reset_token,
 )
-from ._utils import is_password_pwned
 
 
 class FixedSQLAlchemyUserDatabase(SQLAlchemyUserDatabase):

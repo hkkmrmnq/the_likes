@@ -3,13 +3,13 @@ import uuid
 from fastapi import FastAPI
 from fastapi_users import FastAPIUsers
 
-from . import endpoints
-from . import exceptions as exc
-from .db import User
-from .dependencies import auth_backend, get_user_manager
-from .lifespan import lifespan
-from .middleware import LanguageMiddleware
-from .models.profile_and_user import UserCreate, UserRead, UserUpdate
+from src import endpoints
+from src import exceptions as exc
+from src.db import User
+from src.dependencies import auth_backend, get_user_manager
+from src.lifespan import lifespan
+from src.middleware import LanguageMiddleware
+from src.models.profile_and_user import UserCreate, UserRead, UserUpdate
 
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 

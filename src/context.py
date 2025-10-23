@@ -1,6 +1,6 @@
 from contextvars import ContextVar
 
-from .config import constants as CNST
+from src.config import constants as CNST
 
 _current_language: ContextVar[str] = ContextVar(
     'current_language', default=CNST.LANGUAGE_DEFAULT

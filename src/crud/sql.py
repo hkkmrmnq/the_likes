@@ -1,7 +1,7 @@
 from sqlalchemy import text
 
-from ..config import constants as CNST
-from ..config.enums import SearchAllowedStatus
+from src.config import constants as CNST
+from src.config.enums import SearchAllowedStatus
 
 prepare_recommendations_raw_str: list[str] = [
     """

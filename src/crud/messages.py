@@ -4,9 +4,9 @@ from sqlalchemy import RowMapping, func, not_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import defer, joinedload
 
-from .. import db
-from .. import models as md
-from ..config import constants as CNST
+from src import db
+from src import models as md
+from src.config import constants as CNST
 
 
 async def create_message(

@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 
-from .contact_n_message import (
+from src.models.contact_n_message import (
     ContactRead,
     ContactRequestsRead,
     OtherProfileRead,
     UnreadMessagesCount,
 )
-from .profile_and_user import ProfileRead
+from src.models.profile_and_user import ProfileRead
 
 
 class Update(BaseModel):

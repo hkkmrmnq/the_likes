@@ -2,15 +2,15 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import crud, db
-from .. import models as md
-from ..config import constants as CNST
-from ..config.enums import ContactStatus, SearchAllowedStatus
-from ..exceptions import exceptions as exc
-from ..tasks import send_contact_request_notification
-from . import _utils as utl
-from .profile import personal_values_already_set
-from .user_manager import UserManager
+from src import crud, db
+from src import models as md
+from src.config import constants as CNST
+from src.config.enums import ContactStatus, SearchAllowedStatus
+from src.exceptions import exceptions as exc
+from src.services import _utils as utl
+from src.services.profile import personal_values_already_set
+from src.services.user_manager import UserManager
+from src.tasks import send_contact_request_notification
 
 
 async def get_contact_requests(

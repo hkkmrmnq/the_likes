@@ -2,11 +2,11 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import crud, db
-from .. import models as md
-from ..context import get_current_language
-from ..exceptions import exceptions as exc
-from . import _utils as utl
+from src import crud, db
+from src import models as md
+from src.context import get_current_language
+from src.exceptions import exceptions as exc
+from src.services import _utils as utl
 
 
 async def get_personal_values(

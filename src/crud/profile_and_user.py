@@ -8,13 +8,13 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, contains_eager
 
-from .. import db
-from .. import exceptions as exc
-from .. import models as md
-from ..config import constants as CNST
-from ..config.enums import SearchAllowedStatus
-from ..context import get_current_language
-from . import sql
+from src import db
+from src import exceptions as exc
+from src import models as md
+from src.config import constants as CNST
+from src.config.enums import SearchAllowedStatus
+from src.context import get_current_language
+from src.crud import sql
 
 
 async def create_profile(

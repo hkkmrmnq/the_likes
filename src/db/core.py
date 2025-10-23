@@ -10,10 +10,10 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from .. import exceptions as exc
-from ..config import constants as CNST
-from ..context import get_current_language
-from .base import BaseWithIntPK
+from src import exceptions as exc
+from src.config import constants as CNST
+from src.context import get_current_language
+from src.db.base import BaseWithIntPK
 
 if TYPE_CHECKING:
     from .personal_values import (
