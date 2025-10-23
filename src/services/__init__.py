@@ -1,20 +1,23 @@
-from .contact_n_message import (  # noqa
+from .contact import (  # noqa
     agree_to_start,
+    block_contact,
+    cancel_contact_request,
     check_for_alike,
-    count_unread_messages,
-    get_contacts,
-    get_messages,
-    send_message,
+    get_blocked_contacts,
+    get_cancelled_requests,
+    get_contact_requests,
+    get_ongoing_contacts,
+    get_rejected_requests,
+    reject_contact_request,
+    unblock_contact,
+    get_contact_profile,
 )
-from .core_n_profile import (  # noqa
-    create_profile,
-    read_attitudes,
-    read_definitions,
-    read_profile,
-    update_profile,
+from .core import read_definitions  # noqa
+from .message import count_unread_messages, get_messages, send_message  # noqa
+from .personal_values import (  # noqa
+    create_personal_values,
+    get_personal_values,
+    update_personal_values,
 )
-from .profile_value import (  # noqa
-    create_profile_values,
-    read_profile_values,
-    update_profile_values,
-)
+from .profile import edit_profile, get_profile  # , get_contact_profile  # noqa
+from .update import get_full_update, get_update  # noqa

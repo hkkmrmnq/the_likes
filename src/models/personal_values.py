@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from ..config import constants as CNST
 
 
-class ProfileAspectLinkRead(BaseModel):
+class PersonalAspectRead(BaseModel):
     aspect_id: int
     aspect_key_phrase: str
     aspect_statement: str
@@ -15,41 +15,41 @@ class ProfileAspectLinkRead(BaseModel):
         from_attributes = True
 
 
-class ProfileAspectLinkCreate(BaseModel):
+class PersonalAspectCreate(BaseModel):
     aspect_id: int
     included: bool
 
 
-class ProfileValueLinkRead(BaseModel):
+class PersonalValueRead(BaseModel):
     value_title_id: int
     value_title_name: str
     polarity: str
     user_order: int
-    aspects: list['ProfileAspectLinkRead']
+    aspects: list['PersonalAspectRead']
 
     class Config:
         from_attributes = True
 
 
-class ProfileValueLinkCreate(BaseModel):
+class PersonalValueCreate(BaseModel):
     value_title_id: int
     polarity: Literal['positive', 'negative', 'neutral']
     user_order: int = Field(
-        ge=CNST.UNIQUE_VALUE_MIN_ORDER, le=CNST.UNIQUE_VALUE_MAX_ORDER
+        ge=CNST.PERSONAL_VALUE_MIN_ORDER, le=CNST.PERSONAL_VALUE_MAX_ORDER
     )
-    aspects: list['ProfileAspectLinkCreate']
+    aspects: list['PersonalAspectCreate']
 
 
-class ProfileValueLinkUpdate(ProfileValueLinkCreate):
+class PersonalValueUpdate(PersonalValueCreate):
     pass
 
 
-class ProfileValuesRead(BaseModel):
+class PersonalValuesRead(BaseModel):
     attitude_id: int
     attitude_statement: str
-    value_links: list[ProfileValueLinkRead]
+    value_links: list[PersonalValueRead]
 
 
-class ProfileValuesCreateUpdate(BaseModel):
+class PersonalValuesCreateUpdate(BaseModel):
     attitude_id: int
-    value_links: list[ProfileValueLinkCreate]
+    value_links: list[PersonalValueCreate]

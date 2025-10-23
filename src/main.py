@@ -3,17 +3,20 @@ import uuid
 from fastapi import FastAPI
 from fastapi_users import FastAPIUsers
 
+from . import endpoints
 from . import exceptions as exc
+from .db import User
 from .dependencies import auth_backend, get_user_manager
-from .endpoints import v1 as endpoints_v1
 from .lifespan import lifespan
-from .models import User
-from .schemas.user_n_profile import UserCreate, UserRead, UserUpdate
+from .middleware import LanguageMiddleware
+from .models.profile_and_user import UserCreate, UserRead, UserUpdate
 
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(LanguageMiddleware)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
@@ -38,15 +41,17 @@ app.include_router(
     prefix='/users',
     tags=['users'],
 )
-app.include_router(endpoints_v1.profile_router, tags=['profile'])
-app.include_router(endpoints_v1.values_router, tags=['values'])
-app.include_router(endpoints_v1.contacts_router, tags=['contacts'])
+app.include_router(endpoints.core_router, tags=['definitions'])
+app.include_router(endpoints.profiles_router, tags=['profile'])
+app.include_router(endpoints.values_router, tags=['values'])
+app.include_router(endpoints.contacts_router, tags=['contacts'])
+app.include_router(endpoints.messages_router, tags=['messages'])
+app.include_router(endpoints.updates_router, tags=['updates'])
 
 app.add_exception_handler(exc.InactiveUser, exc.handle_inactive_user)
 app.add_exception_handler(exc.UnverifiedUser, exc.handle_unverified_user)
 app.add_exception_handler(exc.NotFound, exc.handle_not_found)
 app.add_exception_handler(exc.AlreadyExists, exc.handle_already_exists)
-app.add_exception_handler(
-    exc.IncorrectBodyStructure, exc.handle_incorrect_body_structure
-)
+app.add_exception_handler(exc.BadRequest, exc.handle_bad_request)
 app.add_exception_handler(exc.ServerError, exc.handle_server_error)
+app.add_exception_handler(exc.Forbidden, exc.handle_forbidden)

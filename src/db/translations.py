@@ -1,14 +1,10 @@
-from typing import TYPE_CHECKING
-
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..config import constants as CNST
 from .base import BaseWithIntPK
-
-if TYPE_CHECKING:
-    from .core import Aspect, ValueTitle
-    from .user_profile import Attitude
+from .core import Aspect, ValueTitle
+from .profile_and_user import Attitude
 
 
 class TranslationBase(BaseWithIntPK):

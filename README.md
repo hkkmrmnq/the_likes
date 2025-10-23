@@ -1,4 +1,4 @@
-Backend for The Likes app. Work in progress.
+The Likes, backend.
 ===========================================
 
 The Likes is an app designed to find people with the same personal values. More detailed explanation below (also in Russian).
@@ -12,7 +12,7 @@ The Likes is an app designed to find people with the same personal values. More 
 - PostgreSQL 17
 
 
-Documentation files - docs.yaml, docs.json - in root folder.
+Documentation files - documentation.yaml, documentation.json - in root folder.
 To read - upload any to https://editor.swagger.io/
 
 #### To run:
@@ -40,11 +40,6 @@ Install environment with dependencies
 uv sync
 ```
 
-Activate environvent
-```shell
-.venv/scripts/activate
-```
-
 Create .env file with
 ```
 PG_USER=...  # name of your postgres user
@@ -53,7 +48,6 @@ PG_HOST=...   # your postgres host
 PG_PORT=...  # your postgres port
 PG_DB_NAME=...  # name of your postgres database
 JWT_SECRET=...   # create a secret key that will be used by JWT
-JWT_ACCESS_LIFETIME=...  # choose your values in seconds
 JWT_REFRESH_LIFETIME=...  # choose your values in seconds
 RESET_PASSWORD_TOKEN_SECRET=...  # create a secret key that will be used by FastAPI Users
 VERIFICATION_TOKEN_SECRET=  # create a secret key that will be used by FastAPI Users
@@ -64,7 +58,7 @@ EMAIL_APP_PASSWORD=...  # optional, google config (currently info is printed out
 
 Run migrations
 ```shell
-alembic upgrade head
+uv run alembic upgrade head
 ```
 
 Populate database with core data

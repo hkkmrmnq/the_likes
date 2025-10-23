@@ -690,29 +690,6 @@
         ],
         "summary": "Get Profile",
         "operationId": "get_profile_profile_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -725,25 +702,20 @@
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "500": {
             "description": "Profile not found."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -751,38 +723,15 @@
         ],
         "summary": "Edit Profile",
         "operationId": "edit_profile_profile_put",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ProfileUpdate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -790,16 +739,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileRead"
+                  "$ref": "#/components/schemas/ApiResponse_ProfileRead_"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "400": {
             "description": "Can't set distance_limit without location."
@@ -817,7 +766,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/definitions": {
@@ -827,64 +781,36 @@
         ],
         "summary": "Get Definitions",
         "operationId": "get_definitions_definitions_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ValueTitleRead"
                   },
+                  "type": "array",
                   "title": "Response Get Definitions Definitions Get"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "500": {
             "description": "Definitions not found."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/attitudes": {
@@ -894,64 +820,36 @@
         ],
         "summary": "Get Attitudes",
         "operationId": "get_attitudes_attitudes_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/AttitudeRead"
                   },
+                  "type": "array",
                   "title": "Response Get Attitudes Attitudes Get"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "500": {
             "description": "Attitudes not found."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/my_values": {
@@ -959,178 +857,50 @@
         "tags": [
           "values"
         ],
-        "summary": "Get Profile Values",
-        "operationId": "get_profile_values_my_values_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
+        "summary": "Get Moral Profile",
+        "operationId": "get_moral_profile_my_values_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileValuesRead"
+                  "$ref": "#/components/schemas/ApiResponse_MoralProfileRead_"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "404": {
-            "description": "Profile values have not yet been set."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "description": "Personal values have not yet been set."
           }
-        }
-      },
-      "post": {
-        "tags": [
-          "values"
-        ],
-        "summary": "Post Profile Values",
-        "operationId": "post_profile_values_my_values_post",
+        },
         "security": [
           {
             "OAuth2PasswordBearer": []
           }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProfileValuesCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProfileValuesRead"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "403": {
-            "description": "Unverified / inactive account."
-          },
-          "400": {
-            "description": "Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects."
-          },
-          "409": {
-            "description": "Profile values are already set."
-          },
-          "500": {
-            "description": "Profile not found. / Profile values not found after creation."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
+        ]
       },
       "put": {
         "tags": [
           "values"
         ],
-        "summary": "Edit Profile Values",
-        "operationId": "edit_profile_values_my_values_put",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
+        "summary": "Edit Moral Profile",
+        "operationId": "edit_moral_profile_my_values_put",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileValuesCreateUpdate"
+                "$ref": "#/components/schemas/MoralProfileCreateUpdate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1138,25 +908,25 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileValuesRead"
+                  "$ref": "#/components/schemas/ApiResponse_MoralProfileRead_"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "400": {
             "description": "Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects."
           },
           "404": {
-            "description": "Profile values have not yet been set."
+            "description": "Personal values have not yet been set."
           },
           "500": {
-            "description": "Profile not found. / Profile values not found after update."
+            "description": "Profile not found. / Personal values not found after update."
           },
           "422": {
             "description": "Validation Error",
@@ -1168,7 +938,71 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "values"
+        ],
+        "summary": "Post Moral Profile",
+        "operationId": "post_moral_profile_my_values_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoralProfileCreateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_MoralProfileRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized / inactive account."
+          },
+          "403": {
+            "description": "Unverified."
+          },
+          "400": {
+            "description": "Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects."
+          },
+          "409": {
+            "description": "Personal values are already set."
+          },
+          "500": {
+            "description": "Profile not found. / Personal values not found after creation."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/check_for_alike": {
@@ -1178,63 +1012,35 @@
         ],
         "summary": "Check For Alike",
         "operationId": "check_for_alike_check_for_alike_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContactsRead"
+                  "$ref": "#/components/schemas/ApiResponse_list_RecomendationRead__"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Temporarily unavailable."
           },
           "404": {
             "description": "Profile values have not yet been set."
           },
           "500": {
             "description": "Profile not found. / Contact not found right after creation. / To many contacts found."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/agree_to_start": {
@@ -1260,19 +1066,19 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InfoMessage"
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "404": {
-            "description": "Contact not found. / Inconsistent number of contacts found."
+            "description": "Requested user not found."
           },
           "422": {
             "description": "Validation Error",
@@ -1311,10 +1117,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           }
         },
         "security": [
@@ -1337,16 +1143,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UnreadMessagesTotalCount"
+                  "$ref": "#/components/schemas/UnreadMessagesCount"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           }
         },
         "security": [
@@ -1370,13 +1176,13 @@
         ],
         "parameters": [
           {
-            "name": "sender_id",
+            "name": "contact_user_id",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Sender Id"
+              "title": "Contact User Id"
             }
           }
         ],
@@ -1396,10 +1202,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "422": {
             "description": "Validation Error",
@@ -1446,10 +1252,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized."
+            "description": "Unauthorized / inactive account."
           },
           "403": {
-            "description": "Unverified / inactive account."
+            "description": "Unverified."
           },
           "404": {
             "description": "Contact not found."
@@ -1483,6 +1289,119 @@
           "user_id"
         ],
         "title": "AgreeSchema"
+      },
+      "ApiResponse": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse"
+      },
+      "ApiResponse_MoralProfileRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoralProfileRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[MoralProfileRead]"
+      },
+      "ApiResponse_ProfileRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[ProfileRead]"
+      },
+      "ApiResponse_list_RecomendationRead__": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RecomendationRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[list[RecomendationRead]]"
       },
       "AspectRead": {
         "properties": {
@@ -1692,10 +1611,6 @@
             ],
             "title": "Distance"
           },
-          "me_ready_to_start": {
-            "type": "boolean",
-            "title": "Me Ready To Start"
-          },
           "user_id": {
             "type": "string",
             "format": "uuid",
@@ -1713,7 +1628,6 @@
           "status",
           "similarity_score",
           "distance",
-          "me_ready_to_start",
           "user_id",
           "created_at"
         ],
@@ -1729,41 +1643,11 @@
         ],
         "title": "ContactStatus"
       },
-      "ContactUnreadMessagesCount": {
-        "properties": {
-          "sender_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Sender Id"
-          },
-          "number": {
-            "type": "integer",
-            "title": "Number"
-          }
-        },
-        "type": "object",
-        "required": [
-          "sender_id",
-          "number"
-        ],
-        "title": "ContactUnreadMessagesCount"
-      },
       "ContactsRead": {
         "properties": {
-          "found": {
-            "type": "boolean",
-            "title": "Found"
-          },
           "contacts": {
             "items": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/ContactRead"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "$ref": "#/components/schemas/ContactRead"
             },
             "type": "array",
             "title": "Contacts",
@@ -1771,9 +1655,6 @@
           }
         },
         "type": "object",
-        "required": [
-          "found"
-        ],
         "title": "ContactsRead"
       },
       "ErrorModel": {
@@ -1811,19 +1692,6 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
-      },
-      "InfoMessage": {
-        "properties": {
-          "message": {
-            "type": "string",
-            "title": "Message"
-          }
-        },
-        "type": "object",
-        "required": [
-          "message"
-        ],
-        "title": "InfoMessage"
       },
       "MessageCreate": {
         "properties": {
@@ -1906,7 +1774,54 @@
         ],
         "title": "MessageRead"
       },
-      "ProfileAspectLinkCreate": {
+      "MoralProfileCreateUpdate": {
+        "properties": {
+          "attitude_id": {
+            "type": "integer",
+            "title": "Attitude Id"
+          },
+          "value_links": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalValueCreate"
+            },
+            "type": "array",
+            "title": "Value Links"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attitude_id",
+          "value_links"
+        ],
+        "title": "MoralProfileCreateUpdate"
+      },
+      "MoralProfileRead": {
+        "properties": {
+          "attitude_id": {
+            "type": "integer",
+            "title": "Attitude Id"
+          },
+          "attitude_statement": {
+            "type": "string",
+            "title": "Attitude Statement"
+          },
+          "value_links": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalValueRead"
+            },
+            "type": "array",
+            "title": "Value Links"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attitude_id",
+          "attitude_statement",
+          "value_links"
+        ],
+        "title": "MoralProfileRead"
+      },
+      "PersonalAspectCreate": {
         "properties": {
           "aspect_id": {
             "type": "integer",
@@ -1922,9 +1837,9 @@
           "aspect_id",
           "included"
         ],
-        "title": "ProfileAspectLinkCreate"
+        "title": "PersonalAspectCreate"
       },
-      "ProfileAspectLinkRead": {
+      "PersonalAspectRead": {
         "properties": {
           "aspect_id": {
             "type": "integer",
@@ -1950,7 +1865,81 @@
           "aspect_statement",
           "included"
         ],
-        "title": "ProfileAspectLinkRead"
+        "title": "PersonalAspectRead"
+      },
+      "PersonalValueCreate": {
+        "properties": {
+          "value_title_id": {
+            "type": "integer",
+            "title": "Value Title Id"
+          },
+          "polarity": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative",
+              "neutral"
+            ],
+            "title": "Polarity"
+          },
+          "user_order": {
+            "type": "integer",
+            "maximum": 11,
+            "minimum": 1,
+            "title": "User Order"
+          },
+          "aspects": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalAspectCreate"
+            },
+            "type": "array",
+            "title": "Aspects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value_title_id",
+          "polarity",
+          "user_order",
+          "aspects"
+        ],
+        "title": "PersonalValueCreate"
+      },
+      "PersonalValueRead": {
+        "properties": {
+          "value_title_id": {
+            "type": "integer",
+            "title": "Value Title Id"
+          },
+          "value_title_name": {
+            "type": "string",
+            "title": "Value Title Name"
+          },
+          "polarity": {
+            "type": "string",
+            "title": "Polarity"
+          },
+          "user_order": {
+            "type": "integer",
+            "title": "User Order"
+          },
+          "aspects": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalAspectRead"
+            },
+            "type": "array",
+            "title": "Aspects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value_title_id",
+          "value_title_name",
+          "polarity",
+          "user_order",
+          "aspects"
+        ],
+        "title": "PersonalValueRead"
       },
       "ProfileRead": {
         "properties": {
@@ -2004,6 +1993,10 @@
               }
             ],
             "title": "Avatar"
+          },
+          "recommend_me": {
+            "type": "boolean",
+            "title": "Recommend Me"
           }
         },
         "type": "object",
@@ -2012,7 +2005,8 @@
           "languages",
           "location",
           "distance_limit",
-          "avatar"
+          "avatar",
+          "recommend_me"
         ],
         "title": "ProfileRead"
       },
@@ -2098,6 +2092,10 @@
             },
             "type": "array",
             "title": "Languages"
+          },
+          "recommend_me": {
+            "type": "boolean",
+            "title": "Recommend Me"
           }
         },
         "type": "object",
@@ -2107,132 +2105,55 @@
           "avatar",
           "name",
           "distance_limit",
-          "languages"
+          "languages",
+          "recommend_me"
         ],
         "title": "ProfileUpdate"
       },
-      "ProfileValueLinkCreate": {
+      "RecomendationRead": {
         "properties": {
-          "value_title_id": {
-            "type": "integer",
-            "title": "Value Title Id"
-          },
-          "polarity": {
+          "recommended_user_id": {
             "type": "string",
-            "enum": [
-              "positive",
-              "negative",
-              "neutral"
+            "format": "uuid",
+            "title": "Recommended User Id"
+          },
+          "recommended_user_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Polarity"
+            "title": "Recommended User Name"
           },
-          "user_order": {
-            "type": "integer",
-            "maximum": 11,
-            "minimum": 1,
-            "title": "User Order"
+          "similarity_score": {
+            "type": "number",
+            "title": "Similarity Score"
           },
-          "aspects": {
-            "items": {
-              "$ref": "#/components/schemas/ProfileAspectLinkCreate"
-            },
-            "type": "array",
-            "title": "Aspects"
+          "distance_meters": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Meters"
           }
         },
         "type": "object",
         "required": [
-          "value_title_id",
-          "polarity",
-          "user_order",
-          "aspects"
+          "recommended_user_id",
+          "recommended_user_name",
+          "similarity_score"
         ],
-        "title": "ProfileValueLinkCreate"
+        "title": "RecomendationRead",
+        "description": "Model for reading Rows retrived from 'recommendations' mat. view."
       },
-      "ProfileValueLinkRead": {
-        "properties": {
-          "value_title_id": {
-            "type": "integer",
-            "title": "Value Title Id"
-          },
-          "value_title_name": {
-            "type": "string",
-            "title": "Value Title Name"
-          },
-          "polarity": {
-            "type": "string",
-            "title": "Polarity"
-          },
-          "user_order": {
-            "type": "integer",
-            "title": "User Order"
-          },
-          "aspects": {
-            "items": {
-              "$ref": "#/components/schemas/ProfileAspectLinkRead"
-            },
-            "type": "array",
-            "title": "Aspects"
-          }
-        },
-        "type": "object",
-        "required": [
-          "value_title_id",
-          "value_title_name",
-          "polarity",
-          "user_order",
-          "aspects"
-        ],
-        "title": "ProfileValueLinkRead"
-      },
-      "ProfileValuesCreateUpdate": {
-        "properties": {
-          "attitude_id": {
-            "type": "integer",
-            "title": "Attitude Id"
-          },
-          "value_links": {
-            "items": {
-              "$ref": "#/components/schemas/ProfileValueLinkCreate"
-            },
-            "type": "array",
-            "title": "Value Links"
-          }
-        },
-        "type": "object",
-        "required": [
-          "attitude_id",
-          "value_links"
-        ],
-        "title": "ProfileValuesCreateUpdate"
-      },
-      "ProfileValuesRead": {
-        "properties": {
-          "attitude_id": {
-            "type": "integer",
-            "title": "Attitude Id"
-          },
-          "attitude_statement": {
-            "type": "string",
-            "title": "Attitude Statement"
-          },
-          "value_links": {
-            "items": {
-              "$ref": "#/components/schemas/ProfileValueLinkRead"
-            },
-            "type": "array",
-            "title": "Value Links"
-          }
-        },
-        "type": "object",
-        "required": [
-          "attitude_id",
-          "attitude_statement",
-          "value_links"
-        ],
-        "title": "ProfileValuesRead"
-      },
-      "UnreadMessagesTotalCount": {
+      "UnreadMessagesCount": {
         "properties": {
           "total": {
             "type": "integer",
@@ -2240,7 +2161,7 @@
           },
           "contacts": {
             "items": {
-              "$ref": "#/components/schemas/ContactUnreadMessagesCount"
+              "$ref": "#/components/schemas/UnreadMessagesCountByContact"
             },
             "type": "array",
             "title": "Contacts"
@@ -2251,7 +2172,26 @@
           "total",
           "contacts"
         ],
-        "title": "UnreadMessagesTotalCount"
+        "title": "UnreadMessagesCount"
+      },
+      "UnreadMessagesCountByContact": {
+        "properties": {
+          "sender_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sender Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sender_id",
+          "number"
+        ],
+        "title": "UnreadMessagesCountByContact"
       },
       "UserCreate": {
         "properties": {

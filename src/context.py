@@ -1,13 +1,15 @@
-import threading
+from contextvars import ContextVar
 
 from .config import constants as CNST
 
-_request_context = threading.local()
+_current_language: ContextVar[str] = ContextVar(
+    'current_language', default=CNST.LANGUAGE_DEFAULT
+)
 
 
-def set_current_language(language_code: str):
-    _request_context.language_code = language_code
+def set_current_language(language_code: str) -> None:
+    _current_language.set(language_code)
 
 
 def get_current_language() -> str:
-    return getattr(_request_context, 'language_code', CNST.LANGUAGE_DEFAULT)
+    return _current_language.get()

@@ -16,6 +16,13 @@ async def handle_inactive_user(request: Request, exc):
     )
 
 
+async def handle_forbidden(request: Request, exc):
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={'message': getattr(exc, 'message', 'Access forbidden.')},
+    )
+
+
 async def handle_not_found(request: Request, exc):
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
@@ -34,12 +41,10 @@ async def handle_already_exists(request: Request, exc):
     )
 
 
-async def handle_incorrect_body_structure(request: Request, exc):
+async def handle_bad_request(request: Request, exc):
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content={
-            'message': getattr(exc, 'message', 'Incorrect body structure.')
-        },
+        content={'message': getattr(exc, 'message', 'Bad request.')},
     )
 
 

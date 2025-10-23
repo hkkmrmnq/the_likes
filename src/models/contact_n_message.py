@@ -1,101 +1,78 @@
-from typing import TYPE_CHECKING
+from datetime import datetime, timedelta
+from uuid import UUID
 
-from fastapi_users_db_sqlalchemy import UUID_ID
-from sqlalchemy import (
-    Boolean,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from ..config import constants as CNST
-from .base import Base, BaseWithIntPK
-
-if TYPE_CHECKING:
-    from .user_profile import Profile, User
+from ..config.enums import ContactStatus
 
 
-class Contact(Base):
-    me_user_id: Mapped[UUID_ID] = mapped_column(
-        ForeignKey('users.id', ondelete='CASCADE'), primary_key=True
-    )
-    me_profile_id: Mapped[int] = mapped_column(
-        ForeignKey('profiles.id', ondelete='CASCADE')
-    )
-    target_user_id: Mapped[UUID_ID] = mapped_column(
-        ForeignKey('users.id', ondelete='CASCADE'), primary_key=True
-    )
-    target_profile_id: Mapped[int] = mapped_column(
-        ForeignKey('profiles.id', ondelete='CASCADE')
-    )
-    similarity_score: Mapped[float] = mapped_column(Float)
-    distance: Mapped[int | None] = mapped_column(
-        Integer, nullable=True, default=None
-    )
-    me_ready_to_start: Mapped[bool] = mapped_column(
-        Boolean, nullable=True, default=False
-    )
-    status: Mapped[str] = mapped_column(CNST.ContactStatusEnum)
-    me_user: Mapped['User'] = relationship(
-        'User',
-        foreign_keys=[me_user_id],
-        back_populates='me_contacts',
-        uselist=False,
-    )
-    target_user: Mapped['User'] = relationship(
-        'User', foreign_keys=[target_user_id], uselist=False
-    )
-    me_profile: Mapped['Profile'] = relationship(
-        'Profile',
-        foreign_keys=[me_profile_id],
-        back_populates='me_contacts',
-        uselist=False,
-    )
-    target_profile: Mapped['Profile'] = relationship(
-        'Profile', foreign_keys=[target_profile_id], uselist=False
-    )
+class UserToNotifyOfMatchRead(BaseModel):
+    user_id: UUID
+    email: EmailStr = Field(max_length=CNST.EMAIL_MAX_LENGTH)
 
 
-class Message(BaseWithIntPK):
-    sender_id: Mapped[UUID_ID] = mapped_column(
-        ForeignKey('users.id', ondelete='CASCADE')
-    )
-    receiver_id: Mapped[UUID_ID] = mapped_column(
-        ForeignKey('users.id', ondelete='CASCADE')
-    )
-    sender_profile_id: Mapped[int] = mapped_column(
-        ForeignKey('profiles.id', ondelete='CASCADE')
-    )
-    receiver_profile_id: Mapped[int] = mapped_column(
-        ForeignKey('profiles.id', ondelete='CASCADE')
-    )
-    content: Mapped[str] = mapped_column(
-        String(CNST.MESSAGE_MAX_LENGTH), nullable=False
-    )
-    is_read: Mapped[bool] = mapped_column(default=False, nullable=False)
-    sender: Mapped['User'] = relationship(
-        'User',
-        foreign_keys=[sender_id],
-        back_populates='sent_messages',
-        uselist=False,
-    )
-    receiver: Mapped['User'] = relationship(
-        'User',
-        foreign_keys=[receiver_id],
-        back_populates='received_messages',
-        uselist=False,
-    )
-    sender_profile: Mapped['Profile'] = relationship(
-        'Profile',
-        foreign_keys=[sender_profile_id],
-        back_populates='sent_messages',
-        uselist=False,
-    )
-    receiver_profile: Mapped['Profile'] = relationship(
-        'Profile',
-        foreign_keys=[receiver_profile_id],
-        back_populates='received_messages',
-        uselist=False,
-    )
+class OtherProfileRead(BaseModel):
+    user_id: UUID
+    name: str | None
+    similarity_score: float
+    distance_meters: int
+
+    @field_validator('similarity_score', mode='before')
+    def round_similarity_score(cls, v):
+        if isinstance(v, float):
+            return round(v, 2)
+        return v
+
+    class Config:
+        from_attributes = True
+
+
+class ContactRead(BaseModel):
+    user_id: UUID
+    name: str | None
+    status: ContactStatus
+    created_at: datetime
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class ContactRequestRead(ContactRead):
+    time_waiting: timedelta
+
+
+class ContactRequestsRead(BaseModel):
+    incoming: list[ContactRead]
+    outgoing: list[ContactRead]
+
+
+class TargetUser(BaseModel):
+    id: UUID
+
+
+class UnreadMessagesCountByContact(BaseModel):
+    sender_id: UUID
+    count: int
+
+
+class UnreadMessagesCount(BaseModel):
+    total: int
+    contacts: list[UnreadMessagesCountByContact]
+
+
+class MessageCreate(BaseModel):
+    receiver_id: UUID
+    text: str = Field(max_length=CNST.MESSAGE_MAX_LENGTH)
+
+
+class MessageRead(BaseModel):
+    sender_id: UUID
+    sender_name: str | None
+    receiver_id: UUID
+    receiver_name: str | None
+    text: str = Field(max_length=CNST.MESSAGE_MAX_LENGTH)
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

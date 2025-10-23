@@ -1,45 +1,49 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
-from geoalchemy2 import Geometry
-from pydantic import HttpUrl
+from geoalchemy2 import Geography
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
+    DateTime,
     ForeignKey,
     Integer,
     String,
+    # text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..config import constants as CNST
+from ..config.enums import SearchAllowedStatusPG
 from .base import Base, BaseWithIntPK
+from .core import Attitude
 
 if TYPE_CHECKING:
     from .contact_n_message import Contact, Message
-    from .core import Attitude, ProfileAspectLink
-    from .profile_links import ProfileValueLink
+    from .personal_values import PersonalAspect, PersonalValue
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
     __tablename__ = 'users'
-    profile: Mapped['User'] = relationship(
+    profile: Mapped['Profile'] = relationship(
         'Profile',
         back_populates='user',
         uselist=False,
         cascade='all, delete-orphan',
     )
-    me_contacts: Mapped[list['Contact']] = relationship(
+    my_contacts: Mapped[list['Contact']] = relationship(
         'Contact',
-        back_populates='me_user',
-        foreign_keys='Contact.me_user_id',
+        back_populates='my_user',
+        foreign_keys='Contact.my_user_id',
         cascade='all, delete-orphan',
     )
     in_contacts: Mapped[list['Contact']] = relationship(
         'Contact',
-        back_populates='target_user',
-        foreign_keys='Contact.target_user_id',
+        back_populates='other_user',
+        foreign_keys='Contact.other_user_id',
         cascade='all, delete-orphan',
     )
     sent_messages: Mapped[list['Message']] = relationship(
@@ -54,6 +58,22 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         foreign_keys='Message.receiver_id',
         cascade='all, delete-orphan',
     )
+    dynamic: Mapped['UserDynamic'] = relationship(
+        'UserDynamic',
+        back_populates='user',
+        cascade='all, delete-orphan',
+        uselist=False,
+    )
+    personal_values: Mapped[list['PersonalValue']] = relationship(
+        'PersonalValue',
+        back_populates='user',
+        cascade='all, delete-orphan',
+    )
+    personal_aspects: Mapped[list['PersonalAspect']] = relationship(
+        'PersonalAspect',
+        back_populates='user',
+        cascade='all, delete-orphan',
+    )
 
 
 class Profile(BaseWithIntPK):
@@ -66,10 +86,10 @@ class Profile(BaseWithIntPK):
         nullable=True,
     )
     languages: Mapped[list[str]] = mapped_column(
-        ARRAY(String), nullable=False, default=['en']
+        ARRAY(String), nullable=False, default=lambda: ['en']
     )
     location: Mapped[str | None] = mapped_column(
-        Geometry('POINT', srid=4326), nullable=True, default=None
+        Geography('POINT', srid=4326), nullable=True, default=None, index=True
     )
     distance_limit: Mapped[int] = mapped_column(
         Integer, nullable=True, default=None
@@ -77,13 +97,10 @@ class Profile(BaseWithIntPK):
     name: Mapped[str | None] = mapped_column(
         String(CNST.USER_NAME_MAX_LENGTH), nullable=True, default=None
     )
-    avatar: Mapped[HttpUrl | None] = mapped_column(
-        String(CNST.URL_MAX_LENGTH), default=None
-    )
-    value_links: Mapped[list['ProfileValueLink']] = relationship(
-        'ProfileValueLink',
-        back_populates='profile',
-        cascade='all, delete-orphan',
+    recommend_me: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
     )
     attitude: Mapped['Attitude'] = relationship(
         'Attitude', back_populates='profiles'
@@ -93,37 +110,31 @@ class Profile(BaseWithIntPK):
         back_populates='profile',
         uselist=False,
     )
-    aspect_links: Mapped[list['ProfileAspectLink']] = relationship(
-        'ProfileAspectLink',
-        back_populates='profile',
-        cascade='all, delete-orphan',
-    )
-    me_contacts: Mapped[list['Contact']] = relationship(
-        'Contact',
-        foreign_keys='Contact.me_profile_id',
-        back_populates='me_profile',
-        cascade='all, delete-orphan',
-    )
-    in_contacts: Mapped[list['Contact']] = relationship(
-        'Contact',
-        foreign_keys='Contact.target_profile_id',
-        back_populates='target_profile',
-        cascade='all, delete-orphan',
-    )
-    sent_messages: Mapped['Message'] = relationship(
-        'Message',
-        foreign_keys='Message.sender_profile_id',
-        back_populates='sender_profile',
-        cascade='all, delete-orphan',
-    )
-    received_messages: Mapped['Message'] = relationship(
-        'Message',
-        foreign_keys='Message.receiver_profile_id',
-        back_populates='receiver_profile',
-        cascade='all, delete-orphan',
-    )
+
     __table_args__ = (
         CheckConstraint(CNST.LANGUAGES_CHECK_CONSTRAINT_TEXT),
         CheckConstraint('distance_limit > 0'),
         CheckConstraint(f'distance_limit <= {CNST.DISTANCE_LIMIT_MAX}'),
     )
+
+
+class UserDynamic(BaseWithIntPK):
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False
+    )
+    search_allowed_status: Mapped[str] = mapped_column(SearchAllowedStatusPG)
+    last_cooldown_start: Mapped[datetime | None] = mapped_column(default=None)
+    values_created: Mapped[datetime | None] = mapped_column(default=None)
+    values_changes: Mapped[list[datetime]] = mapped_column(
+        ARRAY(DateTime(timezone=False)),
+        default=list,
+    )
+    match_notified: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    user: Mapped[User] = relationship(
+        User,
+        back_populates='dynamic',
+        uselist=False,
+    )
+    __table_args__ = (CheckConstraint('match_notified >= 0'),)

@@ -3,20 +3,19 @@ from getpass import getpass
 from itertools import combinations
 
 import typer
-from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from pandas import DataFrame, Series, read_excel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src import db
 from src import models as md
-from src import schemas as sch
 from src.config import CFG
 from src.config import constants as CNST
-from src.services.user_manager import UserManager
+from src.services.user_manager import FixedSQLAlchemyUserDatabase, UserManager
 
-engine = create_async_engine(CFG.DATABASE_URL, echo=True)
+engine = create_async_engine(CFG.ASYNC_DATABASE_URL, echo=True)
 async_session_maker = async_sessionmaker(
     engine,
     expire_on_commit=False,
@@ -26,19 +25,19 @@ async_session_maker = async_sessionmaker(
 async def _clear() -> None:
     async with async_session_maker() as session:
         async with session.begin():
-            await session.execute(delete(md.User))
-            await session.execute(delete(md.ValueTitle))
-            await session.execute(delete(md.Attitude))
+            await session.execute(delete(db.User))
+            await session.execute(delete(db.ValueTitle))
+            await session.execute(delete(db.Attitude))
 
 
 def _create_aspect_objects(
-    value_title: md.ValueTitle, sheet: DataFrame
-) -> list[md.Aspect]:
+    value_title: db.ValueTitle, sheet: DataFrame
+) -> list[db.Aspect]:
     aspects = []
     aspects_df = sheet[sheet.value_title == value_title.name_default]
     for row in aspects_df.itertuples():
         aspects.append(
-            md.Aspect(
+            db.Aspect(
                 value_title=value_title,
                 key_phrase_default=row.key_phrase,
                 statement_default=row.statement,
@@ -49,14 +48,14 @@ def _create_aspect_objects(
 
 async def _create_value_objects(
     all_sheets: dict[str, DataFrame],
-) -> list[md.ValueTitle]:
+) -> list[db.ValueTitle]:
     value_titles_sheet = all_sheets['Values']
     aspects_sheet = all_sheets['Aspects']
     assert not value_titles_sheet.en.duplicated().any(), (
         'Duplicates in value names'
     )
     value_titles = [
-        md.ValueTitle(name_default=name) for name in value_titles_sheet.en
+        db.ValueTitle(name_default=name) for name in value_titles_sheet.en
     ]
     for vt in value_titles:
         vt.aspects = _create_aspect_objects(vt, aspects_sheet)
@@ -65,16 +64,16 @@ async def _create_value_objects(
 
 async def _create_attitude_objects(
     statements: Series,
-) -> list[md.Attitude]:
+) -> list[db.Attitude]:
     attitudes = []
     for statement in statements:
-        attitudes.append(md.Attitude(statement_default=statement))
+        attitudes.append(db.Attitude(statement_default=statement))
     return attitudes
 
 
 async def _create_unique_value_objects(
-    value_titles: list[md.ValueTitle],
-) -> tuple[list[md.UniqueValue], list[md.UniqueValueAspectLink]]:
+    value_titles: list[db.ValueTitle],
+) -> tuple[list[db.UniqueValue], list[db.UniqueValueAspectLink]]:
     unique_values = []
     uv_aspect_links = []
     for vt in value_titles:
@@ -83,12 +82,12 @@ async def _create_unique_value_objects(
         for r in range(len(vt.aspects) + 1):
             aspect_id_combinations.extend(combinations(aspect_ids, r))
         for a_id_combination in aspect_id_combinations:
-            new_uv = md.UniqueValue(
+            new_uv = db.UniqueValue(
                 value_title=vt,
                 aspect_ids=a_id_combination,
             )
             uv_aspect_links += [
-                md.UniqueValueAspectLink(unique_value=new_uv, aspect_id=a_id)
+                db.UniqueValueAspectLink(unique_value=new_uv, aspect_id=a_id)
                 for a_id in new_uv.aspect_ids
             ]
             unique_values.append(new_uv)
@@ -97,14 +96,14 @@ async def _create_unique_value_objects(
 
 async def _create_value_translation_objects(
     sheet: DataFrame, lan_codes: list[str], session: AsyncSession
-) -> list[md.ValueTitleTranslation]:
+) -> list[db.ValueTitleTranslation]:
     for lan_code in lan_codes:
         translations = []
-        result = await session.scalars(select(md.ValueTitle))
+        result = await session.scalars(select(db.ValueTitle))
         vn_mapped = {vn.name: vn.id for vn in result.all()}
         for row in sheet.itertuples():
             name_en = getattr(row, CNST.LANGUAGE_DEFAULT)
-            translation = md.ValueTitleTranslation(
+            translation = db.ValueTitleTranslation(
                 language_code=lan_code,
                 name=getattr(row, lan_code),
                 value_title_id=vn_mapped[name_en],
@@ -115,14 +114,14 @@ async def _create_value_translation_objects(
 
 async def _create_aspect_translation_objects(
     sheet: DataFrame, lan_codes: list[str], session: AsyncSession
-) -> list[md.AspectTranslation]:
+) -> list[db.AspectTranslation]:
     for lan_code in lan_codes:
         translations = []
-        result = await session.scalars(select(md.Aspect))
+        result = await session.scalars(select(db.Aspect))
         aspect_ids = {a.statement: a.id for a in result.all()}
         for row in sheet.itertuples():
             statement_en = getattr(row, 'statement')
-            translation = md.AspectTranslation(
+            translation = db.AspectTranslation(
                 language_code=lan_code,
                 key_phrase=getattr(row, f'key_phrase_{lan_code}'),
                 statement=getattr(row, f'statement_{lan_code}'),
@@ -133,15 +132,15 @@ async def _create_aspect_translation_objects(
 
 
 async def _create_attitude_translation_objects(
-    attitudes: list[md.Attitude], sheet: DataFrame, lan_codes: list[str]
-) -> list[md.AspectTranslation]:
+    attitudes: list[db.Attitude], sheet: DataFrame, lan_codes: list[str]
+) -> list[db.AspectTranslation]:
     translations = []
     attitude_ids = {a.statement: a.id for a in attitudes}
     for lan_code in lan_codes:
         for row in sheet.itertuples():
             statement_en = getattr(row, CNST.LANGUAGE_DEFAULT)
             translations.append(
-                md.AttitudeTranslation(
+                db.AttitudeTranslation(
                     attitude_id=attitude_ids[statement_en],
                     language_code=lan_code,
                     statement=getattr(row, f'{lan_code}'),
@@ -153,7 +152,7 @@ async def _create_attitude_translation_objects(
 async def _add_data_to_db() -> None:
     all_sheets = read_excel(CFG.BASIC_DATA_PATH, sheet_name=None)
     async with async_session_maker() as session:
-        result = await session.scalar(select(md.ValueTitle).limit(1))
+        result = await session.scalar(select(db.ValueTitle).limit(1))
         assert result is None, (
             'Values table is not empty. To clear DB use `clear` command.'
         )
@@ -163,7 +162,7 @@ async def _add_data_to_db() -> None:
         session.add_all(attitudes)
         await session.commit()
         result = await session.scalars(
-            select(md.ValueTitle).options(selectinload(md.ValueTitle.aspects))
+            select(db.ValueTitle).options(selectinload(db.ValueTitle.aspects))
         )
         values_names = list(result.all())
         uvs, uvsls = await _create_unique_value_objects(values_names)
@@ -180,7 +179,7 @@ async def _add_data_to_db() -> None:
             all_sheets['Aspects'], lan_codes, session
         )
         session.add_all(aspect_translations)
-        result = await session.scalars(select(md.Attitude))
+        result = await session.scalars(select(db.Attitude))
         attitude_translations = await _create_attitude_translation_objects(
             list(result), all_sheets['Attitudes'], lan_codes
         )
@@ -195,9 +194,9 @@ async def _superuser():
     password2 = getpass('Repeat password: ')
     assert password1 == password2, 'Typo in password?'
     async with async_session_maker() as session:
-        user_db = SQLAlchemyUserDatabase(session, md.User)
+        user_db = FixedSQLAlchemyUserDatabase(session, db.User)
         user_manager = UserManager(user_db)
-        user_data = sch.UserCreate(
+        user_data = md.UserCreate(
             email=email,
             password=password1,
             is_superuser=True,

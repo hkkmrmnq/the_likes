@@ -27,6 +27,14 @@ class InactiveUser(Error):
         super().__init__(message)
 
 
+class Forbidden(Error):
+    def __init__(
+        self,
+        message: str = 'Acces forbidden.',
+    ):
+        super().__init__(message)
+
+
 class AlreadyExists(Error):
     def __init__(
         self,
@@ -35,10 +43,10 @@ class AlreadyExists(Error):
         super().__init__(message)
 
 
-class IncorrectBodyStructure(Error):
+class BadRequest(Error):
     def __init__(
         self,
-        message: str = 'Incorrect body structure.',
+        message: str = 'Bad request.',
     ):
         super().__init__(message)
 

@@ -1,15 +1,13 @@
 from uuid import UUID
 
-from fastapi_users import schemas
+from fastapi_users import schemas as fu_schemas
 from geoalchemy2.shape import to_shape
 from pydantic import (
     BaseModel,
     EmailStr,
     Field,
-    HttpUrl,
     ValidationError,
     computed_field,
-    field_serializer,
     field_validator,
 )
 from pydantic_extra_types.coordinate import Latitude, Longitude
@@ -17,7 +15,7 @@ from pydantic_extra_types.coordinate import Latitude, Longitude
 from ..config import constants as CNST
 
 
-class UserRead(schemas.BaseUser[UUID]):
+class UserRead(fu_schemas.BaseUser[UUID]):
     id: UUID
     email: str
 
@@ -25,7 +23,7 @@ class UserRead(schemas.BaseUser[UUID]):
         arbitrary_types_allowed = True
 
 
-class UserCreate(schemas.BaseUserCreate):
+class UserCreate(fu_schemas.BaseUserCreate):
     email: EmailStr = Field(
         max_length=CNST.EMAIL_MAX_LENGTH, examples=['johndoe@example.com']
     )
@@ -36,7 +34,7 @@ class UserCreate(schemas.BaseUserCreate):
     )
 
 
-class UserUpdate(schemas.BaseUserUpdate):
+class UserUpdate(fu_schemas.BaseUserUpdate):
     email: EmailStr | None = Field(
         max_length=CNST.EMAIL_MAX_LENGTH,
         examples=['johndoe@example.com'],
@@ -55,7 +53,7 @@ class ProfileRead(BaseModel):
     languages: list[str]
     location: str | None
     distance_limit: int | None
-    avatar: str | None
+    recommend_me: bool
 
     class Config:
         from_attributes = True
@@ -70,32 +68,22 @@ class ProfileRead(BaseModel):
         return loaction
 
 
-class ComputedLocationMixin(BaseModel):
+class ProfileUpdate(BaseModel):
+    name: str | None = Field(
+        max_length=CNST.USER_NAME_MAX_LENGTH,
+        examples=['John Doe'],
+    )
     longitude: Longitude | None
     latitude: Latitude | None
+    distance_limit: int | None = Field(gt=0, le=CNST.DISTANCE_LIMIT_MAX)
+    languages: list[str]
+    recommend_me: bool
 
     @computed_field
     @property
     def location(self) -> str | None:
         if all((self.longitude, self.latitude)):
             return f'POINT({self.longitude} {self.latitude})'
-
-
-class AvatarFieldMixin(BaseModel):
-    avatar: HttpUrl | None = Field(max_length=CNST.URL_MAX_LENGTH)
-
-    @field_serializer('avatar')
-    def serialize_avatar(self, avatar: HttpUrl | None) -> str | None:
-        return str(avatar) if avatar else None
-
-
-class ProfileUpdate(AvatarFieldMixin, ComputedLocationMixin):
-    name: str | None = Field(
-        max_length=CNST.USER_NAME_MAX_LENGTH,
-        examples=['John Doe'],
-    )
-    distance_limit: int | None = Field(gt=0, le=CNST.DISTANCE_LIMIT_MAX)
-    languages: list[str]
 
     @field_validator('languages', mode='after')
     def validate_languages(cls, languages):

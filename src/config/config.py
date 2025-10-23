@@ -1,4 +1,3 @@
-from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,7 +11,6 @@ class Settings(BaseSettings):
     PG_DB_NAME: str
     JWT_SECRET: str
     JWT_ACCESS_LIFETIME: int
-    JWT_REFRESH_LIFETIME: int
     RESET_PASSWORD_TOKEN_SECRET: str
     VERIFICATION_TOKEN_SECRET: str
     EMAIL_APP_EMAIL: str
@@ -22,11 +20,17 @@ class Settings(BaseSettings):
         env_file='.env', env_file_encoding='utf-8'
     )
 
-    @computed_field(return_type=str)
     @property
-    def DATABASE_URL(self):
+    def ASYNC_DATABASE_URL(self):
         return (
             f'postgresql+asyncpg://{self.PG_USER}:{self.PG_PASSWORD}'
+            f'@{self.PG_HOST}:{self.PG_PORT}/{self.PG_DB_NAME}'
+        )
+
+    @property
+    def SYNC_DATABASE_URL(self):
+        return (
+            f'postgresql+psycopg2://{self.PG_USER}:{self.PG_PASSWORD}'
             f'@{self.PG_HOST}:{self.PG_PORT}/{self.PG_DB_NAME}'
         )
 

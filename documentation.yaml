@@ -420,17 +420,6 @@ paths:
         - profile
       summary: Get Profile
       operationId: get_profile_profile_get
-      security:
-        - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
       responses:
         '200':
           description: Successful Response
@@ -439,52 +428,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileRead'
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+          description: Unverified.
         '500':
           description: Profile not found.
+      security:
+        - OAuth2PasswordBearer: []
     put:
       tags:
         - profile
       summary: Edit Profile
       operationId: edit_profile_profile_put
-      security:
-        - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/ProfileUpdate'
+        required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProfileRead'
+                $ref: '#/components/schemas/ApiResponse_ProfileRead_'
         '400':
           description: Can't set distance_limit without location.
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
         '422':
           description: Validation Error
           content:
@@ -493,202 +467,103 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
         '500':
           description: Profile not found.
+      security:
+        - OAuth2PasswordBearer: []
   /definitions:
     get:
       tags:
         - values
       summary: Get Definitions
       operationId: get_definitions_definitions_get
-      security:
-        - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                type: array
                 items:
                   $ref: '#/components/schemas/ValueTitleRead'
+                type: array
                 title: Response Get Definitions Definitions Get
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+          description: Unverified.
         '500':
           description: Definitions not found.
+      security:
+        - OAuth2PasswordBearer: []
   /attitudes:
     get:
       tags:
         - values
       summary: Get Attitudes
       operationId: get_attitudes_attitudes_get
-      security:
-        - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                type: array
                 items:
                   $ref: '#/components/schemas/AttitudeRead'
+                type: array
                 title: Response Get Attitudes Attitudes Get
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+          description: Unverified.
         '500':
           description: Attitudes not found.
+      security:
+        - OAuth2PasswordBearer: []
   /my_values:
     get:
       tags:
         - values
-      summary: Get Profile Values
-      operationId: get_profile_values_my_values_get
-      security:
-        - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
+      summary: Get Moral Profile
+      operationId: get_moral_profile_my_values_get
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProfileValuesRead'
+                $ref: '#/components/schemas/ApiResponse_MoralProfileRead_'
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
         '404':
-          description: Profile values have not yet been set.
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-    post:
-      tags:
-        - values
-      summary: Post Profile Values
-      operationId: post_profile_values_my_values_post
+          description: Personal values have not yet been set.
       security:
         - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProfileValuesCreateUpdate'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProfileValuesRead'
-        '400':
-          description: Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects.
-        '401':
-          description: Unauthorized.
-        '403':
-          description: Unverified / inactive account.
-        '409':
-          description: Profile values are already set.
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-        '500':
-          description: Profile not found. / Profile values not found after creation.
     put:
       tags:
         - values
-      summary: Edit Profile Values
-      operationId: edit_profile_values_my_values_put
-      security:
-        - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
+      summary: Edit Moral Profile
+      operationId: edit_moral_profile_my_values_put
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProfileValuesCreateUpdate'
+              $ref: '#/components/schemas/MoralProfileCreateUpdate'
+        required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProfileValuesRead'
+                $ref: '#/components/schemas/ApiResponse_MoralProfileRead_'
         '400':
           description: Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects.
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
         '404':
-          description: Profile values have not yet been set.
+          description: Personal values have not yet been set.
         '422':
           description: Validation Error
           content:
@@ -696,45 +571,68 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
         '500':
-          description: Profile not found. / Profile values not found after update.
+          description: Profile not found. / Personal values not found after update.
+      security:
+        - OAuth2PasswordBearer: []
+    post:
+      tags:
+        - values
+      summary: Post Moral Profile
+      operationId: post_moral_profile_my_values_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoralProfileCreateUpdate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse_MoralProfileRead_'
+        '400':
+          description: Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects.
+        '401':
+          description: Unauthorized / inactive account.
+        '403':
+          description: Unverified.
+        '409':
+          description: Personal values are already set.
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+        '500':
+          description: Profile not found. / Personal values not found after creation.
+      security:
+        - OAuth2PasswordBearer: []
   /check_for_alike:
     get:
       tags:
         - contacts
       summary: Check For Alike
       operationId: check_for_alike_check_for_alike_get
-      security:
-        - OAuth2PasswordBearer: []
-      parameters:
-        - name: Accept-Language
-          in: header
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Accept-Language
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContactsRead'
+                $ref: '#/components/schemas/ApiResponse_list_RecomendationRead__'
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Temporarily unavailable.
         '404':
           description: Profile values have not yet been set.
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
         '500':
           description: Profile not found. / Contact not found right after creation. / To many contacts found.
+      security:
+        - OAuth2PasswordBearer: []
   /agree_to_start:
     post:
       tags:
@@ -753,13 +651,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InfoMessage'
+                $ref: '#/components/schemas/ApiResponse'
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
         '404':
-          description: Contact not found. / Inconsistent number of contacts found.
+          description: Requested user not found.
         '422':
           description: Validation Error
           content:
@@ -782,9 +680,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ContactsRead'
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
       security:
         - OAuth2PasswordBearer: []
   /messages/unread_count:
@@ -799,11 +697,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UnreadMessagesTotalCount'
+                $ref: '#/components/schemas/UnreadMessagesCount'
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
       security:
         - OAuth2PasswordBearer: []
   /messages:
@@ -815,13 +713,13 @@ paths:
       security:
         - OAuth2PasswordBearer: []
       parameters:
-        - name: sender_id
+        - name: contact_user_id
           in: query
           required: true
           schema:
             type: string
             format: uuid
-            title: Sender Id
+            title: Contact User Id
       responses:
         '200':
           description: Successful Response
@@ -833,9 +731,9 @@ paths:
                   $ref: '#/components/schemas/MessageRead'
                 title: Response Get Messages Messages Get
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
         '422':
           description: Validation Error
           content:
@@ -863,9 +761,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageCreate'
         '401':
-          description: Unauthorized.
+          description: Unauthorized / inactive account.
         '403':
-          description: Unverified / inactive account.
+          description: Unverified.
         '404':
           description: Contact not found.
         '422':
@@ -886,6 +784,62 @@ components:
       required:
         - user_id
       title: AgreeSchema
+    ApiResponse:
+      properties:
+        data:
+          anyOf:
+            - {}
+            - type: 'null'
+          title: Data
+        message:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Message
+      type: object
+      title: ApiResponse
+    ApiResponse_MoralProfileRead_:
+      properties:
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/MoralProfileRead'
+            - type: 'null'
+        message:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Message
+      type: object
+      title: ApiResponse[MoralProfileRead]
+    ApiResponse_ProfileRead_:
+      properties:
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/ProfileRead'
+            - type: 'null'
+        message:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Message
+      type: object
+      title: ApiResponse[ProfileRead]
+    ApiResponse_list_RecomendationRead__:
+      properties:
+        data:
+          anyOf:
+            - items:
+                $ref: '#/components/schemas/RecomendationRead'
+              type: array
+            - type: 'null'
+          title: Data
+        message:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Message
+      type: object
+      title: ApiResponse[list[RecomendationRead]]
     AspectRead:
       properties:
         id:
@@ -1023,9 +977,6 @@ components:
             - type: number
             - type: 'null'
           title: Distance
-        me_ready_to_start:
-          type: boolean
-          title: Me Ready To Start
         user_id:
           type: string
           format: uuid
@@ -1040,7 +991,6 @@ components:
         - status
         - similarity_score
         - distance
-        - me_ready_to_start
         - user_id
         - created_at
       title: ContactRead
@@ -1052,36 +1002,15 @@ components:
         - ongoing
         - closed
       title: ContactStatus
-    ContactUnreadMessagesCount:
-      properties:
-        sender_id:
-          type: string
-          format: uuid
-          title: Sender Id
-        number:
-          type: integer
-          title: Number
-      type: object
-      required:
-        - sender_id
-        - number
-      title: ContactUnreadMessagesCount
     ContactsRead:
       properties:
-        found:
-          type: boolean
-          title: Found
         contacts:
           items:
-            anyOf:
-              - $ref: '#/components/schemas/ContactRead'
-              - type: 'null'
+            $ref: '#/components/schemas/ContactRead'
           type: array
           title: Contacts
           default: []
       type: object
-      required:
-        - found
       title: ContactsRead
     ErrorModel:
       properties:
@@ -1105,15 +1034,6 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
-    InfoMessage:
-      properties:
-        message:
-          type: string
-          title: Message
-      type: object
-      required:
-        - message
-      title: InfoMessage
     MessageCreate:
       properties:
         receiver_id:
@@ -1170,7 +1090,41 @@ components:
         - content
         - created_at
       title: MessageRead
-    ProfileAspectLinkCreate:
+    MoralProfileCreateUpdate:
+      properties:
+        attitude_id:
+          type: integer
+          title: Attitude Id
+        value_links:
+          items:
+            $ref: '#/components/schemas/PersonalValueCreate'
+          type: array
+          title: Value Links
+      type: object
+      required:
+        - attitude_id
+        - value_links
+      title: MoralProfileCreateUpdate
+    MoralProfileRead:
+      properties:
+        attitude_id:
+          type: integer
+          title: Attitude Id
+        attitude_statement:
+          type: string
+          title: Attitude Statement
+        value_links:
+          items:
+            $ref: '#/components/schemas/PersonalValueRead'
+          type: array
+          title: Value Links
+      type: object
+      required:
+        - attitude_id
+        - attitude_statement
+        - value_links
+      title: MoralProfileRead
+    PersonalAspectCreate:
       properties:
         aspect_id:
           type: integer
@@ -1182,8 +1136,8 @@ components:
       required:
         - aspect_id
         - included
-      title: ProfileAspectLinkCreate
-    ProfileAspectLinkRead:
+      title: PersonalAspectCreate
+    PersonalAspectRead:
       properties:
         aspect_id:
           type: integer
@@ -1203,7 +1157,63 @@ components:
         - aspect_key_phrase
         - aspect_statement
         - included
-      title: ProfileAspectLinkRead
+      title: PersonalAspectRead
+    PersonalValueCreate:
+      properties:
+        value_title_id:
+          type: integer
+          title: Value Title Id
+        polarity:
+          type: string
+          enum:
+            - positive
+            - negative
+            - neutral
+          title: Polarity
+        user_order:
+          type: integer
+          maximum: 11
+          minimum: 1
+          title: User Order
+        aspects:
+          items:
+            $ref: '#/components/schemas/PersonalAspectCreate'
+          type: array
+          title: Aspects
+      type: object
+      required:
+        - value_title_id
+        - polarity
+        - user_order
+        - aspects
+      title: PersonalValueCreate
+    PersonalValueRead:
+      properties:
+        value_title_id:
+          type: integer
+          title: Value Title Id
+        value_title_name:
+          type: string
+          title: Value Title Name
+        polarity:
+          type: string
+          title: Polarity
+        user_order:
+          type: integer
+          title: User Order
+        aspects:
+          items:
+            $ref: '#/components/schemas/PersonalAspectRead'
+          type: array
+          title: Aspects
+      type: object
+      required:
+        - value_title_id
+        - value_title_name
+        - polarity
+        - user_order
+        - aspects
+      title: PersonalValueRead
     ProfileRead:
       properties:
         name:
@@ -1231,6 +1241,9 @@ components:
             - type: string
             - type: 'null'
           title: Avatar
+        recommend_me:
+          type: boolean
+          title: Recommend Me
       type: object
       required:
         - name
@@ -1238,6 +1251,7 @@ components:
         - location
         - distance_limit
         - avatar
+        - recommend_me
       title: ProfileRead
     ProfileUpdate:
       properties:
@@ -1285,6 +1299,9 @@ components:
             type: string
           type: array
           title: Languages
+        recommend_me:
+          type: boolean
+          title: Recommend Me
       type: object
       required:
         - longitude
@@ -1293,112 +1310,63 @@ components:
         - name
         - distance_limit
         - languages
+        - recommend_me
       title: ProfileUpdate
-    ProfileValueLinkCreate:
+    RecomendationRead:
       properties:
-        value_title_id:
-          type: integer
-          title: Value Title Id
-        polarity:
+        recommended_user_id:
           type: string
-          enum:
-            - positive
-            - negative
-            - neutral
-          title: Polarity
-        user_order:
-          type: integer
-          maximum: 11
-          minimum: 1
-          title: User Order
-        aspects:
-          items:
-            $ref: '#/components/schemas/ProfileAspectLinkCreate'
-          type: array
-          title: Aspects
+          format: uuid
+          title: Recommended User Id
+        recommended_user_name:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Recommended User Name
+        similarity_score:
+          type: number
+          title: Similarity Score
+        distance_meters:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Distance Meters
       type: object
       required:
-        - value_title_id
-        - polarity
-        - user_order
-        - aspects
-      title: ProfileValueLinkCreate
-    ProfileValueLinkRead:
-      properties:
-        value_title_id:
-          type: integer
-          title: Value Title Id
-        value_title_name:
-          type: string
-          title: Value Title Name
-        polarity:
-          type: string
-          title: Polarity
-        user_order:
-          type: integer
-          title: User Order
-        aspects:
-          items:
-            $ref: '#/components/schemas/ProfileAspectLinkRead'
-          type: array
-          title: Aspects
-      type: object
-      required:
-        - value_title_id
-        - value_title_name
-        - polarity
-        - user_order
-        - aspects
-      title: ProfileValueLinkRead
-    ProfileValuesCreateUpdate:
-      properties:
-        attitude_id:
-          type: integer
-          title: Attitude Id
-        value_links:
-          items:
-            $ref: '#/components/schemas/ProfileValueLinkCreate'
-          type: array
-          title: Value Links
-      type: object
-      required:
-        - attitude_id
-        - value_links
-      title: ProfileValuesCreateUpdate
-    ProfileValuesRead:
-      properties:
-        attitude_id:
-          type: integer
-          title: Attitude Id
-        attitude_statement:
-          type: string
-          title: Attitude Statement
-        value_links:
-          items:
-            $ref: '#/components/schemas/ProfileValueLinkRead'
-          type: array
-          title: Value Links
-      type: object
-      required:
-        - attitude_id
-        - attitude_statement
-        - value_links
-      title: ProfileValuesRead
-    UnreadMessagesTotalCount:
+        - recommended_user_id
+        - recommended_user_name
+        - similarity_score
+      title: RecomendationRead
+      description: Model for reading Rows retrived from 'recommendations' mat. view.
+    UnreadMessagesCount:
       properties:
         total:
           type: integer
           title: Total
         contacts:
           items:
-            $ref: '#/components/schemas/ContactUnreadMessagesCount'
+            $ref: '#/components/schemas/UnreadMessagesCountByContact'
           type: array
           title: Contacts
       type: object
       required:
         - total
         - contacts
-      title: UnreadMessagesTotalCount
+      title: UnreadMessagesCount
+    UnreadMessagesCountByContact:
+      properties:
+        sender_id:
+          type: string
+          format: uuid
+          title: Sender Id
+        number:
+          type: integer
+          title: Number
+      type: object
+      required:
+        - sender_id
+        - number
+      title: UnreadMessagesCountByContact
     UserCreate:
       properties:
         email:

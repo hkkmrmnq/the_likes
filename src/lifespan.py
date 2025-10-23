@@ -1,17 +1,30 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy import text
 
 from . import crud
-from .db import engine, session_factory
-from .scheduler import start_scheduler
+from .config import constants as CNST
+from .crud import sql
+from .sessions import a_session_factory, async_engine
+
+
+async def check_basic_data():
+    async with a_session_factory() as session:
+        await crud.read_definitions(a_session=session)
+        await crud.read_attitudes(a_session=session)
+
+
+async def manage_precalculations():
+    async with a_session_factory() as session:
+        for query in sql.prepare_recommendations_raw_str:
+            await session.execute(text(query))
+            await session.commit()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await crud.check_basic_data()
-    await crud.manage_precalculations()
-    scheduler = start_scheduler(session_factory)
+    await check_basic_data()
+    await manage_precalculations()
     yield
-    scheduler.shutdown(wait=False)
-    await engine.dispose()
+    await async_engine.dispose()

@@ -1,24 +1,23 @@
-from typing import Annotated, Any
+from typing import Any, AsyncGenerator
 
-from fastapi import Depends, Header
+from fastapi import Depends
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
     JWTStrategy,
 )
 from fastapi_users.authentication.authenticator import Authenticator
-from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config import CFG
 from .config import constants as CNST
-from .db import session_factory
-from .models import User
-from .services.user_manager import UserManager
+from .db import User
+from .services.user_manager import FixedSQLAlchemyUserDatabase, UserManager
+from .sessions import a_session_factory
 
 
-async def get_db():
-    async with session_factory() as session:
+async def get_async_session() -> AsyncGenerator:
+    async with a_session_factory() as session:
         yield session
 
 
@@ -37,8 +36,8 @@ auth_backend = AuthenticationBackend(
 )
 
 
-async def get_user_db(session: AsyncSession = Depends(get_db)):
-    yield SQLAlchemyUserDatabase(session, User)
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield FixedSQLAlchemyUserDatabase(session, User)
 
 
 async def get_user_manager(user_db=Depends(get_user_db)):
@@ -56,25 +55,14 @@ current_active_verified_user = authenticatior.current_user(
 
 
 def with_common_responses(
-    codes: list[int],
-    extra_responses: dict[int, dict[str, str]] = {},
+    *,
+    common_response_codes: list[int] | None = None,
+    extra_responses: dict[int, dict[str, str]] | None = None,
 ) -> dict[int | str, dict[str, Any]] | None:
     """Dependency that adds common responses to endpoints."""
-    needed_responces = {k: CNST.COMMON_RESPONSES[k] for k in codes}
+    common_response_codes = common_response_codes or []
+    extra_responses = extra_responses or {}
+    needed_responces = {
+        k: CNST.COMMON_RESPONSES[k] for k in common_response_codes
+    }
     return {**needed_responces, **extra_responses}
-
-
-def get_language(
-    accept_language: Annotated[
-        str | None, Header(alias='Accept-Language')
-    ] = None,
-) -> str:
-    """Dependency to extract and validate language."""
-    if not accept_language:
-        return CNST.LANGUAGE_DEFAULT
-    language = accept_language.split(',')[0][:2].lower()
-    return (
-        language
-        if language in CNST.SUPPORTED_LANGUAGES
-        else CNST.LANGUAGE_DEFAULT
-    )
