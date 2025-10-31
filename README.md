@@ -65,12 +65,21 @@ make devadmin
 
 Access documentation: http://localhost/docs/
 
-To put down docker network use
+To generate random values input
+```bash
+make testval
+```
+
+To put down docker network, but keep the volumes
 ```bash
 make devdown
 ```
 
-If you want to keep db volumes between network buits - remove '-v' param in Makefile.
+To put down docker network, and remove the volumes
+```bash
+make devdown
+```
+
 
 
 # Introduction for users

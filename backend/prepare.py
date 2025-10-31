@@ -3,6 +3,7 @@ import asyncio
 import typer
 
 from src import services as srv
+from src.services._utils import create_random_personal_values
 from src.sessions import a_session_factory
 
 app = typer.Typer()
@@ -26,6 +27,13 @@ def data():
 @app.command()
 def superuser():
     asyncio.run(srv.add_superuser(a_session_factory=a_session_factory))
+
+
+@app.command()
+def testval():
+    asyncio.run(
+        create_random_personal_values(a_session_factory=a_session_factory)
+    )
 
 
 if __name__ == '__main__':

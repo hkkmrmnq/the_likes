@@ -1,11 +1,13 @@
 import hashlib
+import json
+import random
 from datetime import datetime
 from typing import Sequence
 from uuid import UUID
 
 import httpx
 from async_lru import alru_cache
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src import crud, db
 from src import models as md
@@ -237,3 +239,49 @@ async def get_recommendations(
         for r in recommendations
     ]
     return rec_models
+
+
+def generate_random_personal_values(*, schema: dict):
+    order_choices = [n for n in range(1, CFG.PERSONAL_VALUE_MAX_ORDER + 1)]
+    input = {
+        'attitude_id': random.choice(list(schema['attitude_ids'])),
+        'value_links': [],
+    }
+    polarity = 'positive'
+    polarity_change_options = [0] + order_choices + [(order_choices[-1] + 1)]
+    two_choices = [
+        random.choice(polarity_change_options),
+        random.choice(polarity_change_options),
+    ]
+    switch_to_neutral, switch_to_negative = sorted(two_choices)
+    value_ids = list(schema['definitions'])
+    random.shuffle(value_ids)
+    for order in order_choices:
+        value_id = value_ids[order - 1]
+        aspect_ids = schema['definitions'][value_id]
+        input_aspects = [
+            {'aspect_id': a_id, 'included': random.choice((True, False))}
+            for a_id in aspect_ids
+        ]
+        if order == switch_to_neutral:
+            polarity = 'neutral'
+        if order == switch_to_negative:
+            polarity = 'negative'
+        input['value_links'].append(
+            {
+                'value_id': value_id,
+                'polarity': polarity,
+                'user_order': order,
+                'aspects': input_aspects,
+            }
+        )
+        order += 1
+    return input
+
+
+async def create_random_personal_values(a_session_factory: async_sessionmaker):
+    async with a_session_factory() as a_session:
+        schema = await get_schema_for_pesonal_values_input(a_session=a_session)
+    result = json.dumps(generate_random_personal_values(schema=schema))
+    print(result)
+    return result
