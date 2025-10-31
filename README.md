@@ -95,18 +95,26 @@ Due to this approach, finding suitable users may take quite a while — and will
 If you want to know the reasons behind the choice of terms denoting values, here is the position from which I follow:
 
 1. Reality exists independently of us and is knowable through experience. It can be understood as a set of all possible descriptive statements that denote either the very fact of our experience, or logically necessarily follow from the totality of facts.
+
 2. Another type of statements are evaluative. We make evaluative statements about what we think reality should be like. Evaluative statements can take forms such as "X is good/bad, right/wrong" and "X should/should not be done".
+
 3. Along with this, there is the concept of "moral values" — something like guidelines, relying on which we make evaluative statements.
+
 4. Descriptive statements are logically connected with facts. Evaluative statements are also logically connected with moral values.
+
 5. Further, I will use the term "values" in the following meaning. Values ​​are terms that:
 • are highly abstract;
 • work as moral guidelines (actions, words, thoughts, decisions, behavior of any person — will always to some extent be directed towards/from "love", "beauty", etc.);
 • are ultimately unattainable, but can be pursued infinitely effectively (it is impossible to find all possible love in the universe, but we always can find more love);
 • are neutral in themselves, until they are organized into a hierarchy (love in itself is neither good nor bad — we ourselves choose to what extent to strive for it / from it — and only this choice creates a hierarchy — places love above/below other moral values).
+
 6. 
-6.1. Each person has an internal hierarchy of values, which influences his emotions, thoughts, language, decisions and behavior, etc. And / or:
-6.2. Every thought, word and action of each person influences the world in a certain way — as if shifting (even if only a little) in a certain direction. In some directions a person moves (and moves the world) more often, in some directions — less often.
-6.3. Statements 6.1 and 6.2 are interchangeable in the context of reasoning about what (abstract moral) values ​​are: the set of directions and their "weights" is the same as an internal hierarchy of values.
+    6.1. Each person has an internal hierarchy of values, which influences his emotions, thoughts, language, decisions and behavior, etc. And / or:
+
+    6.2. Every thought, word and action of each person influences the world in a certain way — as if shifting (even if only a little) in a certain direction. In some directions a person moves (and moves the world) more often, in some directions — less often.
+
+    6.3. Statements 6.1 and 6.2 are interchangeable in the context of reasoning about what (abstract moral) values ​​are: the set of directions and their "weights" is the same as an internal hierarchy of values.
+
 7. Personal hierarchy of values ​​is not directly accessible to consciousness.
 8. When attempting to define (or choose) a hierarchy of one's values, a second (conscious) hierarchy of values ​​is created in addition to the first (real) one. How similar the real and conscious value hierarchies will be for any given person is a question that is hardly possible to answer.
 9. Since the real/unconscious is not completely isolated from the conscious, I propose that the unconscious value hierarchy can be changed through sustained conscious effort — through self-analysis and, most importantly, through discussion with people who share similar values.
@@ -159,9 +167,9 @@ The Likes позволяет найти новых знакомых на осн�
 • финально не достижимы, но их можно бесконечно эффективно преследовать (невозможно обрести всю возможную любовь во вселенной, но но всегда можно найти больше любви);
 • нейтральны сами по себе, пока не организованы в иерархию (любовь сама по себе — ни хорошая, ни плохая — мы сами выбираем, в какой степени стремиться к ней / от неё — и только этот выбор создаёт иерархию — помещает любовь выше/ниже других моральных ценностей).
 6. 
-6.1. У каждого человека есть внутренняя иерархия ценностей, которая оказывает влияние на его эмоции, мысли, язык, решения и поведение и т.д. И / или:
-6.2. Каждая мысль, слово и действие каждого человека оказывает влияние на мир вокруг, изменяя его определённым образом — смещая (даже если совсем немного) в определённом направлении. В каких—то направлениях человек двигается (и двигает мир) чаще, в каких—то — реже.
-6.3. Утверждения 6.1 и 6.2 взаимозаменяемы в контексте рассуждения о том, что такое (абстрактные моральные) ценности: набор направлений и их "весов" — это то же самое, что внутренняя иерархия ценностей.
+    6.1. У каждого человека есть внутренняя иерархия ценностей, которая оказывает влияние на его эмоции, мысли, язык, решения и поведение и т.д. И / или:
+    6.2. Каждая мысль, слово и действие каждого человека оказывает влияние на мир вокруг, изменяя его определённым образом — смещая (даже если совсем немного) в определённом направлении. В каких—то направлениях человек двигается (и двигает мир) чаще, в каких—то — реже.
+    6.3. Утверждения 6.1 и 6.2 взаимозаменяемы в контексте рассуждения о том, что такое (абстрактные моральные) ценности: набор направлений и их "весов" — это то же самое, что внутренняя иерархия ценностей.
 7. Персональная иерархия ценностей недоступна сознанию напрямую. Мы можем попытаться определить её интуитивно, но не существует способа проверить ценности человека.
 8. При попытке определить (или выбрать) иерархию своих ценностей — помимо первой  (реальной) создаётся вторая (сознательная) иерархия ценностей. Насколько схожими будут реальная и сознательная иерархии ценностей у какого—то конкретного человека — это вопрос, на который вряд ли возможно ответить.
 9. Поскольку реальное/бессознательное не в полной мере изолировано от сознательного, я предполагаю, что бессознательную иерархию ценностей можно изменить с помощью длительных сознательных усилий — через самоанализ и, что особенно важно, через обсуждение с людьми, имеющими схожие ценности.
