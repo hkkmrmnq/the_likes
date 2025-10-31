@@ -6,7 +6,7 @@ The Likes is an app designed to find people with the same personal values. More 
 #### Tools used:
 - Python 3.12
 - Fastapi 0.116.1
-- Fastapi-users 14.0.1
+- Fastapi-users (JWT) 14.0.1
 - Sqlalchemy 2.0.41
 - Alembic 1.16.4
 - Celery[redis] 5.5.3
@@ -20,7 +20,7 @@ Documentation file - 'documentation.json' - in backend folder.
 To read - upload it to https://editor.swagger.io/
 
 
-You can edit backend/Basic data.xlsx to create your own set of Values, Aspects and Attitudes.
+You can also use your own set of Values, Aspects and Attitudes. For this - edit backend/Basic data.xlsx and adjust Settings.PERSONAL_VALUE_MAX_ORDER.
 
 
 #### To run project:

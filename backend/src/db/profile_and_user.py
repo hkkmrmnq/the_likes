@@ -26,6 +26,8 @@ if TYPE_CHECKING:
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
+    """User model, inherited from FastAPI Users."""
+
     __tablename__ = 'users'
     profile: Mapped['Profile'] = relationship(
         'Profile',
@@ -76,6 +78,8 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
 
 class Profile(BaseWithIntPK):
+    """Profile, 1-to-1-related to User."""
+
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'), unique=True
     )
@@ -117,6 +121,8 @@ class Profile(BaseWithIntPK):
 
 
 class UserDynamic(BaseWithIntPK):
+    """Utility model to manage user's activity."""
+
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False
     )

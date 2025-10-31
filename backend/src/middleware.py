@@ -6,6 +6,8 @@ from src.context import set_current_language
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):
+    """Parses request header and sets current language ContextVar."""
+
     async def dispatch(self, request: Request, call_next):
         accept_language_header = request.headers.get('accept-language')
         if not accept_language_header:

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Index, Integer, String, text
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.exc import MissingGreenlet
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
@@ -15,6 +15,7 @@ from src.config import CFG
 from src.config import constants as CNST
 from src.context import get_current_language
 from src.db.base import BaseWithIntPK
+from src.logger import logger
 
 if TYPE_CHECKING:
     from .personal_values import (
@@ -31,18 +32,34 @@ if TYPE_CHECKING:
 
 
 def _translate_attribute(self: 'Value | Aspect | Attitude'):
+    """
+    If current language ContextVar != CFG.DEFAULT_LANGUAGE -
+    returns translated version of an attribute.
+    Related Translations must be eagerly loaded -
+    otherwise default attribute will be returned.
+    """
     current_frame = inspect.currentframe()
-    lan_code = get_current_language()
     if current_frame is None or current_frame.f_back is None:
-        raise exc.ServerError('current_frame / current_frame.f_back is None')
+        msg = 'current_frame / current_frame.f_back is None'
+        logger.error(msg)
+        raise exc.ServerError(msg)
+    lan_code = get_current_language()
     attr_name = current_frame.f_back.f_code.co_name
     if (
         lan_code != CFG.DEFAULT_LANGUAGE
         and lan_code in CFG.SUPPORTED_LANGUAGES
     ):
-        for translation in self.translations:
-            if translation.language_code == lan_code:
-                return getattr(translation, attr_name)
+        try:
+            for translation in self.translations:
+                if translation.language_code == lan_code:
+                    return getattr(translation, attr_name)
+        except MissingGreenlet:
+            logger.error(
+                (
+                    f'_translate_attribute MissingGreenlet, {lan_code=}. '
+                    'Translations not loaded?'
+                )
+            )
     return getattr(self, f'{attr_name}_default')
 
 
@@ -69,7 +86,7 @@ class Value(BaseWithIntPK):
         cascade='all, delete-orphan',
     )
 
-    @hybrid_property
+    @property
     def name(self) -> str:
         """Return translated name or fallback to default."""
         return _translate_attribute(self)
@@ -107,14 +124,14 @@ class Aspect(BaseWithIntPK):
         cascade='all, delete-orphan',
     )
 
-    @hybrid_property
+    @property
     def key_phrase(self) -> str:
-        """Return translated key_phrase or fallback to default"""
+        """Return translated key_phrase or fallback to default."""
         return _translate_attribute(self)
 
-    @hybrid_property
+    @property
     def statement(self) -> str:
-        """Return translated statement or fallback to default"""
+        """Return translated statement or fallback to default."""
         return _translate_attribute(self)
 
 
@@ -147,6 +164,8 @@ class UniqueValue(BaseWithIntPK):
 
 
 class Attitude(BaseWithIntPK):
+    """Represents general attitude to moral values as such."""
+
     statement_default: Mapped[str] = mapped_column(
         String(CNST.ATTITUDE_TEXT_MAX_LENGTH), unique=True
     )
@@ -157,7 +176,7 @@ class Attitude(BaseWithIntPK):
         'AttitudeTranslation', back_populates='attitude'
     )
 
-    @hybrid_property
+    @property
     def statement(self) -> str:
-        """Return translated statement or fallback to default"""
+        """Return translated statement or fallback to default."""
         return _translate_attribute(self)

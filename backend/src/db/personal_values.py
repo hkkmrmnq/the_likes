@@ -18,6 +18,8 @@ from src.db.profile_and_user import User
 
 
 class UniqueValueAspectLink(Base):
+    """UniqueValue/Aspect link model."""
+
     unique_value_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('uniquevalues.id', ondelete='CASCADE'),
@@ -37,6 +39,8 @@ class UniqueValueAspectLink(Base):
 
 
 class PersonalValue(BaseWithIntPK):
+    """User/Value link model."""
+
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'),
     )
@@ -78,6 +82,8 @@ class PersonalValue(BaseWithIntPK):
 
 
 class PersonalAspect(BaseWithIntPK):
+    """User/Aspect link model."""
+
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'),
     )
