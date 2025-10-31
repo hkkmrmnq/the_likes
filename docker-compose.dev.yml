@@ -1,0 +1,35 @@
+volumes:
+  pg_dev_data:
+  redis_dev_data:
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: backend
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgis/postgis:18-3.6
+    container_name: postgres
+    env_file: .env
+    volumes:
+      - pg_dev_data:/var/lib/postgresql
+  
+  redis:
+    image: redis:7
+    container_name: redis
+    volumes:
+      - redis_dev_data:/data
