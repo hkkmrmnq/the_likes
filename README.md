@@ -70,6 +70,7 @@ To put down docker network use
 make devdown
 ```
 
+If you want to keep db volumes between network buits - remove '-v' param in Makefile.
 
 
 # Introduction for users
