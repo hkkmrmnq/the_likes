@@ -19,7 +19,7 @@ async def get_contact_requests(
     """
     Reads contact requests
     (contacts in status "requested by me"/"requested by other user"),
-    and wraps to ContactRequestsRead.
+    returns as tuple[ContactRequestsRead schema, info message].
     """
     contact_requests = await crud.read_user_contacts(
         my_user_id=my_user.id,
@@ -53,7 +53,10 @@ async def get_ongoing_contacts(
     my_user: db.User,
     a_session: AsyncSession,
 ) -> tuple[list[md.ContactRead], str]:
-    """Reads ongoing contacts, wraps to md.ContactRead."""
+    """
+    Reads ongoing contacts,
+    returns as tuple[ContactRead schema, info message].
+    """
     contacts = await crud.read_user_contacts(
         my_user_id=my_user.id,
         statuses=[ContactStatus.ONGOING],
@@ -70,7 +73,8 @@ async def get_rejected_requests(
     a_session: AsyncSession,
 ) -> tuple[list[md.ContactRead], str]:
     """
-    Reads rejected contacts ('contact requests'), wraps to md.ContactRead.
+    Reads rejected (by 'me') contacts ('contact requests').
+    Returns as tuple[ContactRead schema, info message].
     """
     contacts = await crud.read_user_contacts(
         my_user_id=my_user.id,
@@ -92,7 +96,8 @@ async def get_cancelled_requests(
     a_session: AsyncSession,
 ) -> tuple[list[md.ContactRead], str]:
     """
-    Reads cancelled contacts ('contact requests'), wraps to md.ContactRead.
+    Reads cancelled (by 'me') contacts ('contact requests'),
+    returns as tuple[ContactRead schema, info message].
     """
     contacts = await crud.read_user_contacts(
         my_user_id=my_user.id,
@@ -113,7 +118,7 @@ async def get_blocked_contacts(
     my_user: db.User,
     a_session: AsyncSession,
 ) -> tuple[list[md.ContactRead], str]:
-    """Reads blocked contacts, wraps to md.ContactRead."""
+    """Reads blocked contacts, returns as ContactRead schema."""
     contacts = await crud.read_user_contacts(
         my_user_id=my_user.id,
         statuses=[ContactStatus.BLOCKED_BY_ME],
@@ -129,7 +134,7 @@ async def check_for_alike(
 ) -> tuple[list[md.OtherProfileRead] | None, str]:
     """
     Checks search_allowed_status and if personal values are set.
-    Then uses reads recommendations for user.
+    Then reads recommendations for user.
     """
     ud = await crud.read_user_dynamics(user_id=my_user.id, a_session=a_session)
     if ud.search_allowed_status == SearchAllowedStatus.COOLDOWN:
@@ -156,8 +161,7 @@ async def agree_to_start(
     a_session: AsyncSession,
 ) -> tuple[md.ContactRead | None, str]:
     """
-
-    Resets match_notifications_counter and unsuspends.
+    Resets match_notifications_counter and unsuspends search_allowed_status.
 
     If contact pair not yet exists:
     checks recommendations, creates pair of 'mirrored' contacts,
@@ -223,10 +227,11 @@ async def cancel_contact_request(
     my_user: db.User,
     other_user_id: UUID,
     a_session: AsyncSession,
-) -> tuple[md.ContactRequestsRead | None, str]:
+) -> tuple[md.ContactRequestsRead, str]:
     """
     Puts contact ('contact request') to cancelled status
     Only allowed for outgoing requests.
+    Returns as tuple[ContactRequestsRead schema, info message]
     """
     contact_pair = await crud.read_contact_pair(
         my_user_id=my_user.id,
@@ -260,10 +265,11 @@ async def reject_contact_request(
     my_user: db.User,
     other_user_id: UUID,
     a_session: AsyncSession,
-) -> tuple[md.ContactRequestsRead | None, str]:
+) -> tuple[md.ContactRequestsRead, str]:
     """
     Puts contact ('contact request') to rejected status.
     Only allowed for incoming requests.
+    Returns as tuple[ContactRequestsRead schema, info message].
     """
     contact_pair = await crud.read_contact_pair(
         my_user_id=my_user.id,
@@ -298,6 +304,7 @@ async def block_contact(
     """
     Blocks contact (puts to 'blocked' status).
     Only allowed for ongoing contacts.
+    Returns as tuple[list[ContactRead schemas], info message]
     """
     contact_pair = await crud.read_contact_pair(
         my_user_id=my_user.id,
@@ -330,6 +337,7 @@ async def unblock_contact(
     """
     Unblocks contact (puts to 'ongoing' status).
     Only allowed for contacts blocked by me.
+    Returns as tuple[list[ContactRead schemas], info message]
     """
     pair = await crud.read_contact_pair(
         my_user_id=my_user.id,
@@ -356,6 +364,7 @@ async def get_contact_profile(
 ) -> tuple[md.OtherProfileRead, str]:
     """
     Reads profile of a conact user.
+    Returns as tuple[OtherProfileRead schema, info message].
     """
     contacts = await crud.read_user_contacts(
         my_user_id=my_user.id, other_user_id=other_user_id, a_session=a_session

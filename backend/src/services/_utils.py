@@ -214,7 +214,7 @@ async def get_recommendations(
     other_user_id: UUID | None = None,
     a_session: AsyncSession,
 ) -> list[md.OtherProfileRead]:
-    """Reads user recommendations, wraps to OtherProfileRead schema."""
+    """Reads user recommendations, returns as OtherProfileRead schema."""
     recommendations = await crud.read_user_recommendations(
         my_user_id=my_user_id,
         other_user_id=other_user_id,
