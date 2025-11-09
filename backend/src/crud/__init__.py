@@ -28,7 +28,7 @@ from .personal_values import (  # noqa
     delete_personal_values,
     read_personal_values,
 )
-from .profile_and_user import (  # noqa
+from .profile import (  # noqa
     create_profile,
     create_user_dynamic,
     end_cooldowns,

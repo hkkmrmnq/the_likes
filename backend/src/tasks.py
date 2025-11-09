@@ -1,27 +1,19 @@
 from datetime import datetime, timedelta
 from uuid import UUID
 
-import redis
 from celery import Celery
 
 from src import crud
-from src.config import CFG
 from src.config import constants as CNST
+from src.config.config import CFG
 from src.crud import sql
 from src.logger import logger
-from src.sessions import s_session_factory, sync_engine
-
-redis_client = redis.Redis(
-    host=CFG.REDIS_HOST,
-    port=CFG.REDIS_PORT,
-    db=CFG.REDIS_DB,
-    decode_responses=True,
-)
+from src.redis_client import redis_client
+from src.sessions import sync_engine, sync_session_factory
 
 celery_app = Celery(
     'scheduler_celery',
     broker=CFG.REDIS_URL,
-    result_backend=CFG.REDIS_URL,
     result_expires=timedelta(days=1),
 )
 
@@ -29,6 +21,7 @@ celery_app = Celery(
 def send_email(*, email_to: str, subject: str, content: str) -> None:
     message = f'TO: {email_to}\nSUBJECT: {subject}\nCONTENT: {content}'
     logger.info(f'{message}')
+    redis_client.set(f'email_to_{email_to}', content)
 
 
 #     message = EmailMessage()
@@ -122,7 +115,6 @@ def refresh_materialized_views():
     Task to refresh moral_profiles and recommendations
     materialized views.
     """
-
     try:
         with sync_engine.connect().execution_options(
             isolation_level='AUTOCOMMIT'
@@ -147,9 +139,9 @@ def update_match_notification_counters():
     str_ids = redis_client.lrange(CNST.MATCH_NOTIFIED_REDIS_KEY, 0, -1)
     assert isinstance(str_ids, list)
     user_uuids = [UUID(s) for s in str_ids]
-    with s_session_factory() as session:
+    with sync_session_factory() as session:
         crud.increment_match_notification_counters(
-            users_ids=user_uuids, s_session=session
+            users_ids=user_uuids, ssession=session
         )
         session.commit()
     redis_client.delete(CNST.MATCH_NOTIFIED_REDIS_KEY)
@@ -158,8 +150,8 @@ def update_match_notification_counters():
 @celery_app.task
 def notify_matches():
     """Reads recommendations MV and sets 'match found' notification tasks."""
-    with s_session_factory() as session:
-        models = crud.read_users_to_notify_of_match(s_session=session)
+    with sync_session_factory() as session:
+        models = crud.read_users_to_notify_of_match(ssession=session)
     for model in models:
         send_match_notification.delay(user_data=model.model_dump())
     return 'notify_match tasks added to queue.'
@@ -172,8 +164,8 @@ def end_cooldowns():
     and CFG.COOLDOWN_DURATION time passed.
     """
     update_after = datetime.now() - CFG.COOLDOWN_DURATION
-    with s_session_factory() as session:
-        crud.end_cooldowns(update_after=update_after, s_session=session)
+    with sync_session_factory() as session:
+        crud.end_cooldowns(update_after=update_after, ssession=session)
         session.commit()
 
     return 'Cooldowns managed.'
@@ -181,9 +173,9 @@ def end_cooldowns():
 
 @celery_app.task
 def suspend():
-    with s_session_factory() as s_session:
-        crud.suspend(s_session=s_session)
-        s_session.commit()
+    with sync_session_factory() as session:
+        crud.suspend(session=session)
+        session.commit()
     return 'Suspended.'
 
 

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.config import constants as CNST
 from src.config.enums import ContactStatus, ContactStatusPG
 from src.db.base import Base, BaseWithIntPK
-from src.db.profile_and_user import User
+from src.db.user_and_profile import User
 
 
 class Contact(Base):

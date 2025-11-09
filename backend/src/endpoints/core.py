@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
-from src import models as md
-from src import services as srv
-from src.db import User
+from src.db.user_and_profile import User
+from src.models.core import ApiResponse, DefinitionsRead
+from src.services import core as core_srv
 
 router = APIRouter()
 
@@ -19,7 +19,7 @@ router = APIRouter()
 async def get_definitions(
     *,
     user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.DefinitionsRead]:
-    definitions_model, msg = await srv.read_definitions(a_session=a_session)
-    return md.ApiResponse(data=definitions_model, message=msg)
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[DefinitionsRead]:
+    definitions_model, msg = await core_srv.read_definitions(asession=asession)
+    return ApiResponse(data=definitions_model, message=msg)

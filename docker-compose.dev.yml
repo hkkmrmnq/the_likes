@@ -1,6 +1,7 @@
 volumes:
   pg_dev_data:
   redis_dev_data:
+  backend_venv:
 
 services:
   nginx:
@@ -20,6 +21,8 @@ services:
     depends_on:
       - postgres
       - redis
+    volumes:
+      - backend_venv:/app/.venv
 
   postgres:
     image: postgis/postgis:18-3.6

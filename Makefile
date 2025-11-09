@@ -10,5 +10,5 @@ devfulldown:
 devadmin:
 	docker exec -it backend uv run python prepare.py superuser
 
-testval:
-	docker exec -it backend uv run python prepare.py testval
+randval:
+	docker exec -it backend uv run python prepare.py randval

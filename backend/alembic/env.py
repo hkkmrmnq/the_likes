@@ -6,8 +6,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from src import db
-from src.config import CFG
+from src.config.config import CFG
+from src.db.base import Base
 
 config = context.config
 
@@ -15,7 +15,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 config.set_main_option('sqlalchemy.url', CFG.ASYNC_DATABASE_URL)
 
-target_metadata = db.Base.metadata
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

@@ -4,9 +4,14 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
-from src import models as md
-from src import services as srv
-from src.db import User
+from src.db.user_and_profile import User
+from src.models.contact_n_message import (
+    MessageCreate,
+    MessageRead,
+    UnreadMessagesCount,
+)
+from src.models.core import ApiResponse
+from src.services import message as msg_srv
 
 router = APIRouter()
 
@@ -18,12 +23,12 @@ router = APIRouter()
 async def count_unread_messages(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.UnreadMessagesCount]:
-    result, message = await srv.count_unread_messages(
-        my_user=my_user, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[UnreadMessagesCount]:
+    result, message = await msg_srv.count_unread_messages(
+        my_user=my_user, asession=asession
     )
-    return md.ApiResponse(data=result, message=message)
+    return ApiResponse(data=result, message=message)
 
 
 @router.get(
@@ -34,12 +39,12 @@ async def get_messages(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
     contact_user_id: UUID,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.MessageRead]]:
-    results, message = await srv.get_messages(
-        my_user=my_user, contact_user_id=contact_user_id, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[MessageRead]]:
+    results, message = await msg_srv.get_messages(
+        my_user=my_user, contact_user_id=contact_user_id, asession=asession
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.post(
@@ -54,10 +59,10 @@ async def get_messages(
 async def send_message(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    model: md.MessageCreate,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.MessageRead]:
-    result, message = await srv.send_message(
-        my_user=my_user, create_model=model, a_session=a_session
+    model: MessageCreate,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[MessageRead]:
+    result, message = await msg_srv.send_message(
+        my_user=my_user, create_model=model, asession=asession
     )
-    return md.ApiResponse(data=result, message=message)
+    return ApiResponse(data=result, message=message)

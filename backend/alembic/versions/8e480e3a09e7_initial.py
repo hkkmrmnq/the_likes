@@ -15,12 +15,10 @@ from pandas import read_excel
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
-from src.config import CFG
 from src.config import constants as CNST
+from src.config.config import CFG
 from src.config.enums import ContactStatusPG, PolarityPG, SearchAllowedStatusPG
-from src.services._prepare_db import (
-    check_file_data_consistency,
-)
+from src.services._prepare_db import check_file_data_consistency
 
 revision: str = '8e480e3a09e7'
 down_revision: Union[str, Sequence[str], None] = None

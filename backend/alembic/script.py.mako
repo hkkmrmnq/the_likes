@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 import geoalchemy2
 from fastapi_users_db_sqlalchemy.generics import GUID
-from src.config import CFG
+from src.config.config import CFG
 from src.config import constants as CNST
 from src.config.enums import ContactStatusPG, PolarityPG, SearchAllowedStatusPG
 from src.services._prepare_db import read_basic_data_from_file, check_file_data_consistency

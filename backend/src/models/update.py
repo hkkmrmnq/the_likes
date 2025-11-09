@@ -6,15 +6,15 @@ from src.models.contact_n_message import (
     OtherProfileRead,
     UnreadMessagesCount,
 )
-from src.models.profile_and_user import ProfileRead
+from src.models.user_and_profile import ProfileRead
 
 
-class Update(BaseModel):
+class UpdateRead(BaseModel):
     recommendations: list[OtherProfileRead]
     contact_requests: ContactRequestsRead | None
     unread_message_counts: UnreadMessagesCount
 
 
-class FullUpdate(Update):
+class FullUpdate(UpdateRead):
     my_profile: ProfileRead
     contacts: list[ContactRead]

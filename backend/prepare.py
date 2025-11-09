@@ -2,9 +2,9 @@ import asyncio
 
 import typer
 
-from src import services as srv
-from src.services._utils import create_random_personal_values
-from src.sessions import a_session_factory
+from src.services import _prepare_db as prep_srv
+from src.services._utils import generate_random_personal_values
+from src.sessions import asession_factory
 
 app = typer.Typer()
 
@@ -12,7 +12,7 @@ app = typer.Typer()
 @app.command()
 def clear():
     """Deletes Aspects, Values. Leaves Users."""
-    asyncio.run(srv.clear_db(a_session_factory=a_session_factory))
+    asyncio.run(prep_srv.clear_db())
 
 
 @app.command()
@@ -21,19 +21,24 @@ def data():
     Adds required data from 'Basic data.xlsxx':
     Values, Aspects, Translations.
     """
-    asyncio.run(srv.prepare_db(a_session_factory=a_session_factory))
+    asyncio.run(prep_srv.prepare_db())
 
 
 @app.command()
 def superuser():
-    asyncio.run(srv.add_superuser(a_session_factory=a_session_factory))
+    """Command to create superuser."""
+    asyncio.run(prep_srv.add_superuser())
+
+
+async def gen_randval_with_asession():
+    async with asession_factory() as asession:
+        await generate_random_personal_values(asession=asession)
 
 
 @app.command()
-def testval():
-    asyncio.run(
-        create_random_personal_values(a_session_factory=a_session_factory)
-    )
+def randval():
+    """Command to display random personal values input."""
+    asyncio.run(gen_randval_with_asession())
 
 
 if __name__ == '__main__':

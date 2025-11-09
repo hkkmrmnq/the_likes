@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from src.config import CFG
+from src.config.config import CFG
 
 
 class PersonalAspectRead(BaseModel):
@@ -11,8 +11,7 @@ class PersonalAspectRead(BaseModel):
     aspect_statement: str
     included: bool
 
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 
 class PersonalAspectCreate(BaseModel):
@@ -27,8 +26,7 @@ class PersonalValueRead(BaseModel):
     user_order: int
     aspects: list['PersonalAspectRead']
 
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 
 class PersonalValueCreate(BaseModel):

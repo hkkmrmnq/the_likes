@@ -1,15 +1,28 @@
+from typing import AsyncGenerator
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import sessionmaker
 
-from src.config import CFG
+from src.config.config import CFG
+
+sync_engine = create_engine(CFG.SYNC_DATABASE_URL, echo=True)
+sync_session_factory = sessionmaker(sync_engine)
+
+
+def get_sync_session():
+    with sync_session_factory() as session:
+        yield session
+
 
 async_engine = create_async_engine(CFG.ASYNC_DATABASE_URL, echo=True)
-a_session_factory = async_sessionmaker(
+asession_factory = async_sessionmaker(
     async_engine,
     expire_on_commit=False,
 )
 
-sync_engine = create_engine(CFG.SYNC_DATABASE_URL, echo=True)
-s_session_factory = sessionmaker(sync_engine)
+
+async def get_async_session() -> AsyncGenerator:
+    async with asession_factory() as session:
+        yield session

@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
-from src import models as md
-from src import services as srv
-from src.db import User
+from src.db.user_and_profile import User
+from src.models.core import ApiResponse
+from src.models.update import FullUpdate, UpdateRead
+from src.services import update as update_srv
 
 router = APIRouter()
 
@@ -17,12 +18,12 @@ router = APIRouter()
 )
 async def get_update(
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.Update]:
-    update, message = await srv.get_update(
-        my_user=my_user, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[UpdateRead]:
+    update, message = await update_srv.get_update(
+        my_user=my_user, asession=asession
     )
-    return md.ApiResponse(data=update, message=message)
+    return ApiResponse(data=update, message=message)
 
 
 @router.get(
@@ -33,9 +34,9 @@ async def get_update(
 )
 async def get_full_update(
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.FullUpdate]:
-    update, message = await srv.get_full_update(
-        my_user=my_user, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[FullUpdate]:
+    update, message = await update_srv.get_full_update(
+        my_user=my_user, asession=asession
     )
-    return md.ApiResponse(data=update, message=message)
+    return ApiResponse(data=update, message=message)

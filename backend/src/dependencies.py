@@ -1,4 +1,4 @@
-from typing import Any, AsyncGenerator
+from typing import Any
 
 from fastapi import Depends
 from fastapi_users.authentication import (
@@ -9,17 +9,11 @@ from fastapi_users.authentication import (
 from fastapi_users.authentication.authenticator import Authenticator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import CFG
 from src.config import constants as CNST
-from src.db import User
+from src.config.config import CFG
+from src.db.user_and_profile import User
 from src.services.user_manager import FixedSQLAlchemyUserDatabase, UserManager
-from src.sessions import a_session_factory
-
-
-async def get_async_session() -> AsyncGenerator:
-    async with a_session_factory() as session:
-        yield session
-
+from src.sessions import get_async_session
 
 bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
 

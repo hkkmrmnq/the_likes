@@ -1,0 +1,82 @@
+name: Main TheLikes workflow
+
+on: [push]
+
+jobs:
+  all-in-one:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: test_db
+      JWT_SECRET: jwttestsecret
+      JWT_ACCESS_LIFETIME: 1800
+      RESET_PASSWORD_TOKEN_SECRET: jwtresettestsecret
+      VERIFICATION_TOKEN_SECRET: jwtverificationtestsecret
+      REDIS_HOST: 'localhost'
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      BASE_URL_DEV: 'http: //localhost'
+
+    services:
+      nginx:
+        image: nginx:alpine
+        ports:
+          - 80:80
+        volumes:
+          - ./nginx.conf.test:/etc/nginx/nginx.conf
+
+      postgres:
+        image: postgis/postgis:18-3.6
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: |
+        pip install uv
+        UV_DEV=False uv sync --frozen
+    - name: Lint with ruff
+      run: |
+        uv run ruff check
+    - name: Migrations
+      run: uv run alembic upgrade head
+    - name: Prepare data
+      run: uv run python prepare.py data
+    - name: Start app
+      run: |
+        uv run fastapi dev src/main.py &
+        sleep 10 &
+        uv run celery -A src.tasks worker --loglevel=info &
+        sleep 10 &
+        uv run celery -A src.tasks beat --loglevel=info &
+        sleep 10
+    - name: Test with pytest
+      run: |
+        uv run pytest -v

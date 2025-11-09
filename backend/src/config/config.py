@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     )
     SUSPEND_AT: crontab = crontab(hour=23, minute=00)
     END_COOLDOWNS_EVERY: timedelta = timedelta(hours=1)
+    RANDOM_PV_TEST_ATTEMPTS: int = 100
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_HOST: str
@@ -37,10 +38,9 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
     REDIS_DB: int
+    BASE_URL_DEV: str
 
-    class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
+    model_config = {'env_file': '.env', 'env_file_encoding': 'utf-8'}
 
     @property
     def ASYNC_DATABASE_URL(self) -> str:
@@ -73,5 +73,4 @@ class Settings(BaseSettings):
         return f'user_order <= {self.PERSONAL_VALUE_MAX_ORDER}'
 
 
-def get_settings():
-    return Settings()  # type: ignore
+CFG = Settings()  # type: ignore

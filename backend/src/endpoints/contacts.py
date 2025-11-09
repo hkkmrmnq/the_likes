@@ -4,9 +4,15 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
-from src import models as md
-from src import services as srv
-from src.db import User
+from src.db.user_and_profile import User
+from src.models.contact_n_message import (
+    ContactRead,
+    ContactRequestsRead,
+    OtherProfileRead,
+    TargetUser,
+)
+from src.models.core import ApiResponse
+from src.services import contact as contact_srv
 from src.services.user_manager import UserManager
 
 router = APIRouter()
@@ -32,12 +38,12 @@ router = APIRouter()
 async def check_for_alike(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.OtherProfileRead]]:
-    results, message = await srv.check_for_alike(
-        my_user=my_user, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[OtherProfileRead]]:
+    results, message = await contact_srv.check_for_alike(
+        my_user=my_user, asession=asession
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.post(
@@ -50,17 +56,17 @@ async def check_for_alike(
 async def agree_to_start(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    model: md.TargetUser,
+    model: TargetUser,
     user_manager: UserManager = Depends(dp.get_user_manager),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.ContactRead | None]:
-    results, message = await srv.agree_to_start(
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[ContactRead | None]:
+    results, message = await contact_srv.agree_to_start(
         my_user=my_user,
         other_user_id=model.id,
         user_manager=user_manager,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.get(
@@ -70,12 +76,12 @@ async def agree_to_start(
 async def read_contact_requests(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.ContactRequestsRead | None]:
-    results, message = await srv.get_contact_requests(
-        my_user=my_user, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[ContactRequestsRead | None]:
+    results, message = await contact_srv.get_contact_requests(
+        my_user=my_user, asession=asession
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.get(
@@ -85,13 +91,13 @@ async def read_contact_requests(
 async def contacts(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.ContactRead]]:
-    results, message = await srv.get_ongoing_contacts(
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[ContactRead]]:
+    results, message = await contact_srv.get_ongoing_contacts(
         my_user=my_user,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.post(
@@ -104,15 +110,15 @@ async def contacts(
 async def cancel_contact_request(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    target_user: md.TargetUser,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.ContactRequestsRead]:
-    results, messgae = await srv.cancel_contact_request(
+    target_user: TargetUser,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[ContactRequestsRead]:
+    results, messgae = await contact_srv.cancel_contact_request(
         my_user=my_user,
         other_user_id=target_user.id,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=messgae)
+    return ApiResponse(data=results, message=messgae)
 
 
 @router.post(
@@ -125,15 +131,15 @@ async def cancel_contact_request(
 async def reject_contact_request(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    target_user: md.TargetUser,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.ContactRequestsRead | None]:
-    result, message = await srv.reject_contact_request(
+    target_user: TargetUser,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[ContactRequestsRead | None]:
+    result, message = await contact_srv.reject_contact_request(
         my_user=my_user,
         other_user_id=target_user.id,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=result, message=message)
+    return ApiResponse(data=result, message=message)
 
 
 @router.post(
@@ -146,15 +152,15 @@ async def reject_contact_request(
 async def block_contact(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    target_user: md.TargetUser,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.ContactRead]]:
-    results, message = await srv.block_contact(
+    target_user: TargetUser,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[ContactRead]]:
+    results, message = await contact_srv.block_contact(
         my_user=my_user,
         other_user_id=target_user.id,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.get(
@@ -166,13 +172,13 @@ async def block_contact(
 async def get_rejected_requests(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.ContactRead]]:
-    results, message = await srv.get_rejected_requests(
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[ContactRead]]:
+    results, message = await contact_srv.get_rejected_requests(
         my_user=my_user,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.get(
@@ -184,13 +190,13 @@ async def get_rejected_requests(
 async def get_cancelled_requests(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.ContactRead]]:
-    results, message = await srv.get_cancelled_requests(
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[ContactRead]]:
+    results, message = await contact_srv.get_cancelled_requests(
         my_user=my_user,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.get(
@@ -202,13 +208,13 @@ async def get_cancelled_requests(
 async def get_blocked_contacts(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.ContactRead]]:
-    results, message = await srv.get_blocked_contacts(
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[ContactRead]]:
+    results, message = await contact_srv.get_blocked_contacts(
         my_user=my_user,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.post(
@@ -221,15 +227,15 @@ async def get_blocked_contacts(
 async def unblock_contact(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    target_user: md.TargetUser,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[list[md.ContactRead]]:
-    results, message = await srv.unblock_contact(
+    target_user: TargetUser,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[list[ContactRead]]:
+    results, message = await contact_srv.unblock_contact(
         my_user=my_user,
         other_user_id=target_user.id,
-        a_session=a_session,
+        asession=asession,
     )
-    return md.ApiResponse(data=results, message=message)
+    return ApiResponse(data=results, message=message)
 
 
 @router.get(
@@ -243,9 +249,9 @@ async def get_contact_profile(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
     user_id: UUID,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.OtherProfileRead]:
-    profile_model, message = await srv.get_contact_profile(
-        my_user=my_user, other_user_id=user_id, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[OtherProfileRead]:
+    profile_model, message = await contact_srv.get_contact_profile(
+        my_user=my_user, other_user_id=user_id, asession=asession
     )
-    return md.ApiResponse(data=profile_model, message=message)
+    return ApiResponse(data=profile_model, message=message)

@@ -1,13 +1,14 @@
 from getpass import getpass
 
 from pandas import DataFrame, read_excel
-from sqlalchemy.ext.asyncio.session import async_sessionmaker
 
-from src import crud, db
-from src import models as md
-from src.config import CFG
+from src import crud
+from src.config.config import CFG
+from src.db.core import Attitude
+from src.db.personal_values import UniqueValue, Value
 from src.logger import logger
-from src.services.user_manager import FixedSQLAlchemyUserDatabase, UserManager
+from src.services.user_manager import _create_user
+from src.sessions import asession_factory
 
 
 def check_file_data_consistency(
@@ -90,9 +91,9 @@ def read_basic_data_from_file(*, path: str = CFG.BASIC_DATA_PATH) -> dict:
     return {'attitudes': attitudes_data, 'definitions': definitions_data}
 
 
-async def clear_db(*, a_session_factory: async_sessionmaker) -> None:
-    async with a_session_factory() as a_session:
-        some_user = await crud.read_first_user(a_session=a_session)
+async def clear_db() -> None:
+    async with asession_factory() as asession:
+        some_user = await crud.read_first_user(asession=asession)
         if some_user is not None:
             answer = 'dunno'
             while answer.lower() not in ('y', 'n'):
@@ -101,45 +102,44 @@ async def clear_db(*, a_session_factory: async_sessionmaker) -> None:
                 )
             if answer == 'n':
                 return
-        await crud.clear_db(a_session=a_session)
-        await a_session.commit()
+        await crud.clear_db(asession=asession)
+        await asession.commit()
         logger.info('Database cleared.')
 
 
 async def add_basic_data_to_db(
     *,
     input_data: dict,
-    a_session_factory: async_sessionmaker,
 ) -> None:
-    async with a_session_factory() as a_session:
-        async with a_session.begin():
+    async with asession_factory() as asession:
+        async with asession.begin():
             await crud.create_attitudes(
-                attitudes_data=input_data['attitudes'], a_session=a_session
+                attitudes_data=input_data['attitudes'], asession=asession
             )
             await crud.create_definitions(
-                definitions_data=input_data['definitions'], a_session=a_session
+                definitions_data=input_data['definitions'], asession=asession
             )
-            await a_session.flush()
+            await asession.flush()
 
-            await crud.create_unique_values(a_session=a_session)
-            await a_session.flush()
+            await crud.create_unique_values(asession=asession)
+            await asession.flush()
 
             await crud.create_attitude_translations(
-                attitudes_data=input_data['attitudes'], a_session=a_session
+                attitudes_data=input_data['attitudes'], asession=asession
             )
             await crud.create_definitions_translations(
-                definitions_data=input_data['definitions'], a_session=a_session
+                definitions_data=input_data['definitions'], asession=asession
             )
-            await a_session.flush()
+            await asession.flush()
 
-        logger.info('Basic data added to db.')
+        logger.info('Basic data added to ')
 
 
 def compare_db_to_file_data(
     *,
-    db_definitions: list[db.Value],
-    db_attitudes: list[db.Attitude],
-    db_u_v_s: list[db.UniqueValue],
+    db_definitions: list[Value],
+    db_attitudes: list[Attitude],
+    db_u_v_s: list[UniqueValue],
     input_data: dict,
 ):
     assert len(db_attitudes) == len(input_data['attitudes']), (
@@ -172,22 +172,20 @@ def compare_db_to_file_data(
 
 
 @logger.catch
-async def prepare_db(*, a_session_factory: async_sessionmaker):
+async def prepare_db():
     """
     Manages basic data needed for app t work:
     reads data from file, checks consistency;
     if no basic data in db - populates db,
-    else - compares file data to db.
+    else - compares file data to
     """
     input_data = read_basic_data_from_file()
-    async with a_session_factory() as a_session:
-        definitions = await crud.read_definitions(a_session=a_session)
-        attitudes = await crud.read_attitudes(a_session=a_session)
-        u_v_s = await crud.read_unique_values(a_session=a_session)
+    async with asession_factory() as asession:
+        definitions = await crud.read_definitions(asession=asession)
+        attitudes = await crud.read_attitudes(asession=asession)
+        u_v_s = await crud.read_unique_values(asession=asession)
     if all((not definitions, not attitudes, not u_v_s)):
-        await add_basic_data_to_db(
-            input_data=input_data, a_session_factory=a_session_factory
-        )
+        await add_basic_data_to_db(input_data=input_data)
     else:
         compare_db_to_file_data(
             db_definitions=definitions,
@@ -195,28 +193,23 @@ async def prepare_db(*, a_session_factory: async_sessionmaker):
             db_u_v_s=u_v_s,
             input_data=input_data,
         )
-    async with a_session_factory() as a_session:
-        await crud.prepare_funcs_and_matviews(a_session=a_session)
-        await a_session.commit()
+    async with asession_factory() as asession:
+        await crud.prepare_funcs_and_matviews(asession=asession)
+        await asession.commit()
     logger.info('DB prepared.')
 
 
-async def add_superuser(*, a_session_factory: async_sessionmaker):
+async def add_superuser():
     email = input('Email: ')
     password1 = getpass('Password: ')
     password2 = getpass('Repeat password: ')
     assert password1 == password2, 'Typo in password?'
-    async with a_session_factory() as session:
-        user_db = FixedSQLAlchemyUserDatabase(session, db.User)
-        user_manager = UserManager(user_db)
-        user_data = md.UserCreate(
+    async with asession_factory() as asession:
+        await _create_user(
             email=email,
             password=password1,
             is_superuser=True,
-            is_active=True,
-            is_verified=True,
+            asession=asession,
         )
-        user = await user_manager.create(user_create=user_data, safe=False)
-        session.add(user)
-        await session.commit()
+        await asession.commit()
     logger.info('Superuser created.')

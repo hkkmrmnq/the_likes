@@ -2,32 +2,38 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud, db
-from src import models as md
+from src import crud
 from src.config.enums import ContactStatus
+from src.db.user_and_profile import User
 from src.exceptions import exceptions as exc
+from src.models.contact_n_message import (
+    MessageCreate,
+    MessageRead,
+    UnreadMessagesCount,
+    UnreadMessagesCountByContact,
+)
 
 
 async def count_unread_messages(
-    *, my_user: db.User, a_session: AsyncSession
-) -> tuple[md.UnreadMessagesCount, str]:
+    *, my_user: User, asession: AsyncSession
+) -> tuple[UnreadMessagesCount, str]:
     """Counts unread messages."""
     results = await crud.count_uread_messages(
-        my_user_id=my_user.id, a_session=a_session
+        my_user_id=my_user.id, asession=asession
     )
-    combined = md.UnreadMessagesCount(total=0, contacts=[])
+    combined = UnreadMessagesCount(total=0, contacts=[])
     for result in results:
         combined.total += result['count']
         combined.contacts.append(
-            md.UnreadMessagesCountByContact.model_validate(result)
+            UnreadMessagesCountByContact.model_validate(result)
         )
     message = 'You have unread messages.' if results else 'No new messages.'
     return combined, message
 
 
 async def get_messages(
-    *, my_user: db.User, contact_user_id: UUID, a_session: AsyncSession
-) -> tuple[list[md.MessageRead,], str]:
+    *, my_user: User, contact_user_id: UUID, asession: AsyncSession
+) -> tuple[list[MessageRead,], str]:
     """
     Reads messages with the given user.
     Unread messages are set to 'read'.
@@ -35,21 +41,21 @@ async def get_messages(
     results = await crud.read_messages(
         my_user_id=my_user.id,
         other_user_id=contact_user_id,
-        a_session=a_session,
+        asession=asession,
     )
     message = (
         'Messages found.' if results else 'No messages with this contact.'
     )
-    await a_session.commit()
+    await asession.commit()
     return results, message
 
 
 async def send_message(
     *,
-    my_user: db.User,
-    create_model: md.MessageCreate,
-    a_session: AsyncSession,
-) -> tuple[md.MessageRead, str]:
+    my_user: User,
+    create_model: MessageCreate,
+    asession: AsyncSession,
+) -> tuple[MessageRead, str]:
     """
     Sends message to contact.
     Available only for ongoing contacts.
@@ -58,7 +64,7 @@ async def send_message(
         my_user_id=my_user.id,
         other_user_id=create_model.receiver_id,
         statuses=[ContactStatus.ONGOING],
-        a_session=a_session,
+        asession=asession,
     )
     if not contact:
         raise exc.NotFound(
@@ -70,13 +76,13 @@ async def send_message(
     await crud.create_message(
         my_user_id=my_user.id,
         data=create_model.model_dump(),
-        a_session=a_session,
+        asession=asession,
     )
-    await a_session.commit()
+    await asession.commit()
     message = await crud.read_message(
         sender_id=my_user.id,
         receiver_id=create_model.receiver_id,
-        a_session=a_session,
+        asession=asession,
     )
     if message is None:
         raise exc.ServerError(

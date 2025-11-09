@@ -4,49 +4,50 @@ from sqlalchemy import RowMapping, func, not_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import defer, joinedload
 
-from src import db
-from src import models as md
 from src.config import constants as CNST
+from src.db.contact_n_message import Message
+from src.db.user_and_profile import Profile, User
+from src.models.contact_n_message import MessageRead
 
 
 async def create_message(
     *,
     my_user_id: UUID,
     data: dict,
-    a_session: AsyncSession,
-) -> db.Message:
-    new_message = db.Message(
+    asession: AsyncSession,
+) -> Message:
+    new_message = Message(
         sender_id=my_user_id,
         receiver_id=data['receiver_id'],
         text=data['text'],
     )
-    a_session.add(new_message)
+    asession.add(new_message)
     return new_message
 
 
 async def read_message(
-    *, sender_id: UUID, receiver_id: UUID, a_session: AsyncSession
-) -> md.MessageRead | None:
+    *, sender_id: UUID, receiver_id: UUID, asession: AsyncSession
+) -> MessageRead | None:
     stmt = (
-        select(db.Message)
+        select(Message)
         .options(
-            joinedload(db.Message.sender).options(
+            joinedload(Message.sender).options(
                 defer('*'),
-                joinedload(db.User.profile).load_only(db.Profile.name),
+                joinedload(User.profile).load_only(Profile.name),
             ),
-            joinedload(db.Message.receiver).options(
+            joinedload(Message.receiver).options(
                 defer('*'),
-                joinedload(db.User.profile).load_only(db.Profile.name),
+                joinedload(User.profile).load_only(Profile.name),
             ),
         )
         .where(
-            db.Message.sender_id == sender_id,
-            db.Message.receiver_id == receiver_id,
+            Message.sender_id == sender_id,
+            Message.receiver_id == receiver_id,
         )
     )
-    message = await a_session.scalar(stmt)
+    message = await asession.scalar(stmt)
     return (
-        md.MessageRead(
+        MessageRead(
             sender_id=message.sender_id,
             sender_name=message.sender.profile.name,
             receiver_id=message.receiver_id,
@@ -60,15 +61,15 @@ async def read_message(
 
 
 async def count_uread_messages(
-    *, my_user_id: UUID, a_session: AsyncSession
+    *, my_user_id: UUID, asession: AsyncSession
 ) -> list[RowMapping]:
     stmt = (
-        select(db.Message.sender_id, func.count(db.Message.id).label('count'))
-        .where(db.Message.receiver_id == my_user_id, not_(db.Message.is_read))
-        .group_by(db.Message.sender_id)
+        select(Message.sender_id, func.count(Message.id).label('count'))
+        .where(Message.receiver_id == my_user_id, not_(Message.is_read))
+        .group_by(Message.sender_id)
     )
 
-    results = await a_session.execute(stmt)
+    results = await asession.execute(stmt)
     return list(results.mappings())
 
 
@@ -77,48 +78,48 @@ async def read_messages(
     my_user_id: UUID,
     other_user_id: UUID,
     limit: int | None = CNST.MESSAGES_HISTORY_LENGTH_DEFAULT,
-    a_session: AsyncSession,
-) -> list[md.MessageRead]:
-    await a_session.execute(
-        update(db.Message)
+    asession: AsyncSession,
+) -> list[MessageRead]:
+    await asession.execute(
+        update(Message)
         .where(
-            db.Message.receiver_id == my_user_id,
-            db.Message.sender_id == other_user_id,
-            not_(db.Message.is_read),
+            Message.receiver_id == my_user_id,
+            Message.sender_id == other_user_id,
+            not_(Message.is_read),
         )
         .values(is_read=True)
     )
     select_stmt = (
-        select(db.Message)
+        select(Message)
         .options(
-            joinedload(db.Message.sender).options(
+            joinedload(Message.sender).options(
                 defer('*'),
-                joinedload(db.User.profile).load_only(db.Profile.name),
+                joinedload(User.profile).load_only(Profile.name),
             ),
-            joinedload(db.Message.receiver).options(
+            joinedload(Message.receiver).options(
                 defer('*'),
-                joinedload(db.User.profile).load_only(db.Profile.name),
+                joinedload(User.profile).load_only(Profile.name),
             ),
         )
         .where(
             (
-                (db.Message.sender_id == other_user_id)
-                & (db.Message.receiver_id == my_user_id)
+                (Message.sender_id == other_user_id)
+                & (Message.receiver_id == my_user_id)
             )
             | (
-                (db.Message.sender_id == my_user_id)
-                & (db.Message.receiver_id == other_user_id)
+                (Message.sender_id == my_user_id)
+                & (Message.receiver_id == other_user_id)
             )
         )
-        .order_by(db.Message.created_at.desc())
+        .order_by(Message.created_at.desc())
     )
     if limit is not None:
         select_stmt = select_stmt.limit(limit)
-    results = await a_session.execute(select_stmt)
+    results = await asession.execute(select_stmt)
     models = []
     for msg in results.scalars():
         models.append(
-            md.MessageRead(
+            MessageRead(
                 sender_id=msg.sender_id,
                 sender_name=msg.sender.profile.name,
                 receiver_id=msg.receiver_id,

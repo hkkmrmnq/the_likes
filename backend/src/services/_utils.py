@@ -7,13 +7,29 @@ from uuid import UUID
 
 import httpx
 from async_lru import alru_cache
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud, db
-from src import models as md
-from src.config import CFG
+from src import crud
+from src.config.config import CFG
+from src.db.contact_n_message import Contact
+from src.db.personal_values import PersonalValue
+from src.db.user_and_profile import Profile, User
 from src.exceptions import exceptions as exc
 from src.logger import logger
+from src.models.contact_n_message import (
+    ContactRead,
+    ContactRequestRead,
+    OtherProfileRead,
+)
+from src.models.personal_values import (
+    PersonalAspectRead,
+    PersonalValueRead,
+    PersonalValuesCreateUpdate,
+    PersonalValuesRead,
+)
+
+# from src.sessions import get_async_session_factory
+# from src.sessions import asession_factory
 
 
 async def is_password_pwned(*, password: str) -> bool | None:
@@ -49,10 +65,10 @@ async def is_password_pwned(*, password: str) -> bool | None:
 
 
 async def personal_values_already_set(
-    *, my_user: db.User, a_session: AsyncSession
+    *, my_user: User, asession: AsyncSession
 ) -> bool:
     pvl_count = await crud.count_personal_values(
-        user_id=my_user.id, a_session=a_session
+        user_id=my_user.id, asession=asession
     )
     if pvl_count != 0 and pvl_count != CFG.PERSONAL_VALUE_MAX_ORDER:
         raise exc.ServerError(
@@ -65,13 +81,13 @@ async def personal_values_already_set(
 
 
 async def personal_values_to_read_model(
-    *, personal_values: Sequence[db.PersonalValue], profile: db.Profile
-) -> md.PersonalValuesRead:
+    *, personal_values: Sequence[PersonalValue], profile: Profile
+) -> PersonalValuesRead:
     """Prepares PersonalValuesRead schema."""
     personal_value_models = []
     for pv in sorted(personal_values, key=lambda x: x.user_order):
         personal_aspect_models = [
-            md.PersonalAspectRead.model_validate(
+            PersonalAspectRead.model_validate(
                 {
                     'aspect_id': pa.aspect_id,
                     'aspect_key_phrase': pa.aspect.key_phrase,
@@ -81,7 +97,7 @@ async def personal_values_to_read_model(
             )
             for pa in pv.personal_aspects
         ]
-        pv_model = md.PersonalValueRead.model_validate(
+        pv_model = PersonalValueRead.model_validate(
             {
                 'value_id': pv.value.id,
                 'value_name': pv.value.name,
@@ -92,7 +108,7 @@ async def personal_values_to_read_model(
         )
         personal_value_models.append(pv_model)
 
-    moral_profile_model = md.PersonalValuesRead.model_validate(
+    moral_profile_model = PersonalValuesRead.model_validate(
         {
             'attitude_id': profile.attitude_id,
             'attitude_statement': profile.attitude.statement,
@@ -102,10 +118,10 @@ async def personal_values_to_read_model(
     return moral_profile_model
 
 
-@alru_cache
+@alru_cache(maxsize=512)
 async def get_schema_for_pesonal_values_input(
     *,
-    a_session: AsyncSession,
+    asession: AsyncSession,
 ) -> dict:
     """
     Returns structured sorted available attitudes, values
@@ -120,12 +136,14 @@ async def get_schema_for_pesonal_values_input(
         }
     }
     """
-    attitudes = await crud.read_attitudes(a_session=a_session)
+    attitudes = await crud.read_attitudes(asession=asession)
+    if not attitudes:
+        raise exc.ServerError('Attitudes not found.')
     schema = {'attitude_ids': set(), 'definitions': {}}
     schema['attitude_ids'] = set([att.id for att in attitudes])
-    definitions = await crud.read_definitions(a_session=a_session)
+    definitions = await crud.read_definitions(asession=asession)
     if not definitions:
-        raise exc.ServerError('definitions not found.')
+        raise exc.ServerError('Definitions not found.')
     for v in definitions:
         schema['definitions'][v.id] = set([a.id for a in v.aspects])
     keys = sorted(schema['definitions'].keys())
@@ -138,8 +156,8 @@ async def get_schema_for_pesonal_values_input(
 
 async def check_personal_values_input(
     *,
-    personal_values_md: md.PersonalValuesCreateUpdate,
-    a_session: AsyncSession,
+    personal_values_md: PersonalValuesCreateUpdate,
+    asession: AsyncSession,
 ) -> None:
     """Performs complex PersonalValuesCreateUpdate validation."""
     personal_values_md.value_links.sort(key=lambda x: x.user_order)
@@ -152,14 +170,10 @@ async def check_personal_values_input(
     )
     if not poalrity_consistent:
         raise exc.BadRequest('Inconsistent polarity/user_order.')
-    expected_attitudes = await crud.read_attitudes(a_session=a_session)
-    if not expected_attitudes:
-        raise exc.ServerError('Attitudes not found.')
-    expected_attitude_ids = [attitude.id for attitude in expected_attitudes]
-    if personal_values_md.attitude_id not in expected_attitude_ids:
-        raise exc.BadRequest('Incorrect attitude_id.')
     provided_value_ids = {vl.value_id for vl in personal_values_md.value_links}
-    schema = await get_schema_for_pesonal_values_input(a_session=a_session)
+    schema = await get_schema_for_pesonal_values_input(asession=asession)
+    if personal_values_md.attitude_id not in schema['attitude_ids']:
+        raise exc.BadRequest('Incorrect attitude_id.')
     expected_value_ids = set(schema['definitions'].keys())
     message_parts = []
     if provided_value_ids != schema['definitions']:
@@ -185,7 +199,7 @@ async def check_personal_values_input(
                 raise exc.BadRequest('; '.join(message_parts))
 
 
-def contact_to_read_model(*, contact: db.Contact) -> md.ContactRead:
+def contact_to_read_model(*, contact: Contact) -> ContactRead:
     """Prepares ContactRead schema."""
     data = {
         'user_id': contact.other_user_id,
@@ -193,12 +207,12 @@ def contact_to_read_model(*, contact: db.Contact) -> md.ContactRead:
         'status': contact.status,
         'created_at': contact.created_at,
     }
-    return md.ContactRead.model_validate(data)
+    return ContactRead.model_validate(data)
 
 
 def contact_request_to_read_model(
-    contact: db.Contact,
-) -> md.ContactRequestRead:
+    contact: Contact,
+) -> ContactRequestRead:
     """Prepares ContactRequestRead schema."""
     data = {
         'user_id': contact.other_user_id,
@@ -207,20 +221,20 @@ def contact_request_to_read_model(
         'created_at': contact.created_at,
         'time_waiting': datetime.now() - contact.created_at,
     }
-    return md.ContactRequestRead.model_validate(data)
+    return ContactRequestRead.model_validate(data)
 
 
 async def get_recommendations(
     *,
     my_user_id: UUID,
     other_user_id: UUID | None = None,
-    a_session: AsyncSession,
-) -> list[md.OtherProfileRead]:
+    asession: AsyncSession,
+) -> list[OtherProfileRead]:
     """Reads user recommendations, returns as OtherProfileRead schema."""
     recommendations = await crud.read_user_recommendations(
         my_user_id=my_user_id,
         other_user_id=other_user_id,
-        a_session=a_session,
+        asession=asession,
     )
     if len(recommendations) > CFG.RECOMMENDATIONS_AT_A_TIME:
         raise exc.ServerError(
@@ -230,7 +244,7 @@ async def get_recommendations(
             )
         )
     rec_models = [
-        md.OtherProfileRead(
+        OtherProfileRead(
             user_id=r.user_id,
             name=r.name,
             similarity_score=r.similarity_score,
@@ -241,7 +255,7 @@ async def get_recommendations(
     return rec_models
 
 
-def generate_random_personal_values(*, schema: dict):
+def _randomize_personal_values(*, schema: dict):
     order_choices = [n for n in range(1, CFG.PERSONAL_VALUE_MAX_ORDER + 1)]
     input = {
         'attitude_id': random.choice(list(schema['attitude_ids'])),
@@ -279,9 +293,14 @@ def generate_random_personal_values(*, schema: dict):
     return input
 
 
-async def create_random_personal_values(a_session_factory: async_sessionmaker):
-    async with a_session_factory() as a_session:
-        schema = await get_schema_for_pesonal_values_input(a_session=a_session)
-    result = json.dumps(generate_random_personal_values(schema=schema))
-    print(result)
-    return result
+async def generate_random_personal_values(*, asession: AsyncSession) -> dict:
+    """
+    Generates random personal values input.
+    Displays as JSON formatted str.
+    Returns as dict.
+    """
+    schema = await get_schema_for_pesonal_values_input(asession=asession)
+    pv_dict = _randomize_personal_values(schema=schema)
+    pv_str = json.dumps(pv_dict)
+    print(pv_str)
+    return pv_dict

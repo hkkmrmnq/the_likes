@@ -16,7 +16,7 @@ class OtherProfileRead(BaseModel):
     user_id: UUID
     name: str | None
     similarity_score: float
-    distance_meters: int
+    distance_meters: int | None
 
     @field_validator('similarity_score', mode='before')
     def round_similarity_score(cls, v):
@@ -24,8 +24,7 @@ class OtherProfileRead(BaseModel):
             return round(v, 2)
         return v
 
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 
 class ContactRead(BaseModel):
@@ -34,8 +33,7 @@ class ContactRead(BaseModel):
     status: ContactStatus
     created_at: datetime
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {'arbitrary_types_allowed': True}
 
 
 class ContactRequestRead(ContactRead):
@@ -74,5 +72,4 @@ class MessageRead(BaseModel):
     text: str = Field(max_length=CNST.MESSAGE_MAX_LENGTH)
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}

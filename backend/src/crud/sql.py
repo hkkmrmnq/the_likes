@@ -1,7 +1,7 @@
 from sqlalchemy import text
 
-from src.config import CFG
 from src.config import constants as CNST
+from src.config.config import CFG
 from src.config.enums import SearchAllowedStatus
 
 prepare_funcs_and_matviews_commands: list[str] = [

@@ -14,8 +14,7 @@ class AttitudeRead(BaseModel):
     id: int
     statement: str
 
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 
 class AspectRead(BaseModel):
@@ -23,8 +22,7 @@ class AspectRead(BaseModel):
     key_phrase: str
     statement: str
 
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 
 class ValueRead(BaseModel):
@@ -32,8 +30,7 @@ class ValueRead(BaseModel):
     name: str
     aspects: list[AspectRead]
 
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 
 class DefinitionsRead(BaseModel):

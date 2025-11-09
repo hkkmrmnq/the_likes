@@ -12,16 +12,15 @@ from pydantic import (
 )
 from pydantic_extra_types.coordinate import Latitude, Longitude
 
-from src.config import CFG
 from src.config import constants as CNST
+from src.config.config import CFG
 
 
 class UserRead(fu_schemas.BaseUser[UUID]):
     id: UUID
     email: str
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {'arbitrary_types_allowed': True}
 
 
 class UserCreate(fu_schemas.BaseUserCreate):
@@ -56,9 +55,7 @@ class ProfileRead(BaseModel):
     distance_limit: int | None
     recommend_me: bool
 
-    class Config:
-        from_attributes = True
-        arbitrary_types_allowed = True
+    model_config = {'from_attributes': True, 'arbitrary_types_allowed': True}
 
     @field_validator('location', mode='before')
     @classmethod

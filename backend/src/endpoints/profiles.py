@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
-from src import models as md
-from src import services as srv
-from src.db import User
+from src.db.user_and_profile import User
+from src.models.core import ApiResponse
+from src.models.user_and_profile import ProfileRead, ProfileUpdate
+from src.services import profile as profile_srv
 
 router = APIRouter()
 
@@ -18,12 +19,12 @@ router = APIRouter()
 )
 async def get_profile(
     my_user: User = Depends(dp.current_active_verified_user),
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.ProfileRead]:
-    profile_model, message = await srv.get_profile(
-        my_user=my_user, a_session=a_session
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[ProfileRead]:
+    profile_model, message = await profile_srv.get_profile(
+        my_user=my_user, asession=asession
     )
-    return md.ApiResponse(data=profile_model, message=message)
+    return ApiResponse(data=profile_model, message=message)
 
 
 @router.put(
@@ -39,10 +40,10 @@ async def get_profile(
 async def edit_profile(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    profile_model_update: md.ProfileUpdate,
-    a_session: AsyncSession = Depends(dp.get_async_session),
-) -> md.ApiResponse[md.ProfileRead]:
-    profile_model_read, message = await srv.edit_profile(
-        my_user=my_user, update_model=profile_model_update, a_session=a_session
+    profile_model_update: ProfileUpdate,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> ApiResponse[ProfileRead]:
+    profile_model_read, message = await profile_srv.edit_profile(
+        my_user=my_user, update_model=profile_model_update, asession=asession
     )
-    return md.ApiResponse(data=profile_model_read, message=message)
+    return ApiResponse(data=profile_model_read, message=message)

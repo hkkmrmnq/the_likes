@@ -11,7 +11,7 @@ The Likes is an app designed to find people with the same personal values. More 
 - Alembic 1.16.4
 - Celery[redis] 5.5.3
 - PostgreSQL (postgis:18-3.6 Docker image)
-- Docker compose
+- Docker-compose
 - Nginx
 - Supervisor
 
@@ -67,7 +67,7 @@ Access documentation: http://localhost/docs/
 
 To generate random values input
 ```bash
-make testval
+make randval
 ```
 
 To put down docker network, but keep the volumes

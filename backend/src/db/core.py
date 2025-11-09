@@ -10,11 +10,11 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from src import exceptions as exc
-from src.config import CFG
 from src.config import constants as CNST
+from src.config.config import CFG
 from src.context import get_current_language
 from src.db.base import BaseWithIntPK
+from src.exceptions.exceptions import ServerError
 from src.logger import logger
 
 if TYPE_CHECKING:
@@ -23,12 +23,12 @@ if TYPE_CHECKING:
         PersonalValue,
         UniqueValueAspectLink,
     )
-    from .profile_and_user import Profile
     from .translations import (
         AspectTranslation,
         AttitudeTranslation,
         ValueTranslation,
     )
+    from .user_and_profile import Profile
 
 
 def _translate_attribute(self: 'Value | Aspect | Attitude'):
@@ -42,16 +42,14 @@ def _translate_attribute(self: 'Value | Aspect | Attitude'):
     if current_frame is None or current_frame.f_back is None:
         msg = 'current_frame / current_frame.f_back is None'
         logger.error(msg)
-        raise exc.ServerError(msg)
+        raise ServerError(msg)
     lan_code = get_current_language()
     attr_name = current_frame.f_back.f_code.co_name
-    if (
-        lan_code != CFG.DEFAULT_LANGUAGE
-        and lan_code in CFG.SUPPORTED_LANGUAGES
-    ):
+    if lan_code != CFG.DEFAULT_LANGUAGE and lan_code in CFG.TRANSLATE_TO:
         try:
             for translation in self.translations:
                 if translation.language_code == lan_code:
+                    translation = translation
                     return getattr(translation, attr_name)
         except MissingGreenlet:
             logger.error(

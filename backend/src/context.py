@@ -1,6 +1,6 @@
 from contextvars import ContextVar
 
-from src.config import CFG
+from src.config.config import CFG
 
 _current_language: ContextVar[str] = ContextVar(
     'current_language', default=CFG.DEFAULT_LANGUAGE

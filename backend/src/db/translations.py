@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.config import constants as CNST
 from src.db.base import BaseWithIntPK
 from src.db.core import Aspect, Value
-from src.db.profile_and_user import Attitude
+from src.db.user_and_profile import Attitude
 
 
 class TranslationBase(BaseWithIntPK):

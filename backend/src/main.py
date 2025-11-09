@@ -4,12 +4,12 @@ from fastapi import FastAPI
 from fastapi_users import FastAPIUsers
 
 from src import endpoints
-from src import exceptions as exc
-from src.db import User
+from src.db.user_and_profile import User
 from src.dependencies import auth_backend, get_user_manager
-from src.lifespan import lifespan
+from src.exceptions import exceptions as exc
+from src.exceptions import handlers
 from src.middleware import LanguageMiddleware
-from src.models.profile_and_user import (
+from src.models.user_and_profile import (
     UserCreate,
     UserRead,
     UserUpdate,
@@ -18,7 +18,7 @@ from src.models.profile_and_user import (
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 app.add_middleware(LanguageMiddleware)
 
@@ -52,10 +52,10 @@ app.include_router(endpoints.contacts_router, tags=['contacts'])
 app.include_router(endpoints.messages_router, tags=['messages'])
 app.include_router(endpoints.updates_router, tags=['updates'])
 
-app.add_exception_handler(exc.InactiveUser, exc.handle_inactive_user)
-app.add_exception_handler(exc.UnverifiedUser, exc.handle_unverified_user)
-app.add_exception_handler(exc.NotFound, exc.handle_not_found)
-app.add_exception_handler(exc.AlreadyExists, exc.handle_already_exists)
-app.add_exception_handler(exc.BadRequest, exc.handle_bad_request)
-app.add_exception_handler(exc.ServerError, exc.handle_server_error)
-app.add_exception_handler(exc.Forbidden, exc.handle_forbidden)
+app.add_exception_handler(exc.InactiveUser, handlers.handle_inactive_user)
+app.add_exception_handler(exc.UnverifiedUser, handlers.handle_unverified_user)
+app.add_exception_handler(exc.NotFound, handlers.handle_not_found)
+app.add_exception_handler(exc.AlreadyExists, handlers.handle_already_exists)
+app.add_exception_handler(exc.BadRequest, handlers.handle_bad_request)
+app.add_exception_handler(exc.ServerError, handlers.handle_server_error)
+app.add_exception_handler(exc.Forbidden, handlers.handle_forbidden)
