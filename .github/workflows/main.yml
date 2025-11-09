@@ -18,7 +18,7 @@ jobs:
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_DB: 0
-      BASE_URL_DEV: 'http: //localhost:8000'
+      BASE_URL_DEV: 'http://localhost:8000'
       EMAIL_APP_EMAIL: placeholder@example.com
       EMAIL_APP_NAME: placeholder@example.com
       EMAIL_APP_PASSWORD: placeholder
