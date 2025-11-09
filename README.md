@@ -77,7 +77,7 @@ make devdown
 
 To put down docker network, and remove the volumes
 ```bash
-make devdown
+make devfulldown
 ```
 
 
