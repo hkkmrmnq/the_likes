@@ -19,6 +19,9 @@ jobs:
       REDIS_PORT: 6379
       REDIS_DB: 0
       BASE_URL_DEV: 'http: //localhost'
+      EMAIL_APP_EMAIL: placeholder@example.com
+      EMAIL_APP_NAME: placeholder@example.com
+      EMAIL_APP_PASSWORD: placeholder
 
     services:
       postgres:
