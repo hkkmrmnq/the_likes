@@ -58,13 +58,19 @@ jobs:
         UV_DEV=False uv sync --frozen
     - name: Lint with ruff
       run: |
+        cd backend
         uv run ruff check
     - name: Migrations
-      run: uv run alembic upgrade head
+      run: |
+        cd backend
+        uv run alembic upgrade head
     - name: Prepare data
-      run: uv run python prepare.py data
+      run: |
+        cd backend
+        uv run python prepare.py data
     - name: Start app
       run: |
+        cd backend
         uv run fastapi dev src/main.py &
         sleep 10 &
         uv run celery -A src.tasks worker --loglevel=info &
@@ -73,4 +79,5 @@ jobs:
         sleep 10
     - name: Test with pytest
       run: |
+        cd backend
         uv run pytest -v
