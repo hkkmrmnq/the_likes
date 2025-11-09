@@ -21,13 +21,6 @@ jobs:
       BASE_URL_DEV: 'http: //localhost'
 
     services:
-      nginx:
-        image: nginx:alpine
-        ports:
-          - 80:80
-        volumes:
-          - ${{ github.workspace }}//nginx.conf.test:/etc/nginx/nginx.conf:ro
-
       postgres:
         image: postgis/postgis:18-3.6
         env:
