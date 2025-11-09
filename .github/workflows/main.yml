@@ -53,6 +53,7 @@ jobs:
         python-version: '3.12'
     - name: Install dependencies
       run: |
+        cd backend
         pip install uv
         UV_DEV=False uv sync --frozen
     - name: Lint with ruff
