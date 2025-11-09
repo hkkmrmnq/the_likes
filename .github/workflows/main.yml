@@ -130,7 +130,7 @@ jobs:
         with:
           context: "{{defaultContext}}:backend"
           push: true
-          tags: ${{ vars.DOCKER_USERNAME }}/the_likes_backend:latest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/the_likes_backend:latest
 
   build_nginx_and_push_to_docker_hub:
     needs: detect_changes
@@ -150,4 +150,4 @@ jobs:
         with:
           context: "{{defaultContext}}:nginx"
           push: true
-          tags: ${{ vars.DOCKER_USERNAME }}/the_likes_nginx:latest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/the_likes_nginx:latest
