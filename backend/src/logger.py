@@ -2,10 +2,12 @@ import sys
 
 from loguru import logger
 
+from src.config.config import CFG
+
 logger.remove()
 
 logger.add(
-    '/app/logs/logger_log.log',
+    CFG.LOG_PATH,
     format=(
         '{time:YYYY-MM-DD HH:mm:ss} | {level} '
         '| {name}:{function}:{line} | {message}'

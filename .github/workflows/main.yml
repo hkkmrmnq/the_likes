@@ -22,6 +22,7 @@ jobs:
       EMAIL_APP_EMAIL: placeholder@example.com
       EMAIL_APP_NAME: placeholder@example.com
       EMAIL_APP_PASSWORD: placeholder
+      LOG_PATH: ${{ github.workspace }}/logs/logger_log.log
 
     services:
       postgres:
@@ -63,6 +64,10 @@ jobs:
       run: |
         cd backend
         uv run ruff check
+    - name: Create logs in workspace
+      run: |
+        mkdir -p logs
+        chmod 755 logs
     - name: Migrations
       run: |
         cd backend
