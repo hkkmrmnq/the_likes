@@ -8,7 +8,7 @@ from src.db.core import Aspect, Attitude, UniqueValue, Value
 from src.db.translations import AspectTranslation, ValueTranslation
 
 
-async def read_definitions(
+async def read_values(
     *, user_language: str = CFG.DEFAULT_LANGUAGE, asession: AsyncSession
 ) -> list[Value]:
     if user_language == CFG.DEFAULT_LANGUAGE:

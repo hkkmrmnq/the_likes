@@ -41,7 +41,7 @@ async def second_asession():
 @pytest_asyncio.fixture
 async def client():
     async with AsyncClient(
-        base_url=CFG.BASE_URL_DEV,
+        base_url=CFG.BACKEND_ORIGIN,
         timeout=15,
     ) as test_client:
         yield test_client
@@ -50,7 +50,7 @@ async def client():
 @pytest_asyncio.fixture
 async def second_client():
     async with AsyncClient(
-        base_url=CFG.BASE_URL_DEV,
+        base_url=CFG.BACKEND_ORIGIN,
         timeout=15,
     ) as test_client:
         yield test_client

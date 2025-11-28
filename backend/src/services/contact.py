@@ -12,7 +12,7 @@ from src.models.contact_n_message import (
     ContactRequestsRead,
     OtherProfileRead,
 )
-from src.services import _utils as utl
+from src.services import _utils as _utils
 from src.services.profile import personal_values_already_set
 from src.services.user_manager import UserManager
 from src.tasks import send_contact_request_notification
@@ -37,7 +37,7 @@ async def get_contact_requests(
     incoming = []
     outgoing = []
     for cr in contact_requests:
-        model = utl.contact_request_to_read_model(cr)
+        model = _utils.contact_request_to_read_model(cr)
         if model.status == ContactStatus.REQUESTED_BY_OTHER:
             incoming.append(model)
         else:
@@ -67,7 +67,7 @@ async def get_ongoing_contacts(
         statuses=[ContactStatus.ONGOING],
         asession=asession,
     )
-    c_models = [utl.contact_to_read_model(contact=c) for c in contacts]
+    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
     message = 'Contacts.' if c_models else 'No active contacts.'
     return c_models, message
 
@@ -86,7 +86,7 @@ async def get_rejected_requests(
         statuses=[ContactStatus.REJECTED_BY_ME],
         asession=asession,
     )
-    c_models = [utl.contact_to_read_model(contact=c) for c in contacts]
+    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
     message = (
         'Rejected contact requests.'
         if c_models
@@ -109,7 +109,7 @@ async def get_cancelled_requests(
         statuses=[ContactStatus.CANCELLED_BY_ME],
         asession=asession,
     )
-    c_models = [utl.contact_to_read_model(contact=c) for c in contacts]
+    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
     message = (
         'Cancelled contact requests.'
         if c_models
@@ -129,7 +129,7 @@ async def get_blocked_contacts(
         statuses=[ContactStatus.BLOCKED_BY_ME],
         asession=asession,
     )
-    c_models = [utl.contact_to_read_model(contact=c) for c in contacts]
+    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
     message = 'Blocked contacts.' if c_models else 'No blocked contacts.'
     return c_models, message
 
@@ -151,7 +151,7 @@ async def check_for_alike(
         my_user=my_user, asession=asession
     ):
         raise exc.NotFound('Personal values have not yet been set.')
-    matches = await utl.get_recommendations(
+    matches = await _utils.get_recommendations(
         my_user_id=my_user.id, asession=asession
     )
     message = 'Matches found.' if matches else 'No matches for now.'
@@ -194,7 +194,7 @@ async def agree_to_start(
         other_user_id=other_user_id,
         asession=asession,
     )
-    contact_read_model = utl.contact_to_read_model(contact=contact_pair[0])
+    contact_read_model = _utils.contact_to_read_model(contact=contact_pair[0])
     match contact_pair[0].status, created:
         case ContactStatus.REQUESTED_BY_ME, True:
             other_user = await user_manager.get(id=other_user_id)

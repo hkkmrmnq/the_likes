@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.config.config import CFG
 from src.crud import sql
-from src.crud.core import read_attitudes, read_definitions
+from src.crud.core import read_attitudes, read_values
 from src.db.core import (
     Aspect,
     Attitude,
@@ -68,7 +68,7 @@ async def create_definitions(
 async def create_unique_values(
     asession: AsyncSession,
 ) -> list[UniqueValue]:
-    definitions = await read_definitions(asession=asession)
+    definitions = await read_values(asession=asession)
     if not definitions:
         raise ServerError('Definitions not found.')
     unique_values = []
@@ -112,7 +112,7 @@ async def create_definitions_translations(
     definitions_data: dict,
     asession: AsyncSession,
 ) -> tuple[list[ValueTranslation], list[AspectTranslation]]:
-    db_definitions = await read_definitions(asession=asession)
+    db_definitions = await read_values(asession=asession)
     value_translations = []
     aspect_translations = []
     for value in db_definitions:

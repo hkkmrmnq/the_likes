@@ -64,9 +64,20 @@ async def check_personal_values(
     )
     response_body = response.json()
     assert 'data' in response_body
-    assert 'attitude_id' in response_body['data']
-    assert 'attitude_statement' in response_body['data']
-    assert response_body['data']['attitude_id'] == input_data['attitude_id']
+    assert 'attitudes' in response_body['data']
+    attitudes = response_body['data']['attitudes']
+    for attitude in attitudes:
+        assert 'attitude_id' in attitude
+        assert 'statement' in attitude
+        assert 'chosen' in attitude
+    chosen_attitude_ids = [a['attitude_id'] for a in attitudes if a['chosen']]
+    assert len(chosen_attitude_ids) == 1, (
+        'Exactly one attitude_id expected. '
+        f'Got {len(chosen_attitude_ids)}: '
+        f'{", ".join([str(i) for i in chosen_attitude_ids])}.'
+    )
+    chosen_attitude_id = chosen_attitude_ids[0]
+    assert chosen_attitude_id == input_data['attitude_id']
     assert 'value_links' in response_body['data']
     returned_personal_values = response_body['data']['value_links']
     for p_v in returned_personal_values:

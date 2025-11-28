@@ -18,7 +18,7 @@ async def read_definitions(
     )
     if not attitudes:
         raise exc.ServerError('Attitudes not found.')
-    definitions = await crud.read_definitions(
+    definitions = await crud.read_values(
         user_language=get_current_language(), asession=asession
     )
     if not definitions:

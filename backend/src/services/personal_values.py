@@ -10,7 +10,7 @@ from src.models.personal_values import (
     PersonalValuesCreateUpdate,
     PersonalValuesRead,
 )
-from src.services import _utils as utl
+from src.services import _utils, core
 
 
 async def get_personal_values(
@@ -26,19 +26,25 @@ async def get_personal_values(
         user_language=user_language,
         asession=asession,
     )
-    if not await utl.personal_values_already_set(
+    attitudes = await crud.read_attitudes(asession=asession)
+    message = 'Personal values.'
+    if not await _utils.personal_values_already_set(
         my_user=user, asession=asession
     ):
-        raise exc.NotFound('Profile values have not yet been set.')
+        definitions, _ = await core.read_definitions(asession=asession)
+        pv_read_model = await _utils.values_to_p_v_read_model(
+            definitions=definitions
+        )
+
     personal_values = await crud.read_personal_values(
         user_id=user.id,
         current_language=user_language,
         asession=asession,
     )
-    pv_read_model = await utl.personal_values_to_read_model(
-        personal_values=personal_values, profile=profile
+    pv_read_model = await _utils.personal_values_to_read_model(
+        value_links=personal_values, profile=profile, attitudes=attitudes
     )
-    message = 'Personal values.'
+
     if not profile.recommend_me:
         message += " Enable 'recommend me' option in Profile to allow searh."
     return pv_read_model, message
@@ -47,7 +53,7 @@ async def get_personal_values(
 async def create_personal_values(
     *,
     my_user: User,
-    pv_model: PersonalValuesCreateUpdate,
+    p_v_model: PersonalValuesCreateUpdate,
     asession: AsyncSession,
 ) -> tuple[PersonalValuesRead, str]:
     """
@@ -56,21 +62,21 @@ async def create_personal_values(
     Updates UserDynamic accordingly.
     Updates Profile with attitude_id.
     """
-    if await utl.personal_values_already_set(
+    if await _utils.personal_values_already_set(
         my_user=my_user, asession=asession
     ):
         raise exc.AlreadyExists('Profile values are already set.')
-    await utl.check_personal_values_input(
-        personal_values_md=pv_model, asession=asession
+    await _utils.check_personal_values_input(
+        p_v_model=p_v_model, asession=asession
     )
     ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
     ud.values_created = datetime.now()
     await crud.create_personal_values(
-        user_id=my_user.id, data=pv_model.model_dump(), asession=asession
+        user_id=my_user.id, data=p_v_model.model_dump(), asession=asession
     )
     await crud.update_profile(
         user_id=my_user.id,
-        data={'attitude_id': pv_model.attitude_id},
+        data={'attitude_id': p_v_model.attitude_id},
         asession=asession,
     )
     await asession.commit()
@@ -84,7 +90,7 @@ async def create_personal_values(
 async def update_personal_values(
     *,
     my_user: User,
-    pv_model: PersonalValuesCreateUpdate,
+    p_v_model: PersonalValuesCreateUpdate,
     asession: AsyncSession,
 ) -> tuple[PersonalValuesRead, str]:
     """
@@ -94,22 +100,22 @@ async def update_personal_values(
     Updates Profile with attitude_id.
     """
 
-    if not await utl.personal_values_already_set(
+    if not await _utils.personal_values_already_set(
         my_user=my_user, asession=asession
     ):
         raise exc.NotFound('Personal Values have not yet been set.')
-    await utl.check_personal_values_input(
-        personal_values_md=pv_model, asession=asession
+    await _utils.check_personal_values_input(
+        p_v_model=p_v_model, asession=asession
     )
     ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
     ud.values_changes = ud.values_changes + [datetime.now()]
     await crud.delete_personal_values(user_id=my_user.id, asession=asession)
     await crud.create_personal_values(
-        user_id=my_user.id, data=pv_model.model_dump(), asession=asession
+        user_id=my_user.id, data=p_v_model.model_dump(), asession=asession
     )
     await crud.update_profile(
         user_id=my_user.id,
-        data={'attitude_id': pv_model.attitude_id},
+        data={'attitude_id': p_v_model.attitude_id},
         asession=asession,
     )
     await asession.commit()

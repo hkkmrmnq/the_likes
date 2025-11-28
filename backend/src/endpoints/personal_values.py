@@ -15,12 +15,7 @@ router = APIRouter()
 
 @router.get(
     '/my-values',
-    responses=dp.with_common_responses(
-        common_response_codes=[401, 403],
-        extra_responses={
-            404: {'description': 'Personal values have not yet been set.'}
-        },
-    ),
+    responses=dp.with_common_responses(common_response_codes=[401, 403]),
 )
 async def get_my_values(
     my_user: User = Depends(dp.current_active_verified_user),
@@ -62,7 +57,7 @@ async def post_my_values(
     asession: AsyncSession = Depends(dp.get_async_session),
 ) -> ApiResponse[PersonalValuesRead]:
     pv_read_model, message = await personal_values_srv.create_personal_values(
-        my_user=my_user, pv_model=pv_model, asession=asession
+        my_user=my_user, p_v_model=pv_model, asession=asession
     )
     return ApiResponse(data=pv_read_model, message=message)
 
@@ -96,6 +91,6 @@ async def edit_my_values(
     asession: AsyncSession = Depends(dp.get_async_session),
 ) -> ApiResponse[PersonalValuesRead]:
     pv_read_model, message = await personal_values_srv.update_personal_values(
-        my_user=my_user, pv_model=pv_model, asession=asession
+        my_user=my_user, p_v_model=pv_model, asession=asession
     )
     return ApiResponse(data=pv_read_model, message=message)

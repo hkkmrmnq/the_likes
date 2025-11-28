@@ -181,7 +181,7 @@ async def prepare_db():
     """
     input_data = read_basic_data_from_file()
     async with asession_factory() as asession:
-        definitions = await crud.read_definitions(asession=asession)
+        definitions = await crud.read_values(asession=asession)
         attitudes = await crud.read_attitudes(asession=asession)
         u_v_s = await crud.read_unique_values(asession=asession)
     if all((not definitions, not attitudes, not u_v_s)):

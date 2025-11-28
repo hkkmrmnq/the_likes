@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.user_and_profile import User
 from src.models.update import FullUpdate, UpdateRead
-from src.services import _utils as utl
+from src.services import _utils as _utils
 from src.services import contact as cnct
 from src.services import message as msg
 from src.services.profile import get_profile
@@ -15,7 +15,7 @@ async def get_update(
     Returns simple update as Update schema:
     recommendations, contact_requests and unread messsages counts.
     """
-    recommendations = await utl.get_recommendations(
+    recommendations = await _utils.get_recommendations(
         my_user_id=my_user.id, asession=asession
     )
     contact_requests, _ = await cnct.get_contact_requests(
@@ -39,7 +39,7 @@ async def get_full_update(
     recommendations, contacts, contact_requests,
     unread messsages counts and ('my') profile.
     """
-    recommendations = await utl.get_recommendations(
+    recommendations = await _utils.get_recommendations(
         my_user_id=my_user.id, asession=asession
     )
     contacts, _ = await cnct.get_ongoing_contacts(

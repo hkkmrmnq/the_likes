@@ -1,9 +1,11 @@
 import uuid
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_users import FastAPIUsers
 
 from src import endpoints
+from src.config.config import CFG
 from src.db.user_and_profile import User
 from src.dependencies import auth_backend, get_user_manager
 from src.exceptions import exceptions as exc
@@ -18,7 +20,15 @@ from src.models.user_and_profile import (
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
 
-app = FastAPI()
+app = FastAPI(root_path='/api')
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[CFG.BACKEND_ORIGIN, CFG.FRONTEND_ORIGIN],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 app.add_middleware(LanguageMiddleware)
 

@@ -2,7 +2,6 @@ import hashlib
 import json
 import random
 from datetime import datetime
-from typing import Sequence
 from uuid import UUID
 
 import httpx
@@ -11,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
 from src.config.config import CFG
+from src.config.enums import Polarity
 from src.db.contact_n_message import Contact
+from src.db.core import Attitude
 from src.db.personal_values import PersonalValue
 from src.db.user_and_profile import Profile, User
 from src.exceptions import exceptions as exc
@@ -21,15 +22,14 @@ from src.models.contact_n_message import (
     ContactRequestRead,
     OtherProfileRead,
 )
+from src.models.core import DefinitionsRead
 from src.models.personal_values import (
     PersonalAspectRead,
+    PersonalAttitude,
     PersonalValueRead,
     PersonalValuesCreateUpdate,
     PersonalValuesRead,
 )
-
-# from src.sessions import get_async_session_factory
-# from src.sessions import asession_factory
 
 
 async def is_password_pwned(*, password: str) -> bool | None:
@@ -81,11 +81,14 @@ async def personal_values_already_set(
 
 
 async def personal_values_to_read_model(
-    *, personal_values: Sequence[PersonalValue], profile: Profile
+    *,
+    value_links: list[PersonalValue],
+    attitudes: list[Attitude],
+    profile: Profile,
 ) -> PersonalValuesRead:
-    """Prepares PersonalValuesRead schema."""
+    """Prepares PersonalValuesRead schema based on existing personal values."""
     personal_value_models = []
-    for pv in sorted(personal_values, key=lambda x: x.user_order):
+    for pv in sorted(value_links, key=lambda x: x.user_order):
         personal_aspect_models = [
             PersonalAspectRead.model_validate(
                 {
@@ -108,14 +111,70 @@ async def personal_values_to_read_model(
         )
         personal_value_models.append(pv_model)
 
+    personal_attitudes = [
+        PersonalAttitude(
+            attitude_id=a.id,
+            statement=a.statement,
+            chosen=a.id == profile.attitude_id,
+        )
+        for a in attitudes
+    ]
+
     moral_profile_model = PersonalValuesRead.model_validate(
         {
-            'attitude_id': profile.attitude_id,
-            'attitude_statement': profile.attitude.statement,
+            'attitudes': personal_attitudes,
             'value_links': personal_value_models,
         }
     )
     return moral_profile_model
+
+
+async def values_to_p_v_read_model(
+    definitions: DefinitionsRead,
+) -> PersonalValuesRead:
+    """
+    Prepares PersonalValuesRead schema for user to choose initially.
+    Intended to use in sutuation when a user creates Personal Values.
+    values:  Values with prefetched Aspects;
+    attitudes: db Attitudes.
+    """
+    personal_value_models = []
+    dummy_order = 0
+    for value in definitions.values:
+        dummy_order += 1
+        personal_aspect_models = [
+            PersonalAspectRead.model_validate(
+                {
+                    'aspect_id': aspect.id,
+                    'aspect_key_phrase': aspect.key_phrase,
+                    'aspect_statement': aspect.statement,
+                    'included': False,
+                }
+            )
+            for aspect in value.aspects
+        ]
+        pv_model = PersonalValueRead.model_validate(
+            {
+                'value_id': value.id,
+                'value_name': value.name,
+                'polarity': Polarity.NEUTRAL,
+                'user_order': dummy_order,
+                'aspects': personal_aspect_models,
+            }
+        )
+        personal_value_models.append(pv_model)
+
+    attitudes = [
+        PersonalAttitude(attitude_id=a.id, statement=a.statement, chosen=False)
+        for a in definitions.attitudes
+    ]
+    personal_values_model = PersonalValuesRead.model_validate(
+        {
+            'attitudes': attitudes,
+            'value_links': personal_value_models,
+        }
+    )
+    return personal_values_model
 
 
 @alru_cache(maxsize=512)
@@ -141,7 +200,7 @@ async def get_schema_for_pesonal_values_input(
         raise exc.ServerError('Attitudes not found.')
     schema = {'attitude_ids': set(), 'definitions': {}}
     schema['attitude_ids'] = set([att.id for att in attitudes])
-    definitions = await crud.read_definitions(asession=asession)
+    definitions = await crud.read_values(asession=asession)
     if not definitions:
         raise exc.ServerError('Definitions not found.')
     for v in definitions:
@@ -156,24 +215,33 @@ async def get_schema_for_pesonal_values_input(
 
 async def check_personal_values_input(
     *,
-    personal_values_md: PersonalValuesCreateUpdate,
+    p_v_model: PersonalValuesCreateUpdate,
     asession: AsyncSession,
-) -> None:
-    """Performs complex PersonalValuesCreateUpdate validation."""
-    personal_values_md.value_links.sort(key=lambda x: x.user_order)
+):
+    """Checks PersonalValuesCreateUpdate on consistency."""
+    p_v_model.value_links.sort(key=lambda x: x.user_order)
     polarity_order = {'positive': 1, 'neutral': 2, 'negative': 3}
     poalrity_consistent = all(
         polarity_order[a.polarity] <= polarity_order[b.polarity]
-        for a, b in zip(
-            personal_values_md.value_links, personal_values_md.value_links[1:]
-        )
+        for a, b in zip(p_v_model.value_links, p_v_model.value_links[1:])
     )
     if not poalrity_consistent:
         raise exc.BadRequest('Inconsistent polarity/user_order.')
-    provided_value_ids = {vl.value_id for vl in personal_values_md.value_links}
+    provided_value_ids = {vl.value_id for vl in p_v_model.value_links}
     schema = await get_schema_for_pesonal_values_input(asession=asession)
-    if personal_values_md.attitude_id not in schema['attitude_ids']:
-        raise exc.BadRequest('Incorrect attitude_id.')
+    # chosen_attitude_ids = [
+    #     a.attitude_id for a in p_v_model.attitudes if a.chosen
+    # ]
+    # if len(chosen_attitude_ids) != 1:
+    #     raise exc.BadRequest(
+    #         'Exactly one attitude_id expected. Got attitude_ids: '
+    #         f'{", ".join([str(i) for i in chosen_attitude_ids])}.'
+    #     )
+    # chosen_attitude_id = chosen_attitude_ids[0]
+    if p_v_model.attitude_id not in schema['attitude_ids']:
+        raise exc.BadRequest(
+            f'Incorrect attitude_id: {p_v_model.attitude_id}.'
+        )
     expected_value_ids = set(schema['definitions'].keys())
     message_parts = []
     if provided_value_ids != schema['definitions']:
@@ -185,7 +253,7 @@ async def check_personal_values_input(
             message_parts.append(f'extra values: {extra}')
         if message_parts:
             raise exc.BadRequest('; '.join(message_parts))
-    for value_link_md in personal_values_md.value_links:
+    for value_link_md in p_v_model.value_links:
         expected_aspect_ids = schema['definitions'][value_link_md.value_id]
         provided_aspect_ids = set([a.aspect_id for a in value_link_md.aspects])
         if provided_aspect_ids != expected_aspect_ids:

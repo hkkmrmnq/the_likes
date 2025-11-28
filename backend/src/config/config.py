@@ -39,7 +39,8 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     REDIS_DB: int
     LOG_PATH: str
-    BASE_URL_DEV: str
+    BACKEND_ORIGIN: str
+    FRONTEND_ORIGIN: str
 
     model_config = {'env_file': '.env', 'env_file_encoding': 'utf-8'}
 

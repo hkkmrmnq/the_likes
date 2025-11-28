@@ -15,7 +15,7 @@ from .contacts import (  # noqa
     read_user_contacts,
     read_user_recommendations,
 )
-from .core import read_attitudes, read_definitions, read_unique_values  # noqa
+from .core import read_attitudes, read_values, read_unique_values  # noqa
 from .messages import (  # noqa
     count_uread_messages,
     create_message,
