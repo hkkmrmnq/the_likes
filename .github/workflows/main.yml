@@ -38,12 +38,11 @@ jobs:
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_DB: 0
-      BASE_URL_DEV: "http://localhost:8000"
       EMAIL_APP_EMAIL: placeholder@example.com
       EMAIL_APP_NAME: placeholder@example.com
       EMAIL_APP_PASSWORD: placeholder
       LOG_PATH: ${{ github.workspace }}/logs/logger_log.log
-      BACKEND_ORIGIN: "http://nginx:80"
+      BACKEND_ORIGIN: "http://localhost:8000"
       FRONTEND_ORIGIN: "http://localhost:3000"
 
     services:
