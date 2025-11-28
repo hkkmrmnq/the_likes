@@ -64,8 +64,11 @@ async def check_personal_values(
     )
     response_body = response.json()
     assert 'data' in response_body
-    assert 'attitudes' in response_body['data']
-    attitudes = response_body['data']['attitudes']
+    response_data = response_body['data']
+    assert 'initial' in response_data
+    assert isinstance(response_data['initial'], bool)
+    assert 'attitudes' in response_data
+    attitudes = response_data['attitudes']
     for attitude in attitudes:
         assert 'attitude_id' in attitude
         assert 'statement' in attitude
@@ -78,8 +81,8 @@ async def check_personal_values(
     )
     chosen_attitude_id = chosen_attitude_ids[0]
     assert chosen_attitude_id == input_data['attitude_id']
-    assert 'value_links' in response_body['data']
-    returned_personal_values = response_body['data']['value_links']
+    assert 'value_links' in response_data
+    returned_personal_values = response_data['value_links']
     for p_v in returned_personal_values:
         assert 'user_order' in p_v
     returned_personal_values = sorted(

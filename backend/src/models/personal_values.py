@@ -3,7 +3,6 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from src.config.config import CFG
-from src.config.enums import Polarity
 
 
 class PersonalAttitude(BaseModel):
@@ -24,16 +23,6 @@ class PersonalAspectRead(BaseModel):
 class PersonalAspectCreate(BaseModel):
     aspect_id: int
     included: bool
-
-
-class PersonalValueReadInitial(BaseModel):
-    value_id: int
-    value_name: str
-    polarity: str = Polarity.NEUTRAL
-    user_order: None
-    aspects: list[PersonalAspectRead]
-
-    model_config = {'from_attributes': True}
 
 
 class PersonalValueRead(BaseModel):
@@ -57,12 +46,8 @@ class PersonalValueUpdate(PersonalValueCreate):
     pass
 
 
-class PersonalValuesReadInitial(BaseModel):
-    attitudes: list[PersonalAttitude]
-    value_links: list[PersonalValueReadInitial]
-
-
 class PersonalValuesRead(BaseModel):
+    initial: bool
     attitudes: list[PersonalAttitude]
     value_links: list[PersonalValueRead]
 

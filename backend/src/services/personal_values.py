@@ -27,13 +27,18 @@ async def get_personal_values(
         asession=asession,
     )
     attitudes = await crud.read_attitudes(asession=asession)
-    message = 'Personal values.'
+    message = 'Your values.'
     if not await _utils.personal_values_already_set(
         my_user=user, asession=asession
     ):
         definitions, _ = await core.read_definitions(asession=asession)
         pv_read_model = await _utils.values_to_p_v_read_model(
             definitions=definitions
+        )
+        return (
+            pv_read_model,
+            'Personal values have not been created yet. '
+            'This is initial data to create Personal Values.',
         )
 
     personal_values = await crud.read_personal_values(

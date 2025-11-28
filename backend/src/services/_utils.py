@@ -122,6 +122,7 @@ async def personal_values_to_read_model(
 
     moral_profile_model = PersonalValuesRead.model_validate(
         {
+            'initial': False,
             'attitudes': personal_attitudes,
             'value_links': personal_value_models,
         }
@@ -170,6 +171,7 @@ async def values_to_p_v_read_model(
     ]
     personal_values_model = PersonalValuesRead.model_validate(
         {
+            'initial': True,
             'attitudes': attitudes,
             'value_links': personal_value_models,
         }
