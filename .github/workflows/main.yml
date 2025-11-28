@@ -3,7 +3,6 @@ name: Main TheLikes workflow
 on: [push]
 
 jobs:
-
   detect_changes:
     runs-on: ubuntu-latest
     outputs:
@@ -39,11 +38,13 @@ jobs:
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_DB: 0
-      BASE_URL_DEV: 'http://localhost:8000'
+      BASE_URL_DEV: "http://localhost:8000"
       EMAIL_APP_EMAIL: placeholder@example.com
       EMAIL_APP_NAME: placeholder@example.com
       EMAIL_APP_PASSWORD: placeholder
       LOG_PATH: ${{ github.workspace }}/logs/logger_log.log
+      BACKEND_ORIGIN: "http://nginx:80"
+      FRONTEND_ORIGIN: "http://localhost:3000"
 
     services:
       postgres:
@@ -59,7 +60,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7
         options: >-
@@ -71,46 +72,46 @@ jobs:
           - 6379:6379
 
     steps:
-    - name: Check out repo
-      uses: actions/checkout@v5
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.12'
-    - name: Install dependencies
-      run: |
-        cd backend
-        pip install uv
-        UV_DEV=False uv sync --frozen
-    - name: Lint with ruff
-      run: |
-        cd backend
-        uv run ruff check
-    - name: Create logs in workspace
-      run: |
-        mkdir -p logs
-        chmod 755 logs
-    - name: Migrations
-      run: |
-        cd backend
-        uv run alembic upgrade head
-    - name: Prepare data
-      run: |
-        cd backend
-        uv run python prepare.py data
-    - name: Start app
-      run: |
-        cd backend
-        uv run fastapi dev src/main.py &
-        sleep 10 &
-        uv run celery -A src.tasks worker --loglevel=info &
-        sleep 10 &
-        uv run celery -A src.tasks beat --loglevel=info &
-        sleep 10
-    - name: Test with pytest
-      run: |
-        cd backend
-        uv run pytest -v
+      - name: Check out repo
+        uses: actions/checkout@v5
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install uv
+          UV_DEV=False uv sync --frozen
+      - name: Lint with ruff
+        run: |
+          cd backend
+          uv run ruff check
+      - name: Create logs in workspace
+        run: |
+          mkdir -p logs
+          chmod 755 logs
+      - name: Migrations
+        run: |
+          cd backend
+          uv run alembic upgrade head
+      - name: Prepare data
+        run: |
+          cd backend
+          uv run python prepare.py data
+      - name: Start app
+        run: |
+          cd backend
+          uv run fastapi dev src/main.py &
+          sleep 10 &
+          uv run celery -A src.tasks worker --loglevel=info &
+          sleep 10 &
+          uv run celery -A src.tasks beat --loglevel=info &
+          sleep 10
+      - name: Test with pytest
+        run: |
+          cd backend
+          uv run pytest -v
 
   build_backend_and_push_to_docker_hub:
     needs:
@@ -118,7 +119,7 @@ jobs:
     name: Push backend image to DockerHub
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Docker 
+      - name: Login to Docker
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
@@ -138,7 +139,7 @@ jobs:
     name: Push nginx image to DockerHub
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Docker 
+      - name: Login to Docker
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
