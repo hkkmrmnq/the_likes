@@ -41,14 +41,11 @@ async def edit_profile(
     data = update_model.model_dump(exclude={'longitude', 'latitude'})
     if all(
         (
-            'distance_limit' in data,
-            'location' not in data,
-            profile.location is None,
+            data['location'] is None,
+            data['distance_limit'] is not None,
         )
     ):
-        raise exc.BadRequest(
-            'Location unset - it is required for distance_limit.'
-        )
+        raise exc.BadRequest('Location required for distance_limit.')
     await crud.update_profile(user_id=my_user.id, data=data, asession=asession)
     await asession.commit()
     await asession.refresh(profile)

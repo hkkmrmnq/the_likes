@@ -32,21 +32,17 @@ async def get_my_values(
     status_code=status.HTTP_201_CREATED,
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={
-            400: {
-                'description': (
-                    'Inconsistent polarity/user_order. / '
-                    'Incorrect attitude_id. / '
-                    'Missing/extra values/aspects.'
-                )
-            },
-            409: {'description': 'Personal values are already set.'},
-            500: {
-                'description': (
-                    'Profile not found. / '
-                    'Personal values not found after creation.'
-                )
-            },
+        extra_responses_to_iclude={
+            400: (
+                'Inconsistent polarity/user_order. / '
+                'Incorrect attitude_id. / '
+                'Missing/extra values/aspects.'
+            ),
+            409: 'Personal values are already set.',
+            500: (
+                'Profile not found. / '
+                'Personal values not found after creation.'
+            ),
         },
     ),
 )
@@ -66,21 +62,16 @@ async def post_my_values(
     '/my-values',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={
-            400: {
-                'description': (
-                    'Inconsistent polarity/user_order. / '
-                    'Incorrect attitude_id. / '
-                    'Missing/extra values/aspects.'
-                )
-            },
-            404: {'description': 'Personal values have not yet been set.'},
-            500: {
-                'description': (
-                    'Profile not found. / '
-                    'Personal values not found after update.'
-                )
-            },
+        extra_responses_to_iclude={
+            400: (
+                'Inconsistent polarity/user_order. / '
+                'Incorrect attitude_id. / '
+                'Missing/extra values/aspects.'
+            ),
+            404: 'Personal values have not yet been set.',
+            500: (
+                'Profile not found. / Personal values not found after update.'
+            ),
         },
     ),
 )

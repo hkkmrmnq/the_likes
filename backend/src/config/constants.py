@@ -1,4 +1,43 @@
+from typing import Any
+
+from pydantic import BaseModel
+
 from src.config.enums import ContactStatus
+
+
+class ErrorResponse(BaseModel):
+    detail: str
+    extra: dict[str, Any] | None = None
+
+
+COMMON_RESPONSES = {
+    400: {
+        'model': ErrorResponse,
+        'description': 'Incorrect body structure.',
+        'content': {
+            'application/json': {
+                'example': {'detail': 'Incorrect body structure.'}
+            }
+        },
+    },
+    401: {
+        'model': ErrorResponse,
+        'description': 'Unauthorized / inactive account.',
+        'content': {
+            'application/json': {
+                'example': {'detail': 'Unauthorized / inactive account.'}
+            }
+        },
+    },
+    403: {
+        'model': ErrorResponse,
+        'description': 'Unverified',
+        'content': {'application/json': {'example': {'detail': 'Unverified'}}},
+    },
+    404: {'description': 'Requested item not found'},
+    409: {'description': 'Item(s) already exist(s).'},
+    500: {'description': 'Something went wrong.'},
+}
 
 USER_NAME_MAX_LENGTH = 100
 PASSWORD_MIN_LENGTH = 8
@@ -22,14 +61,6 @@ UQ_CNSTR_CONTACT_MY_USER_ID_TARGET_USER_ID = (
 )
 DISTANCE_LIMIT_MAX = 20037509
 MESSAGE_MAX_LENGTH = 2000
-COMMON_RESPONSES = {
-    400: {'description': 'Incorrect body structure.'},
-    401: {'description': 'Unauthorized / inactive account.'},
-    403: {'description': 'Unverified.'},
-    404: {'description': 'Requested item not found'},
-    409: {'description': 'Item(s) already exist(s).'},
-    500: {'description': 'Something went wrong.'},
-}
 BLOCKABLE_CONTACT_STATUSES = [
     ContactStatus.ONGOING,
     ContactStatus.REJECTED_BY_ME,

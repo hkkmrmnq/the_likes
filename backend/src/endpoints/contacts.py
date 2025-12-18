@@ -22,16 +22,14 @@ router = APIRouter()
     '/check-for-alike',
     responses=dp.with_common_responses(
         common_response_codes=[401],
-        extra_responses={
-            403: {'description': 'Temporarily unavailable.'},
-            404: {'description': ('Profile values have not yet been set.')},
-            500: {
-                'description': (
-                    'Profile not found. / '
-                    'Contact not found right after creation. / '
-                    'To many contacts found.'
-                )
-            },
+        extra_responses_to_iclude={
+            403: 'Temporarily unavailable.',
+            404: ('Profile values have not yet been set.'),
+            500: (
+                'Profile not found. / '
+                'Contact not found right after creation. / '
+                'To many contacts found.'
+            ),
         },
     ),
 )
@@ -50,7 +48,7 @@ async def check_for_alike(
     '/agree-to-start',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={404: {'description': 'Requested user not found.'}},
+        extra_responses_to_iclude={404: 'Requested user not found.'},
     ),
 )
 async def agree_to_start(
@@ -104,7 +102,7 @@ async def contacts(
     '/cancel',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={404: {'description': 'Contact request not found.'}},
+        extra_responses_to_iclude={404: 'Contact request not found.'},
     ),
 )
 async def cancel_contact_request(
@@ -125,7 +123,7 @@ async def cancel_contact_request(
     '/reject',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={404: {'description': 'Contact request not found.'}},
+        extra_responses_to_iclude={404: 'Contact request not found.'},
     ),
 )
 async def reject_contact_request(
@@ -146,7 +144,7 @@ async def reject_contact_request(
     '/block',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={404: {'description': 'Contact not found.'}},
+        extra_responses_to_iclude={404: 'Contact not found.'},
     ),
 )
 async def block_contact(
@@ -221,7 +219,7 @@ async def get_blocked_contacts(
     '/unblock',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={404: {'description': 'Contact not found.'}},
+        extra_responses_to_iclude={404: 'Contact not found.'},
     ),
 )
 async def unblock_contact(
@@ -242,7 +240,7 @@ async def unblock_contact(
     '/contact-profile/{user_id}',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={404: {'description': 'Contact not found.'}},
+        extra_responses_to_iclude={404: 'Contact not found.'},
     ),
 )
 async def get_contact_profile(

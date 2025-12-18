@@ -51,8 +51,8 @@ async def get_messages(
     '/messages',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={
-            404: {'description': 'Contact not found.'},
+        extra_responses_to_iclude={
+            404: 'Contact not found.',
         },
     ),
 )

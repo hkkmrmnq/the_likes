@@ -14,7 +14,7 @@ router = APIRouter()
     '/profile',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={500: {'description': 'Profile not found.'}},
+        extra_responses_to_iclude={500: 'Profile not found.'},
     ),
 )
 async def get_profile(
@@ -31,9 +31,9 @@ async def get_profile(
     '/profile',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={
-            400: {'description': "Can't set distance_limit without location."},
-            500: {'description': 'Profile not found.'},
+        extra_responses_to_iclude={
+            400: "Can't set distance_limit without location.",
+            500: 'Profile not found.',
         },
     ),
 )

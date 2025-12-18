@@ -13,7 +13,7 @@ router = APIRouter()
     '/definitions',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
-        extra_responses={500: {'description': 'Definitions not found.'}},
+        extra_responses_to_iclude={500: 'Definitions not found.'},
     ),
 )
 async def get_definitions(
