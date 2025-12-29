@@ -6,6 +6,9 @@ from uuid import UUID
 
 import httpx
 from async_lru import alru_cache
+from geoalchemy2.elements import WKBElement
+from geoalchemy2.shape import to_shape
+from shapely.geometry import Point
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
@@ -30,6 +33,7 @@ from src.models.personal_values import (
     PersonalValuesCreateUpdate,
     PersonalValuesRead,
 )
+from src.models.user_and_profile import ProfileRead, ProfileUpdate
 
 
 async def is_password_pwned(*, password: str) -> bool | None:
@@ -78,6 +82,50 @@ async def personal_values_already_set(
             )
         )
     return bool(pvl_count)
+
+
+def profile_to_read_model(profile: Profile) -> ProfileRead:
+    longitude: float | None = None
+    latitude: float | None = None
+    if profile.location is not None:
+        if not isinstance(profile.location, WKBElement):
+            raise exc.ServerError(
+                'profile.location: expected WKBElement, '
+                f'got {profile.location} type {type(profile.location)}'
+            )
+        geom = to_shape(profile.location)
+        if not isinstance(geom, Point):
+            raise exc.ServerError(
+                'Point instance expected after to_shape(profile.location), '
+                f'got {profile.location} type {type(profile.location)}'
+            )
+        longitude = geom.x
+        latitude = geom.y
+    return ProfileRead.model_validate(
+        {
+            'name': profile.name,
+            'languages': profile.languages,
+            'distance_limit': profile.distance_limit,
+            'recommend_me': profile.recommend_me,
+            'latitude': latitude,
+            'longitude': longitude,
+        }
+    )
+
+
+def profile_model_to_write_data(model: ProfileUpdate) -> dict:
+    location: str | None = None
+
+    if all((model.longitude, model.latitude)):
+        location = f'POINT({model.longitude} {model.latitude})'
+
+    return {
+        'name': model.name,
+        'languages': model.languages,
+        'distance_limit': model.distance_limit,
+        'recommend_me': model.recommend_me,
+        'location': location,
+    }
 
 
 async def personal_values_to_read_model(
@@ -269,18 +317,22 @@ async def check_personal_values_input(
                 raise exc.BadRequest('; '.join(message_parts))
 
 
-def contact_to_read_model(*, contact: Contact) -> ContactRead:
+def contact_to_read_model(
+    *, contact: Contact, unread_msg_count: int | None = None
+) -> ContactRead:
     """Prepares ContactRead schema."""
     data = {
         'user_id': contact.other_user_id,
         'name': contact.other_user.profile.name,
         'status': contact.status,
         'created_at': contact.created_at,
+        'unread_messages': unread_msg_count,
     }
     return ContactRead.model_validate(data)
 
 
 def contact_request_to_read_model(
+    *,
     contact: Contact,
 ) -> ContactRequestRead:
     """Prepares ContactRequestRead schema."""

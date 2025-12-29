@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.get(
-    '/my-values',
+    '/values',
     responses=dp.with_common_responses(common_response_codes=[401, 403]),
 )
 async def get_my_values(
@@ -28,7 +28,7 @@ async def get_my_values(
 
 
 @router.post(
-    '/my-values',
+    '/values',
     status_code=status.HTTP_201_CREATED,
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
@@ -59,7 +59,7 @@ async def post_my_values(
 
 
 @router.put(
-    '/my-values',
+    '/values',
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
         extra_responses_to_iclude={

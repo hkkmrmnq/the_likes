@@ -27,7 +27,7 @@ class OtherProfileRead(BaseModel):
     model_config = {'from_attributes': True}
 
 
-class ContactRead(BaseModel):
+class ContactReadBase(BaseModel):
     user_id: UUID
     name: str | None
     status: ContactStatus
@@ -36,13 +36,23 @@ class ContactRead(BaseModel):
     model_config = {'arbitrary_types_allowed': True}
 
 
-class ContactRequestRead(ContactRead):
+class ContactRead(ContactReadBase):
+    unread_messages: int | None
+
+
+class ContactRequestRead(ContactReadBase):
     time_waiting: timedelta
 
 
 class ContactRequestsRead(BaseModel):
-    incoming: list[ContactRead]
-    outgoing: list[ContactRead]
+    incoming: list[ContactRequestRead]
+    outgoing: list[ContactRequestRead]
+
+
+class OngoingContactsAndRequestsRead(BaseModel):
+    incoming_requests: list[ContactRequestRead]
+    outgoing_requests: list[ContactRequestRead]
+    ongoing_contacts: list[ContactRead]
 
 
 class TargetUser(BaseModel):

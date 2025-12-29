@@ -1,12 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import UUID as SA_UUID
-from sqlalchemy import (
-    Integer,
-    Row,
-    bindparam,
-    select,
-)
+from sqlalchemy import Integer, Row, bindparam, func, not_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -15,7 +10,7 @@ from src.config import constants as CNST
 from src.config.config import CFG
 from src.config.enums import ContactStatus
 from src.crud import sql
-from src.db.contact_n_message import Contact
+from src.db.contact_n_message import Contact, Message
 from src.db.user_and_profile import User
 from src.exceptions.exceptions import ServerError
 
@@ -38,31 +33,84 @@ async def read_user_recommendations(
     return recommendations
 
 
-async def read_user_contacts(
+# async def read_contacts(
+#     *,
+#     my_user_id: UUID | None = None,
+#     other_user_id: UUID | None = None,
+#     statuses: list[str] | None = None,
+#     asession: AsyncSession,
+# ) -> list[Contact]:
+#     """
+#     Read contacts with joined profiles.
+#     my_user_id: optional, to filter by my_user_id;
+#     other_user_id: optional, to filter by other_user_id;
+#     status: optional, to filter by status.
+#     """
+#     query = select(Contact).options(
+#         joinedload(Contact.other_user).joinedload(User.profile),
+#         joinedload(Contact.my_user).joinedload(User.profile),
+#     )
+#     if my_user_id is not None:
+#         query = query.where(Contact.my_user_id == my_user_id)
+#     if other_user_id is not None:
+#         query = query.where(Contact.other_user_id == other_user_id)
+#     if statuses is not None:
+#         query = query.where(Contact.status.in_(statuses))
+#     results = await asession.execute(query)
+#     return list(results.scalars())
+
+
+async def read_contacts(
     *,
     my_user_id: UUID | None = None,
     other_user_id: UUID | None = None,
     statuses: list[str] | None = None,
     asession: AsyncSession,
-) -> list[Contact]:
+) -> list[tuple[Contact, int]]:
     """
-    Read contacts with joined profiles.
+    Read contacts with joined profiles and unread message counts.
     my_user_id: optional, to filter by my_user_id;
     other_user_id: optional, to filter by other_user_id;
     status: optional, to filter by status.
+    Returns list of tuples of Contact and unread msg count integer.
     """
-    query = select(Contact).options(
-        joinedload(Contact.other_user).joinedload(User.profile),
-        joinedload(Contact.my_user).joinedload(User.profile),
+    unread_count_subquery = (
+        select(
+            Message.sender_id.label('other_user_id'),
+            func.count(Message.id).label('unread_count'),
+        )
+        .where(Message.receiver_id == my_user_id, not_(Message.is_read))
+        .group_by(Message.sender_id)
+        .subquery()
     )
+
+    query = (
+        select(
+            Contact,
+            func.coalesce(unread_count_subquery.c.unread_count, 0).label(
+                'unread_count'
+            ),
+        )
+        .options(
+            joinedload(Contact.other_user).joinedload(User.profile),
+            joinedload(Contact.my_user).joinedload(User.profile),
+        )
+        .outerjoin(
+            unread_count_subquery,
+            unread_count_subquery.c.other_user_id == Contact.other_user_id,
+        )
+    )
+
     if my_user_id is not None:
         query = query.where(Contact.my_user_id == my_user_id)
     if other_user_id is not None:
         query = query.where(Contact.other_user_id == other_user_id)
     if statuses is not None:
         query = query.where(Contact.status.in_(statuses))
+
     results = await asession.execute(query)
-    return list(results.scalars())
+
+    return [(row[0], int(row[1])) for row in results.all()]
 
 
 async def read_contact_pair(

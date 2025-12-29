@@ -26,7 +26,7 @@ async def get_contact_requests(
     (contacts in status "requested by me"/"requested by other user"),
     returns as tuple[ContactRequestsRead schema, info message].
     """
-    contact_requests = await crud.read_user_contacts(
+    contact_tuples = await crud.read_contacts(
         my_user_id=my_user.id,
         statuses=[
             ContactStatus.REQUESTED_BY_ME,
@@ -36,15 +36,15 @@ async def get_contact_requests(
     )
     incoming = []
     outgoing = []
-    for cr in contact_requests:
-        model = _utils.contact_request_to_read_model(cr)
+    for ct in contact_tuples:
+        model = _utils.contact_request_to_read_model(contact=ct[0])
         if model.status == ContactStatus.REQUESTED_BY_OTHER:
             incoming.append(model)
         else:
             outgoing.append(model)
     message = (
         'Current contact requests.'
-        if contact_requests
+        if contact_tuples
         else 'No contact requests.'
     )
     return ContactRequestsRead(
@@ -62,14 +62,70 @@ async def get_ongoing_contacts(
     Reads ongoing contacts,
     returns as tuple[ContactRead schema, info message].
     """
-    contacts = await crud.read_user_contacts(
+    tuples = await crud.read_contacts(
         my_user_id=my_user.id,
         statuses=[ContactStatus.ONGOING],
         asession=asession,
     )
-    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
-    message = 'Contacts.' if c_models else 'No active contacts.'
-    return c_models, message
+    contact_read_models = [
+        _utils.contact_to_read_model(contact=t[0], unread_msg_count=t[1])
+        for t in tuples
+    ]
+    message = 'Contacts.' if contact_read_models else 'No active contacts.'
+    return contact_read_models, message
+
+
+async def get_contacts_and_requests(
+    *,
+    my_user: User,
+    asession: AsyncSession,
+) -> tuple[list[ContactRead], ContactRequestsRead, str]:
+    """
+    Reads:
+    1. ongoing contacts with unread messages counts,
+    2. contact requests (contacts in status
+    "requested by me"/"requested by other user").
+    Adds unread messages counts.
+    Returns as tuple of: list of ContactRead models,
+    one model with incoming and outoging requests
+    and servise message.
+    """
+    tuples = await crud.read_contacts(
+        my_user_id=my_user.id,
+        statuses=[
+            ContactStatus.ONGOING,
+            ContactStatus.REQUESTED_BY_ME,
+            ContactStatus.REQUESTED_BY_OTHER,
+        ],
+        asession=asession,
+    )
+    message = (
+        'Contacts and requests.'
+        if tuples
+        else 'No ongoing contacts or awaited requests.'
+    )
+    ongoing_contact_models = []
+    for t in tuples:
+        if t[0].status == ContactStatus.ONGOING:
+            ongoing_contact_models.append(
+                _utils.contact_to_read_model(
+                    contact=t[0], unread_msg_count=t[1]
+                )
+            )
+    incoming = []
+    outgoing = []
+    for ct in tuples:
+        model = _utils.contact_request_to_read_model(contact=ct[0])
+        if model.status == ContactStatus.REQUESTED_BY_OTHER:
+            incoming.append(model)
+        elif model.status == ContactStatus.REQUESTED_BY_ME:
+            outgoing.append(model)
+
+    contact_requests = ContactRequestsRead(
+        incoming=incoming,
+        outgoing=outgoing,
+    )
+    return ongoing_contact_models, contact_requests, message
 
 
 async def get_rejected_requests(
@@ -81,12 +137,12 @@ async def get_rejected_requests(
     Reads rejected (by 'me') contacts ('contact requests').
     Returns as tuple[ContactRead schema, info message].
     """
-    contacts = await crud.read_user_contacts(
+    tuples = await crud.read_contacts(
         my_user_id=my_user.id,
         statuses=[ContactStatus.REJECTED_BY_ME],
         asession=asession,
     )
-    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
+    c_models = [_utils.contact_to_read_model(contact=t[0]) for t in tuples]
     message = (
         'Rejected contact requests.'
         if c_models
@@ -104,12 +160,12 @@ async def get_cancelled_requests(
     Reads cancelled (by 'me') contacts ('contact requests'),
     returns as tuple[ContactRead schema, info message].
     """
-    contacts = await crud.read_user_contacts(
+    tuples = await crud.read_contacts(
         my_user_id=my_user.id,
         statuses=[ContactStatus.CANCELLED_BY_ME],
         asession=asession,
     )
-    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
+    c_models = [_utils.contact_to_read_model(contact=t[0]) for t in tuples]
     message = (
         'Cancelled contact requests.'
         if c_models
@@ -124,12 +180,12 @@ async def get_blocked_contacts(
     asession: AsyncSession,
 ) -> tuple[list[ContactRead], str]:
     """Reads blocked contacts, returns as ContactRead schema."""
-    contacts = await crud.read_user_contacts(
+    tuples = await crud.read_contacts(
         my_user_id=my_user.id,
         statuses=[ContactStatus.BLOCKED_BY_ME],
         asession=asession,
     )
-    c_models = [_utils.contact_to_read_model(contact=c) for c in contacts]
+    c_models = [_utils.contact_to_read_model(contact=t[0]) for t in tuples]
     message = 'Blocked contacts.' if c_models else 'No blocked contacts.'
     return c_models, message
 
@@ -371,7 +427,7 @@ async def get_contact_profile(
     Reads profile of a conact user.
     Returns as tuple[OtherProfileRead schema, info message].
     """
-    contacts = await crud.read_user_contacts(
+    contacts = await crud.read_contacts(
         my_user_id=my_user.id, other_user_id=other_user_id, asession=asession
     )
     if not contacts:

@@ -60,7 +60,7 @@ async def send_message(
     Sends message to contact.
     Available only for ongoing contacts.
     """
-    contact = await crud.read_user_contacts(
+    contact = await crud.read_contacts(
         my_user_id=my_user.id,
         other_user_id=create_model.receiver_id,
         statuses=[ContactStatus.ONGOING],

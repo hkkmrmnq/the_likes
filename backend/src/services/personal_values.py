@@ -127,5 +127,5 @@ async def update_personal_values(
     pv_read_model, message = await get_personal_values(
         user=my_user, asession=asession
     )
-    message = message.replace('Personal values.', 'Personal Values updated.')
+    message = message.replace('Your values.', 'Personal Values updated.')
     return pv_read_model, message

@@ -1,14 +1,13 @@
 from uuid import UUID
 
 from fastapi_users import schemas as fu_schemas
-from geoalchemy2.shape import to_shape
 from pydantic import (
     BaseModel,
     EmailStr,
     Field,
     ValidationError,
-    computed_field,
     field_validator,
+    model_validator,
 )
 from pydantic_extra_types.coordinate import Latitude, Longitude
 
@@ -51,19 +50,12 @@ class UserUpdate(fu_schemas.BaseUserUpdate):
 class ProfileRead(BaseModel):
     name: str | None
     languages: list[str]
-    location: str | None
     distance_limit: int | None
     recommend_me: bool
+    longitude: Longitude | None
+    latitude: Latitude | None
 
     model_config = {'from_attributes': True, 'arbitrary_types_allowed': True}
-
-    @field_validator('location', mode='before')
-    @classmethod
-    def convert_wkb_to_wkt(cls, loaction):
-        if loaction is not None:
-            loaction = loaction
-            return str(to_shape(loaction))
-        return loaction
 
 
 class ProfileUpdate(BaseModel):
@@ -77,12 +69,6 @@ class ProfileUpdate(BaseModel):
     languages: list[str]
     recommend_me: bool
 
-    @computed_field
-    @property
-    def location(self) -> str | None:
-        if all((self.longitude, self.latitude)):
-            return f'POINT({self.longitude} {self.latitude})'
-
     @field_validator('languages', mode='after')
     def validate_languages(cls, languages):
         wrong = set(languages) - set(CFG.SUPPORTED_LANGUAGES)
@@ -91,3 +77,11 @@ class ProfileUpdate(BaseModel):
                 f'Incorrect language(s): {", ".join([lang for lang in wrong])}'
             )
         return languages
+
+    @model_validator(mode='after')
+    def validate_distance_limit(self):
+        if ((self.longitude is None) | (self.latitude is None)) & (
+            self.distance_limit is not None
+        ):
+            raise ValidationError('Location required for distance_limit.')
+        return self
