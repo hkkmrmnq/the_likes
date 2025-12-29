@@ -127,7 +127,7 @@ async def test_create_personal_values(
     access_token = unique_db_user['access_token']
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.post(
-        '/my-values',
+        '/values',
         json=input_data,
         headers=headers,
     )
@@ -153,7 +153,7 @@ async def test_edit_personal_values(
     access_token = db_user_with_personal_values['access_token']
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.put(
-        '/my-values',
+        '/values',
         json=input_data,
         headers=headers,
     )
