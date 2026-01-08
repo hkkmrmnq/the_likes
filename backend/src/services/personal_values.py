@@ -26,7 +26,9 @@ async def get_personal_values(
         user_language=user_language,
         asession=asession,
     )
-    attitudes = await crud.read_attitudes(asession=asession)
+    attitudes = await crud.read_attitudes(
+        user_language=user_language, asession=asession
+    )
     message = 'Your values.'
     if not await _utils.personal_values_already_set(
         my_user=user, asession=asession
@@ -85,11 +87,10 @@ async def create_personal_values(
         asession=asession,
     )
     await asession.commit()
-    pv_read_model, message = await get_personal_values(
+    pv_read_model, _ = await get_personal_values(
         user=my_user, asession=asession
     )
-    message = message.replace('Personal values.', 'Personal Values set.')
-    return pv_read_model, message
+    return pv_read_model, 'Personal Values set.'
 
 
 async def update_personal_values(

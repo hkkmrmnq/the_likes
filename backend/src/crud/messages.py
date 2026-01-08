@@ -7,7 +7,6 @@ from sqlalchemy.orm import defer, joinedload
 from src.config import constants as CNST
 from src.db.contact_n_message import Message
 from src.db.user_and_profile import Profile, User
-from src.models.contact_n_message import MessageRead
 
 
 async def create_message(
@@ -27,7 +26,7 @@ async def create_message(
 
 async def read_message(
     *, sender_id: UUID, receiver_id: UUID, asession: AsyncSession
-) -> MessageRead | None:
+) -> Message | None:
     stmt = (
         select(Message)
         .options(
@@ -45,19 +44,7 @@ async def read_message(
             Message.receiver_id == receiver_id,
         )
     )
-    message = await asession.scalar(stmt)
-    return (
-        MessageRead(
-            sender_id=message.sender_id,
-            sender_name=message.sender.profile.name,
-            receiver_id=message.receiver_id,
-            receiver_name=message.receiver.profile.name,
-            text=message.text,
-            created_at=message.created_at,
-        )
-        if message is not None
-        else message
-    )
+    return await asession.scalar(stmt)
 
 
 async def count_uread_messages(
@@ -79,7 +66,7 @@ async def read_messages(
     other_user_id: UUID,
     limit: int | None = CNST.MESSAGES_HISTORY_LENGTH_DEFAULT,
     asession: AsyncSession,
-) -> list[MessageRead]:
+) -> list[Message]:
     await asession.execute(
         update(Message)
         .where(
@@ -111,21 +98,9 @@ async def read_messages(
                 & (Message.receiver_id == other_user_id)
             )
         )
-        .order_by(Message.created_at.desc())
+        .order_by(Message.created_at)
     )
     if limit is not None:
         select_stmt = select_stmt.limit(limit)
     results = await asession.execute(select_stmt)
-    models = []
-    for msg in results.scalars():
-        models.append(
-            MessageRead(
-                sender_id=msg.sender_id,
-                sender_name=msg.sender.profile.name,
-                receiver_id=msg.receiver_id,
-                receiver_name=msg.receiver.profile.name,
-                text=msg.text,
-                created_at=msg.created_at,
-            )
-        )
-    return models
+    return list(results.scalars())

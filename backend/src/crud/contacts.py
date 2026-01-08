@@ -2,13 +2,14 @@ from uuid import UUID
 
 from sqlalchemy import UUID as SA_UUID
 from sqlalchemy import Integer, Row, bindparam, func, not_, select
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import ARRAY, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.config import constants as CNST
 from src.config.config import CFG
-from src.config.enums import ContactStatus
+from src.config.enums import ContactStatus, ContactStatusPG
+from src.containers import RichContact
 from src.crud import sql
 from src.db.contact_n_message import Contact, Message
 from src.db.user_and_profile import User
@@ -31,33 +32,6 @@ async def read_user_recommendations(
     )
     recommendations = list(results.all())
     return recommendations
-
-
-# async def read_contacts(
-#     *,
-#     my_user_id: UUID | None = None,
-#     other_user_id: UUID | None = None,
-#     statuses: list[str] | None = None,
-#     asession: AsyncSession,
-# ) -> list[Contact]:
-#     """
-#     Read contacts with joined profiles.
-#     my_user_id: optional, to filter by my_user_id;
-#     other_user_id: optional, to filter by other_user_id;
-#     status: optional, to filter by status.
-#     """
-#     query = select(Contact).options(
-#         joinedload(Contact.other_user).joinedload(User.profile),
-#         joinedload(Contact.my_user).joinedload(User.profile),
-#     )
-#     if my_user_id is not None:
-#         query = query.where(Contact.my_user_id == my_user_id)
-#     if other_user_id is not None:
-#         query = query.where(Contact.other_user_id == other_user_id)
-#     if statuses is not None:
-#         query = query.where(Contact.status.in_(statuses))
-#     results = await asession.execute(query)
-#     return list(results.scalars())
 
 
 async def read_contacts(
@@ -111,6 +85,38 @@ async def read_contacts(
     results = await asession.execute(query)
 
     return [(row[0], int(row[1])) for row in results.all()]
+
+
+async def read_contacts_rich(
+    *,
+    my_user_id: UUID | None = None,
+    other_user_id: UUID | None = None,
+    statuses: list[str] | None = None,
+    asession: AsyncSession,
+) -> list[RichContact]:
+    results = await asession.execute(
+        sql.read_contacts.bindparams(
+            bindparam('my_user_id', value=my_user_id, type_=SA_UUID),
+            bindparam('other_user_id', value=other_user_id, type_=SA_UUID),
+            bindparam(
+                'statuses', value=statuses, type_=ARRAY(ContactStatusPG)
+            ),
+        )
+    )
+    return [
+        RichContact(
+            my_user_id=r.my_user_id,
+            other_user_id=r.other_user_id,
+            my_name=r.my_profile_name,
+            other_name=r.other_profile_name,
+            status=r.status,
+            distance=r.distance,
+            similarity=r.similarity_score,
+            unread_msg=r.unread_messages,
+            created_at=r.created_at,
+        )
+        for r in results.all()
+    ]
 
 
 async def read_contact_pair(
@@ -212,7 +218,7 @@ async def read_other_profile(
     """
     Compare current and other user's data
     by quereing Profile and moral_profiles materialized view.
-    Returns user_id, name, similarity_score and distance_meters.
+    Returns user_id, name, similarity and distance.
     """
     result = await asession.execute(
         sql.read_contact_profile,

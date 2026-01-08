@@ -1,7 +1,7 @@
 import hashlib
 import json
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 import httpx
@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import crud
 from src.config.config import CFG
 from src.config.enums import Polarity
+from src.containers import RichContact
 from src.db.contact_n_message import Contact
 from src.db.core import Attitude
 from src.db.personal_values import PersonalValue
@@ -23,6 +24,7 @@ from src.logger import logger
 from src.models.contact_n_message import (
     ContactRead,
     ContactRequestRead,
+    ContactRichRead,
     OtherProfileRead,
 )
 from src.models.core import DefinitionsRead
@@ -323,12 +325,27 @@ def contact_to_read_model(
     """Prepares ContactRead schema."""
     data = {
         'user_id': contact.other_user_id,
-        'name': contact.other_user.profile.name,
         'status': contact.status,
-        'created_at': contact.created_at,
         'unread_messages': unread_msg_count,
+        'created_at': contact.created_at,
+        'name': contact.other_user.profile.name,
     }
     return ContactRead.model_validate(data)
+
+
+def rich_contact_to_read_model(*, contact: RichContact) -> ContactRichRead:
+    """Prepares ContactRichRead schema."""
+    data = {
+        'user_id': contact.other_user_id,
+        'name': contact.my_name,
+        'status': contact.status,
+        'created_at': contact.created_at,
+        'distance': contact.distance,
+        'similarity': contact.similarity,
+        'unread_messages': contact.unread_msg,
+    }
+
+    return ContactRichRead.model_validate(data)
 
 
 def contact_request_to_read_model(
@@ -341,7 +358,7 @@ def contact_request_to_read_model(
         'name': contact.other_user.profile.name,
         'status': contact.status,
         'created_at': contact.created_at,
-        'time_waiting': datetime.now() - contact.created_at,
+        'time_waiting': datetime.now(timezone.utc) - contact.created_at,
     }
     return ContactRequestRead.model_validate(data)
 
@@ -369,8 +386,8 @@ async def get_recommendations(
         OtherProfileRead(
             user_id=r.user_id,
             name=r.name,
-            similarity_score=r.similarity_score,
-            distance_meters=r.distance_meters,
+            similarity=r.similarity_score,
+            distance=r.distance,
         )
         for r in recommendations
     ]

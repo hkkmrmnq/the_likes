@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, func
+from sqlalchemy import DateTime, Integer, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -12,9 +12,11 @@ from sqlalchemy.orm import (
 
 class Base(AsyncAttrs, DeclarativeBase):
     __abstract__ = True
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), server_default=func.now()
     )
 
     @declared_attr.directive

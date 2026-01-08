@@ -50,7 +50,7 @@ class UserUpdate(fu_schemas.BaseUserUpdate):
 class ProfileRead(BaseModel):
     name: str | None
     languages: list[str]
-    distance_limit: int | None
+    distance_limit: float | None
     recommend_me: bool
     longitude: Longitude | None
     latitude: Latitude | None
@@ -65,7 +65,7 @@ class ProfileUpdate(BaseModel):
     )
     longitude: Longitude | None
     latitude: Latitude | None
-    distance_limit: int | None = Field(gt=0, le=CNST.DISTANCE_LIMIT_MAX)
+    distance_limit: float | None = Field(gt=0, le=CNST.DISTANCE_LIMIT_KM_MAX)
     languages: list[str]
     recommend_me: bool
 

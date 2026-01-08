@@ -60,7 +60,7 @@ app.include_router(endpoints.profiles_router, tags=['profile'])
 app.include_router(endpoints.values_router, tags=['values'])
 app.include_router(endpoints.contacts_router, tags=['contacts'])
 app.include_router(endpoints.messages_router, tags=['messages'])
-app.include_router(endpoints.updates_router, tags=['updates'])
+app.include_router(endpoints.bootstrap_router, tags=['bootstrap'])
 
 app.add_exception_handler(exc.InactiveUser, handlers.handle_inactive_user)
 app.add_exception_handler(exc.UnverifiedUser, handlers.handle_unverified_user)

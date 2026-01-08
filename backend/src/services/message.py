@@ -1,3 +1,4 @@
+from datetime import time
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,9 +32,9 @@ async def count_unread_messages(
     return combined, message
 
 
-async def get_messages(
+async def read_messages(
     *, my_user: User, contact_user_id: UUID, asession: AsyncSession
-) -> tuple[list[MessageRead,], str]:
+) -> tuple[list[MessageRead], str]:
     """
     Reads messages with the given user.
     Unread messages are set to 'read'.
@@ -46,8 +47,21 @@ async def get_messages(
     message = (
         'Messages found.' if results else 'No messages with this contact.'
     )
-    await asession.commit()
-    return results, message
+    models = []
+    for msg in results:
+        time_full = msg.created_at.time()
+        models.append(
+            MessageRead(
+                sender_id=msg.sender_id,
+                sender_name=msg.sender.profile.name,
+                receiver_id=msg.receiver_id,
+                receiver_name=msg.receiver.profile.name,
+                text=msg.text,
+                created_at=msg.created_at,
+                time=time(time_full.hour, time_full.minute, time_full.second),
+            )
+        )
+    return models, message
 
 
 async def send_message(
@@ -92,4 +106,13 @@ async def send_message(
                 f'receiver_id={create_model.receiver_id}.'
             )
         )
-    return message, 'Message sent.'
+    time_full = message.created_at.time()
+    return MessageRead(
+        sender_id=message.sender_id,
+        sender_name=message.sender.profile.name,
+        receiver_id=message.receiver_id,
+        receiver_name=message.receiver.profile.name,
+        text=message.text,
+        created_at=message.created_at,
+        time=time(time_full.hour, time_full.minute, time_full.second),
+    ), 'Message sent.'

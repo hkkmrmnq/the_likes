@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -94,8 +95,8 @@ class Profile(BaseWithIntPK):
     location: Mapped[str | None] = mapped_column(
         Geography('POINT', srid=4326), nullable=True, default=None, index=True
     )
-    distance_limit: Mapped[int] = mapped_column(
-        Integer, nullable=True, default=None
+    distance_limit: Mapped[float] = mapped_column(
+        Float, nullable=True, default=None
     )
     name: Mapped[str | None] = mapped_column(
         String(CNST.USER_NAME_MAX_LENGTH), nullable=True, default=None
@@ -116,7 +117,7 @@ class Profile(BaseWithIntPK):
 
     __table_args__ = (
         CheckConstraint('distance_limit > 0'),
-        CheckConstraint(f'distance_limit <= {CNST.DISTANCE_LIMIT_MAX}'),
+        CheckConstraint(f'distance_limit <= {CNST.DISTANCE_LIMIT_KM_MAX}'),
     )
 
 
@@ -127,10 +128,14 @@ class UserDynamic(BaseWithIntPK):
         ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False
     )
     search_allowed_status: Mapped[str] = mapped_column(SearchAllowedStatusPG)
-    last_cooldown_start: Mapped[datetime | None] = mapped_column(default=None)
-    values_created: Mapped[datetime | None] = mapped_column(default=None)
+    last_cooldown_start: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    values_created: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
     values_changes: Mapped[list[datetime]] = mapped_column(
-        ARRAY(DateTime(timezone=False)),
+        ARRAY(DateTime(timezone=True)),
         default=list,
     )
     match_notified: Mapped[int] = mapped_column(

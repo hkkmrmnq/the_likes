@@ -1,8 +1,8 @@
 """Initial
 
-Revision ID: 8e480e3a09e7
+Revision ID: 1f592873c8ed
 Revises:
-Create Date: 2025-10-30 21:30:49.275099
+Create Date: 2026-01-08 17:28:30.732049
 
 """
 
@@ -11,16 +11,14 @@ from typing import Sequence, Union
 import geoalchemy2
 import sqlalchemy as sa
 from fastapi_users_db_sqlalchemy.generics import GUID
-from pandas import read_excel
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
+from src.config import CFG
 from src.config import constants as CNST
-from src.config.config import CFG
 from src.config.enums import ContactStatusPG, PolarityPG, SearchAllowedStatusPG
-from src.services._prepare_db import check_file_data_consistency
 
-revision: str = '8e480e3a09e7'
+revision: str = 'af444c2207e5'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,21 +26,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    all_sheets = read_excel(CFG.BASIC_DATA_PATH, sheet_name=None)
-    check_file_data_consistency(all_sheets=all_sheets)
     op.create_table(
         'attitudes',
         sa.Column('statement_default', sa.String(length=500), nullable=False),
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -59,13 +55,13 @@ def upgrade() -> None:
         sa.Column('is_verified', sa.Boolean(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -78,13 +74,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -99,13 +95,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -133,13 +129,13 @@ def upgrade() -> None:
         ),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -173,13 +169,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -211,23 +207,23 @@ def upgrade() -> None:
             ),
             nullable=True,
         ),
-        sa.Column('distance_limit', sa.Integer(), nullable=True),
+        sa.Column('distance_limit', sa.Float(), nullable=True),
         sa.Column('name', sa.String(length=100), nullable=True),
         sa.Column('recommend_me', sa.Boolean(), nullable=False),
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
-        sa.CheckConstraint(f'distance_limit <= {CNST.DISTANCE_LIMIT_MAX}'),
+        sa.CheckConstraint(f'distance_limit <= {CNST.DISTANCE_LIMIT_KM_MAX}'),
         sa.CheckConstraint('distance_limit > 0'),
         sa.ForeignKeyConstraint(
             ['attitude_id'], ['attitudes.id'], ondelete='SET NULL'
@@ -248,13 +244,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -282,22 +278,26 @@ def upgrade() -> None:
             SearchAllowedStatusPG,
             nullable=False,
         ),
-        sa.Column('last_cooldown_start', sa.DateTime(), nullable=True),
-        sa.Column('values_created', sa.DateTime(), nullable=True),
         sa.Column(
-            'values_changes', postgresql.ARRAY(sa.DateTime()), nullable=False
+            'last_cooldown_start', sa.DateTime(timezone=True), nullable=True
+        ),
+        sa.Column('values_created', sa.DateTime(timezone=True), nullable=True),
+        sa.Column(
+            'values_changes',
+            postgresql.ARRAY(sa.DateTime(timezone=True)),
+            nullable=False,
         ),
         sa.Column('match_notified', sa.Integer(), nullable=False),
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -314,13 +314,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -338,13 +338,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -374,18 +374,19 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.CheckConstraint(
-            CFG.PERSONAL_VALUE_MAX_ORDER_CONSTRAINT_TEXT, name='max_user_order'
+            CFG.PERSONAL_VALUE_MAX_ORDER_CONSTRAINT_TEXT,
+            name='max_user_order',
         ),
         sa.CheckConstraint('user_order >= 1', name='min_user_order'),
         sa.ForeignKeyConstraint(
@@ -413,13 +414,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -441,13 +442,13 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -469,13 +470,13 @@ def upgrade() -> None:
         sa.Column('aspect_id', sa.Integer(), nullable=False),
         sa.Column(
             'created_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
         sa.Column(
             'updated_at',
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text('now()'),
             nullable=False,
         ),
@@ -506,9 +507,6 @@ def downgrade() -> None:
     )
     op.drop_table('uniquevalues')
     op.drop_index(op.f('ix_profiles_location'), table_name='profiles')
-    op.drop_index(
-        'idx_profiles_location', table_name='profiles', postgresql_using='gist'
-    )
     op.drop_table('profiles')
     op.drop_table('messages')
     op.drop_table('contacts')

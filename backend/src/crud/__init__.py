@@ -13,6 +13,7 @@ from .contacts import (  # noqa
     read_contact_pair,
     read_other_profile,
     read_contacts,
+    read_contacts_rich,
     read_user_recommendations,
 )
 from .core import read_attitudes, read_values, read_unique_values  # noqa

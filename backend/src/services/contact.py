@@ -9,7 +9,7 @@ from src.db.user_and_profile import User
 from src.exceptions import exceptions as exc
 from src.models.contact_n_message import (
     ContactRead,
-    ContactRequestsRead,
+    ContactRequestRead,
     OtherProfileRead,
 )
 from src.services import _utils as _utils
@@ -20,11 +20,11 @@ from src.tasks import send_contact_request_notification
 
 async def get_contact_requests(
     *, my_user: User, asession: AsyncSession
-) -> tuple[ContactRequestsRead, str]:
+) -> tuple[list[ContactRequestRead], str]:
     """
     Reads contact requests
     (contacts in status "requested by me"/"requested by other user"),
-    returns as tuple[ContactRequestsRead schema, info message].
+    returns a list with message].
     """
     contact_tuples = await crud.read_contacts(
         my_user_id=my_user.id,
@@ -34,23 +34,17 @@ async def get_contact_requests(
         ],
         asession=asession,
     )
-    incoming = []
-    outgoing = []
-    for ct in contact_tuples:
-        model = _utils.contact_request_to_read_model(contact=ct[0])
-        if model.status == ContactStatus.REQUESTED_BY_OTHER:
-            incoming.append(model)
-        else:
-            outgoing.append(model)
+
+    models = [
+        _utils.contact_request_to_read_model(contact=ct[0])
+        for ct in contact_tuples
+    ]
     message = (
         'Current contact requests.'
         if contact_tuples
         else 'No contact requests.'
     )
-    return ContactRequestsRead(
-        incoming=incoming,
-        outgoing=outgoing,
-    ), message
+    return models, message
 
 
 async def get_ongoing_contacts(
@@ -79,18 +73,14 @@ async def get_contacts_and_requests(
     *,
     my_user: User,
     asession: AsyncSession,
-) -> tuple[list[ContactRead], ContactRequestsRead, str]:
+) -> tuple[list[ContactRead], list[ContactRequestRead], str]:
     """
     Reads:
-    1. ongoing contacts with unread messages counts,
-    2. contact requests (contacts in status
-    "requested by me"/"requested by other user").
-    Adds unread messages counts.
-    Returns as tuple of: list of ContactRead models,
-    one model with incoming and outoging requests
-    and servise message.
+    1. active contacts with unread messages counts,
+    2. contact requests.
+    Returns with servise message.
     """
-    tuples = await crud.read_contacts(
+    contacts = await crud.read_contacts_rich(
         my_user_id=my_user.id,
         statuses=[
             ContactStatus.ONGOING,
@@ -101,31 +91,18 @@ async def get_contacts_and_requests(
     )
     message = (
         'Contacts and requests.'
-        if tuples
-        else 'No ongoing contacts or awaited requests.'
+        if contacts
+        else 'No active contacts or contact requests.'
     )
-    ongoing_contact_models = []
-    for t in tuples:
-        if t[0].status == ContactStatus.ONGOING:
-            ongoing_contact_models.append(
-                _utils.contact_to_read_model(
-                    contact=t[0], unread_msg_count=t[1]
-                )
-            )
-    incoming = []
-    outgoing = []
-    for ct in tuples:
-        model = _utils.contact_request_to_read_model(contact=ct[0])
-        if model.status == ContactStatus.REQUESTED_BY_OTHER:
-            incoming.append(model)
-        elif model.status == ContactStatus.REQUESTED_BY_ME:
-            outgoing.append(model)
-
-    contact_requests = ContactRequestsRead(
-        incoming=incoming,
-        outgoing=outgoing,
-    )
-    return ongoing_contact_models, contact_requests, message
+    contact_models = []
+    request_models = []
+    for contact in contacts:
+        model = _utils.rich_contact_to_read_model(contact=contact)
+        if contact.status == ContactStatus.ONGOING:
+            contact_models.append(model)
+        else:
+            request_models.append(model)
+    return contact_models, request_models, message
 
 
 async def get_rejected_requests(
@@ -200,7 +177,7 @@ async def check_for_alike(
     ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
     if ud.search_allowed_status == SearchAllowedStatus.COOLDOWN:
         return None, (
-            'Search for new Alike is temporarily unavailable.'
+            'Search for new contact is temporarily unavailable.'
             ' It will be available again after a cooldown.'
         )
     if not await personal_values_already_set(
@@ -229,13 +206,15 @@ async def agree_to_start(
     notifies other user.
 
     If contact pair already exists:
-    if other user already agreed - sets both
+    if other user already confirmed - sets both
     UserDynamic.search_allowed_status to 'cooldown'
     and both Contact.status to 'ongoing'.
 
     If contact pair exists, but with unexpected statusees:
     responds accordingly.
     """
+    if my_user.id == other_user_id:
+        raise exc.BadRequest("Current user's id passed as target.")
     requested_profile = await crud.read_other_profile(
         my_user_id=my_user.id, other_user_id=other_user_id, asession=asession
     )
@@ -288,11 +267,11 @@ async def cancel_contact_request(
     my_user: User,
     other_user_id: UUID,
     asession: AsyncSession,
-) -> tuple[ContactRequestsRead, str]:
+) -> tuple[list[ContactRequestRead], str]:
     """
     Puts contact ('contact request') to cancelled status
-    Only allowed for outgoing requests.
-    Returns as tuple[ContactRequestsRead schema, info message]
+    Only allowed for sent requests.
+    Returns as list with info message
     """
     contact_pair = await crud.read_contact_pair(
         my_user_id=my_user.id,
@@ -326,11 +305,11 @@ async def reject_contact_request(
     my_user: User,
     other_user_id: UUID,
     asession: AsyncSession,
-) -> tuple[ContactRequestsRead, str]:
+) -> tuple[list[ContactRequestRead], str]:
     """
     Puts contact ('contact request') to rejected status.
-    Only allowed for incoming requests.
-    Returns as tuple[ContactRequestsRead schema, info message].
+    Only allowed for received requests.
+    Returns new list of contact requests with service message.
     """
     contact_pair = await crud.read_contact_pair(
         my_user_id=my_user.id,
@@ -345,7 +324,7 @@ async def reject_contact_request(
             )
         )
     if contact_pair[0].status != ContactStatus.REQUESTED_BY_OTHER:
-        raise exc.BadRequest('Only incoming contact requests can be rejected.')
+        raise exc.BadRequest('Only received contact requests can be rejected.')
     contact_pair[0].status = ContactStatus.REJECTED_BY_ME
     contact_pair[1].status = ContactStatus.REJECTED_BY_OTHER
     await asession.commit()

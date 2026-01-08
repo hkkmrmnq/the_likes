@@ -41,7 +41,7 @@ async def get_messages(
     contact_user_id: UUID,
     asession: AsyncSession = Depends(dp.get_async_session),
 ) -> ApiResponse[list[MessageRead]]:
-    results, message = await msg_srv.get_messages(
+    results, message = await msg_srv.read_messages(
         my_user=my_user, contact_user_id=contact_user_id, asession=asession
     )
     return ApiResponse(data=results, message=message)

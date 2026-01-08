@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -15,11 +15,11 @@ class UserToNotifyOfMatchRead(BaseModel):
 class OtherProfileRead(BaseModel):
     user_id: UUID
     name: str | None
-    similarity_score: float
-    distance_meters: int | None
+    similarity: float
+    distance: float | None
 
-    @field_validator('similarity_score', mode='before')
-    def round_similarity_score(cls, v):
+    @field_validator('similarity', mode='before')
+    def round_similarity(cls, v):
         if isinstance(v, float):
             return round(v, 2)
         return v
@@ -40,19 +40,19 @@ class ContactRead(ContactReadBase):
     unread_messages: int | None
 
 
+class ContactRichRead(ContactRead):
+    similarity: float
+    distance: int | None
+
+
 class ContactRequestRead(ContactReadBase):
     time_waiting: timedelta
 
 
-class ContactRequestsRead(BaseModel):
-    incoming: list[ContactRequestRead]
-    outgoing: list[ContactRequestRead]
-
-
 class OngoingContactsAndRequestsRead(BaseModel):
-    incoming_requests: list[ContactRequestRead]
-    outgoing_requests: list[ContactRequestRead]
-    ongoing_contacts: list[ContactRead]
+    received_requests: list[ContactRequestRead]
+    sent_requests: list[ContactRequestRead]
+    active_contacts: list[ContactRead]
 
 
 class TargetUser(BaseModel):
@@ -81,5 +81,6 @@ class MessageRead(BaseModel):
     receiver_name: str | None
     text: str = Field(max_length=CNST.MESSAGE_MAX_LENGTH)
     created_at: datetime
+    time: time
 
     model_config = {'from_attributes': True}

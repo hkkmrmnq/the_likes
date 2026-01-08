@@ -7,7 +7,7 @@ from src import dependencies as dp
 from src.db.user_and_profile import User
 from src.models.contact_n_message import (
     ContactRead,
-    ContactRequestsRead,
+    ContactRequestRead,
     OtherProfileRead,
     TargetUser,
 )
@@ -47,7 +47,7 @@ async def check_for_alike(
 @router.post(
     '/agree-to-start',
     responses=dp.with_common_responses(
-        common_response_codes=[401, 403],
+        common_response_codes=[400, 401, 403],
         extra_responses_to_iclude={404: 'Requested user not found.'},
     ),
 )
@@ -75,7 +75,7 @@ async def read_contact_requests(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[ContactRequestsRead | None]:
+) -> ApiResponse[list[ContactRequestRead] | None]:
     results, message = await contact_srv.get_contact_requests(
         my_user=my_user, asession=asession
     )
@@ -110,7 +110,7 @@ async def cancel_contact_request(
     my_user: User = Depends(dp.current_active_verified_user),
     target_user: TargetUser,
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[ContactRequestsRead]:
+) -> ApiResponse[list[ContactRequestRead]]:
     results, messgae = await contact_srv.cancel_contact_request(
         my_user=my_user,
         other_user_id=target_user.id,
@@ -131,7 +131,7 @@ async def reject_contact_request(
     my_user: User = Depends(dp.current_active_verified_user),
     target_user: TargetUser,
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[ContactRequestsRead | None]:
+) -> ApiResponse[list[ContactRequestRead] | None]:
     result, message = await contact_srv.reject_contact_request(
         my_user=my_user,
         other_user_id=target_user.id,
