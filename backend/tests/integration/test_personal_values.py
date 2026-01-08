@@ -26,7 +26,7 @@ async def test_edit_profile(client, unique_db_user, asession):
     data = {
         'longitude': 125,
         'latitude': 29,
-        'distance_limit': 10000000,
+        'distance_limit': 10000.000,
         'name': 'test name',
         'languages': ['ru'],
         'recommend_me': True,
