@@ -294,8 +294,7 @@ profile_pairs AS (
             WHEN
                 p1.distance_limit IS NOT NULL
                 OR p2.distance_limit IS NOT NULL
-            THEN ROUND(
-                (ST_Distance(p1.location, p2.location) / 1000.0)::numeric, 2
+            THEN ST_Distance(p1.location, p2.location) / 1000.0
             )
             ELSE
                 NULL
@@ -322,7 +321,7 @@ filterd_pairs AS (
             attitude_1, best_1, worst_1, good_1, bad_1, neutral_1,
             attitude_2, best_2, worst_2, good_2, bad_2, neutral_2
         )
-            as similarity_score,
+            as similarity,
         distance,
         search_status_priority,
         stability_modifier
@@ -348,7 +347,7 @@ SELECT
     user_ids,
     profile_ids,
     profile_names,
-    similarity_score,
+    similarity,
     distance,
     search_status_priority,
     stability_modifier
@@ -370,7 +369,7 @@ ON recommendations (user_ids);
     """,
     """
 CREATE INDEX idx_search_status_priority
-ON recommendations (search_status_priority, similarity_score DESC);
+ON recommendations (search_status_priority, similarity DESC);
     """,
 ]
 
@@ -399,7 +398,7 @@ user_ids[3 - array_position(user_ids, :my_user_id)]
     as user_id,
 profile_names[3 - array_position(user_ids, :my_user_id)]
     as name,
-    similarity_score,
+    similarity,
     search_status_priority,
     stability_modifier,
     distance
@@ -413,14 +412,14 @@ SELECT
     rec.name,
     rec.search_status_priority,
     rec.stability_modifier,
-    rec.similarity_score,
+    rec.similarity,
     rec.distance
 
 FROM ranked_recommendations rec
 
 ORDER BY search_status_priority ASC,
     stability_modifier DESC,
-    similarity_score DESC
+    similarity DESC
 LIMIT :limit_param;
 """)
 
@@ -442,7 +441,7 @@ WHERE
 """)
 
 
-read_contact_profile = text("""
+read_other_profile = text("""
 WITH
 my_mp_table AS (
     SELECT mp.*, p.location
@@ -466,19 +465,17 @@ public.compare_moral_profiles(
     my_mp.good_uv_ids, my_mp.bad_uv_ids, my_mp.neutral_uv_ids,
     other_mp.attitude_id, other_mp.best_uv_ids, other_mp.worst_uv_ids,
     other_mp.good_uv_ids, other_mp.bad_uv_ids, other_mp.neutral_uv_ids
-) as similarity_score,
+) as similarity,
 CASE
     WHEN
         my_mp.distance_limit IS NOT NULL
         OR other_mp.distance_limit IS NOT NULL
-    THEN ROUND(
-        (ST_Distance(my_mp.location, other_mp.location) / 1000.0)::numeric, 2
-    )
+    THEN ST_Distance(my_mp.location, other_mp.location) / 1000.0
     ELSE
         NULL
 END as distance
 FROM my_mp_table my_mp
-    JOIN other_mp_table other_mp ON true
+    JOIN other_mp_table other_mp ON true;
 """)
 
 
@@ -486,9 +483,11 @@ read_contacts = text("""
 WITH
 filtered_contacts AS (
 SELECT * FROM contacts WHERE
-my_user_id = :my_user_id OR :my_user_id is NULL
+(my_user_id = :my_user_id OR :my_user_id is NULL)
 AND
-other_user_id = :other_user_id OR :other_user_id is NULL
+(other_user_id = :other_user_id OR :other_user_id is NULL)
+AND
+(status = ANY(:statuses) OR :statuses is NULL)
 ),
 moral_profiles_with_names AS (
 SELECT p.name, p.location, mp.* FROM profiles p JOIN moral_profiles mp
@@ -514,7 +513,7 @@ SELECT
     mpn1.bad_uv_ids, mpn1.neutral_uv_ids,
     mpn2.attitude_id, mpn2.best_uv_ids, mpn2.worst_uv_ids, mpn2.good_uv_ids,
     mpn2.bad_uv_ids, mpn2.neutral_uv_ids
-  ) as similarity_score,
+  ) as similarity,
 CASE
     WHEN
         mpn1.distance_limit IS NOT NULL
@@ -528,6 +527,5 @@ FROM filtered_contacts fc
 JOIN moral_profiles_with_names mpn1 ON fc.my_user_id = mpn1.user_id
 JOIN moral_profiles_with_names mpn2 ON fc.other_user_id = mpn2.user_id
 LEFT JOIN unread_counts uc ON
-  uc.sender_id = fc.other_user_id AND uc.receiver_id = fc.my_user_id
-WHERE fc.status = ANY(ARRAY[:statuses]) OR :statuses is NULL;
+  uc.sender_id = fc.other_user_id AND uc.receiver_id = fc.my_user_id;
 """)

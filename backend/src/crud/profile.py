@@ -8,6 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, contains_eager
 
+from src import schemas as sch
 from src.config.config import CFG
 from src.config.enums import SearchAllowedStatus
 from src.crud import sql
@@ -15,7 +16,6 @@ from src.db.core import Attitude
 from src.db.translations import AttitudeTranslation
 from src.db.user_and_profile import Profile, UserDynamic
 from src.exceptions.exceptions import ServerError
-from src.models.contact_n_message import UserToNotifyOfMatchRead
 
 
 async def create_profile(
@@ -137,10 +137,10 @@ async def unsuspend(*, user_id: UUID, asession: AsyncSession):
 def read_users_to_notify_of_match(
     *,
     ssession: Session,
-) -> list[UserToNotifyOfMatchRead]:
+) -> list[sch.UserToNotifyOfMatchRead]:
     results = ssession.execute(sql.users_to_notify_of_match)
     return [
-        UserToNotifyOfMatchRead(user_id=r.match_user_id, email=r.email)
+        sch.UserToNotifyOfMatchRead(user_id=r.match_user_id, email=r.email)
         for r in results
     ]
 

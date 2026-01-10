@@ -3,19 +3,16 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
+from src import schemas as sch
 from src.context import get_current_language
 from src.db.user_and_profile import User
 from src.exceptions import exceptions as exc
-from src.models.personal_values import (
-    PersonalValuesCreateUpdate,
-    PersonalValuesRead,
-)
 from src.services import _utils, core
 
 
 async def get_personal_values(
     *, user: User, asession: AsyncSession
-) -> tuple[PersonalValuesRead, str]:
+) -> tuple[sch.PersonalValuesRead, str]:
     """
     Reads personal values.
     exc.NotFound raised if no personal values.
@@ -60,9 +57,9 @@ async def get_personal_values(
 async def create_personal_values(
     *,
     my_user: User,
-    p_v_model: PersonalValuesCreateUpdate,
+    p_v_model: sch.PersonalValuesCreateUpdate,
     asession: AsyncSession,
-) -> tuple[PersonalValuesRead, str]:
+) -> tuple[sch.PersonalValuesRead, str]:
     """
     Creates personal values. If aready set - raises AlreadyExists.
     Checks input for consistency.
@@ -96,9 +93,9 @@ async def create_personal_values(
 async def update_personal_values(
     *,
     my_user: User,
-    p_v_model: PersonalValuesCreateUpdate,
+    p_v_model: sch.PersonalValuesCreateUpdate,
     asession: AsyncSession,
-) -> tuple[PersonalValuesRead, str]:
+) -> tuple[sch.PersonalValuesRead, str]:
     """
     Updates personal values. If not yet set - raises NotFound.
     Checks input for consistency.

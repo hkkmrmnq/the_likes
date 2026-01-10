@@ -12,9 +12,7 @@ class UserToNotifyOfMatchRead(BaseModel):
     email: EmailStr = Field(max_length=CNST.EMAIL_MAX_LENGTH)
 
 
-class OtherProfileRead(BaseModel):
-    user_id: UUID
-    name: str | None
+class SimilarityAndDistanceMixin(BaseModel):
     similarity: float
     distance: float | None
 
@@ -23,6 +21,17 @@ class OtherProfileRead(BaseModel):
         if isinstance(v, float):
             return round(v, 2)
         return v
+
+    @field_validator('distance', mode='before')
+    def round_distance(cls, v):
+        if isinstance(v, float):
+            return round(v, 2)
+        return v
+
+
+class RecommendationRead(SimilarityAndDistanceMixin, BaseModel):
+    user_id: UUID
+    name: str | None
 
     model_config = {'from_attributes': True}
 
@@ -33,16 +42,10 @@ class ContactReadBase(BaseModel):
     status: ContactStatus
     created_at: datetime
 
-    model_config = {'arbitrary_types_allowed': True}
 
-
-class ContactRead(ContactReadBase):
+class ContactRead(SimilarityAndDistanceMixin, ContactReadBase):
     unread_messages: int | None
-
-
-class ContactRichRead(ContactRead):
-    similarity: float
-    distance: int | None
+    time_waiting: timedelta | None
 
 
 class ContactRequestRead(ContactReadBase):

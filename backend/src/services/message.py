@@ -4,29 +4,24 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
+from src import schemas as sch
 from src.config.enums import ContactStatus
 from src.db.user_and_profile import User
 from src.exceptions import exceptions as exc
-from src.models.contact_n_message import (
-    MessageCreate,
-    MessageRead,
-    UnreadMessagesCount,
-    UnreadMessagesCountByContact,
-)
 
 
 async def count_unread_messages(
     *, my_user: User, asession: AsyncSession
-) -> tuple[UnreadMessagesCount, str]:
+) -> tuple[sch.UnreadMessagesCount, str]:
     """Counts unread messages."""
     results = await crud.count_uread_messages(
         my_user_id=my_user.id, asession=asession
     )
-    combined = UnreadMessagesCount(total=0, contacts=[])
+    combined = sch.UnreadMessagesCount(total=0, contacts=[])
     for result in results:
         combined.total += result['count']
         combined.contacts.append(
-            UnreadMessagesCountByContact.model_validate(result)
+            sch.UnreadMessagesCountByContact.model_validate(result)
         )
     message = 'You have unread messages.' if results else 'No new messages.'
     return combined, message
@@ -34,7 +29,7 @@ async def count_unread_messages(
 
 async def read_messages(
     *, my_user: User, contact_user_id: UUID, asession: AsyncSession
-) -> tuple[list[MessageRead], str]:
+) -> tuple[list[sch.MessageRead], str]:
     """
     Reads messages with the given user.
     Unread messages are set to 'read'.
@@ -51,7 +46,7 @@ async def read_messages(
     for msg in results:
         time_full = msg.created_at.time()
         models.append(
-            MessageRead(
+            sch.MessageRead(
                 sender_id=msg.sender_id,
                 sender_name=msg.sender.profile.name,
                 receiver_id=msg.receiver_id,
@@ -67,9 +62,9 @@ async def read_messages(
 async def send_message(
     *,
     my_user: User,
-    create_model: MessageCreate,
+    create_model: sch.MessageCreate,
     asession: AsyncSession,
-) -> tuple[MessageRead, str]:
+) -> tuple[sch.MessageRead, str]:
     """
     Sends message to contact.
     Available only for ongoing contacts.
@@ -107,7 +102,7 @@ async def send_message(
             )
         )
     time_full = message.created_at.time()
-    return MessageRead(
+    return sch.MessageRead(
         sender_id=message.sender_id,
         sender_name=message.sender.profile.name,
         receiver_id=message.receiver_id,

@@ -11,7 +11,7 @@ from src.dependencies import auth_backend, get_user_manager
 from src.exceptions import exceptions as exc
 from src.exceptions import handlers
 from src.middleware import LanguageMiddleware
-from src.models.user_and_profile import (
+from src.schemas.user_and_profile import (
     UserCreate,
     UserRead,
     UserUpdate,

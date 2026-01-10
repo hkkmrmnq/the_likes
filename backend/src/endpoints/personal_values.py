@@ -2,12 +2,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
+from src import schemas as sch
 from src.db.user_and_profile import User
-from src.models.core import ApiResponse
-from src.models.personal_values import (
-    PersonalValuesCreateUpdate,
-    PersonalValuesRead,
-)
 from src.services import personal_values as personal_values_srv
 
 router = APIRouter()
@@ -20,11 +16,11 @@ router = APIRouter()
 async def get_my_values(
     my_user: User = Depends(dp.current_active_verified_user),
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[PersonalValuesRead]:
+) -> sch.ApiResponse[sch.PersonalValuesRead]:
     user_values, message = await personal_values_srv.get_personal_values(
         user=my_user, asession=asession
     )
-    return ApiResponse(data=user_values, message=message)
+    return sch.ApiResponse(data=user_values, message=message)
 
 
 @router.post(
@@ -49,13 +45,13 @@ async def get_my_values(
 async def post_my_values(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    pv_model: PersonalValuesCreateUpdate,
+    pv_model: sch.PersonalValuesCreateUpdate,
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[PersonalValuesRead]:
+) -> sch.ApiResponse[sch.PersonalValuesRead]:
     pv_read_model, message = await personal_values_srv.create_personal_values(
         my_user=my_user, p_v_model=pv_model, asession=asession
     )
-    return ApiResponse(data=pv_read_model, message=message)
+    return sch.ApiResponse(data=pv_read_model, message=message)
 
 
 @router.put(
@@ -78,10 +74,10 @@ async def post_my_values(
 async def edit_my_values(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    pv_model: PersonalValuesCreateUpdate,
+    pv_model: sch.PersonalValuesCreateUpdate,
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[PersonalValuesRead]:
+) -> sch.ApiResponse[sch.PersonalValuesRead]:
     pv_read_model, message = await personal_values_srv.update_personal_values(
         my_user=my_user, p_v_model=pv_model, asession=asession
     )
-    return ApiResponse(data=pv_read_model, message=message)
+    return sch.ApiResponse(data=pv_read_model, message=message)

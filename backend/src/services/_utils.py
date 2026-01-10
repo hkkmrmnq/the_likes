@@ -11,31 +11,18 @@ from geoalchemy2.shape import to_shape
 from shapely.geometry import Point
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import containers as cnt
 from src import crud
+from src import schemas as sch
+from src.config import constants as CNST
 from src.config.config import CFG
-from src.config.enums import Polarity
-from src.containers import RichContact
+from src.config.enums import ContactStatus, Polarity
 from src.db.contact_n_message import Contact
 from src.db.core import Attitude
 from src.db.personal_values import PersonalValue
 from src.db.user_and_profile import Profile, User
 from src.exceptions import exceptions as exc
 from src.logger import logger
-from src.models.contact_n_message import (
-    ContactRead,
-    ContactRequestRead,
-    ContactRichRead,
-    OtherProfileRead,
-)
-from src.models.core import DefinitionsRead
-from src.models.personal_values import (
-    PersonalAspectRead,
-    PersonalAttitude,
-    PersonalValueRead,
-    PersonalValuesCreateUpdate,
-    PersonalValuesRead,
-)
-from src.models.user_and_profile import ProfileRead, ProfileUpdate
 
 
 async def is_password_pwned(*, password: str) -> bool | None:
@@ -86,7 +73,7 @@ async def personal_values_already_set(
     return bool(pvl_count)
 
 
-def profile_to_read_model(profile: Profile) -> ProfileRead:
+def profile_to_read_model(profile: Profile) -> sch.ProfileRead:
     longitude: float | None = None
     latitude: float | None = None
     if profile.location is not None:
@@ -103,7 +90,7 @@ def profile_to_read_model(profile: Profile) -> ProfileRead:
             )
         longitude = geom.x
         latitude = geom.y
-    return ProfileRead.model_validate(
+    return sch.ProfileRead.model_validate(
         {
             'name': profile.name,
             'languages': profile.languages,
@@ -115,7 +102,7 @@ def profile_to_read_model(profile: Profile) -> ProfileRead:
     )
 
 
-def profile_model_to_write_data(model: ProfileUpdate) -> dict:
+def profile_model_to_write_data(model: sch.ProfileUpdate) -> dict:
     location: str | None = None
 
     if all((model.longitude, model.latitude)):
@@ -135,12 +122,12 @@ async def personal_values_to_read_model(
     value_links: list[PersonalValue],
     attitudes: list[Attitude],
     profile: Profile,
-) -> PersonalValuesRead:
+) -> sch.PersonalValuesRead:
     """Prepares PersonalValuesRead schema based on existing personal values."""
     personal_value_models = []
     for pv in sorted(value_links, key=lambda x: x.user_order):
         personal_aspect_models = [
-            PersonalAspectRead.model_validate(
+            sch.PersonalAspectRead.model_validate(
                 {
                     'aspect_id': pa.aspect_id,
                     'aspect_key_phrase': pa.aspect.key_phrase,
@@ -150,7 +137,7 @@ async def personal_values_to_read_model(
             )
             for pa in pv.personal_aspects
         ]
-        pv_model = PersonalValueRead.model_validate(
+        pv_model = sch.PersonalValueRead.model_validate(
             {
                 'value_id': pv.value.id,
                 'value_name': pv.value.name,
@@ -162,7 +149,7 @@ async def personal_values_to_read_model(
         personal_value_models.append(pv_model)
 
     personal_attitudes = [
-        PersonalAttitude(
+        sch.PersonalAttitude(
             attitude_id=a.id,
             statement=a.statement,
             chosen=a.id == profile.attitude_id,
@@ -170,7 +157,7 @@ async def personal_values_to_read_model(
         for a in attitudes
     ]
 
-    moral_profile_model = PersonalValuesRead.model_validate(
+    moral_profile_model = sch.PersonalValuesRead.model_validate(
         {
             'initial': False,
             'attitudes': personal_attitudes,
@@ -181,8 +168,8 @@ async def personal_values_to_read_model(
 
 
 async def values_to_p_v_read_model(
-    definitions: DefinitionsRead,
-) -> PersonalValuesRead:
+    definitions: sch.DefinitionsRead,
+) -> sch.PersonalValuesRead:
     """
     Prepares PersonalValuesRead schema for user to choose initially.
     Intended to use in sutuation when a user creates Personal Values.
@@ -194,7 +181,7 @@ async def values_to_p_v_read_model(
     for value in definitions.values:
         dummy_order += 1
         personal_aspect_models = [
-            PersonalAspectRead.model_validate(
+            sch.PersonalAspectRead.model_validate(
                 {
                     'aspect_id': aspect.id,
                     'aspect_key_phrase': aspect.key_phrase,
@@ -204,7 +191,7 @@ async def values_to_p_v_read_model(
             )
             for aspect in value.aspects
         ]
-        pv_model = PersonalValueRead.model_validate(
+        pv_model = sch.PersonalValueRead.model_validate(
             {
                 'value_id': value.id,
                 'value_name': value.name,
@@ -216,10 +203,12 @@ async def values_to_p_v_read_model(
         personal_value_models.append(pv_model)
 
     attitudes = [
-        PersonalAttitude(attitude_id=a.id, statement=a.statement, chosen=False)
+        sch.PersonalAttitude(
+            attitude_id=a.id, statement=a.statement, chosen=False
+        )
         for a in definitions.attitudes
     ]
-    personal_values_model = PersonalValuesRead.model_validate(
+    personal_values_model = sch.PersonalValuesRead.model_validate(
         {
             'initial': True,
             'attitudes': attitudes,
@@ -267,7 +256,7 @@ async def get_schema_for_pesonal_values_input(
 
 async def check_personal_values_input(
     *,
-    p_v_model: PersonalValuesCreateUpdate,
+    p_v_model: sch.PersonalValuesCreateUpdate,
     asession: AsyncSession,
 ):
     """Checks PersonalValuesCreateUpdate on consistency."""
@@ -281,15 +270,6 @@ async def check_personal_values_input(
         raise exc.BadRequest('Inconsistent polarity/user_order.')
     provided_value_ids = {vl.value_id for vl in p_v_model.value_links}
     schema = await get_schema_for_pesonal_values_input(asession=asession)
-    # chosen_attitude_ids = [
-    #     a.attitude_id for a in p_v_model.attitudes if a.chosen
-    # ]
-    # if len(chosen_attitude_ids) != 1:
-    #     raise exc.BadRequest(
-    #         'Exactly one attitude_id expected. Got attitude_ids: '
-    #         f'{", ".join([str(i) for i in chosen_attitude_ids])}.'
-    #     )
-    # chosen_attitude_id = chosen_attitude_ids[0]
     if p_v_model.attitude_id not in schema['attitude_ids']:
         raise exc.BadRequest(
             f'Incorrect attitude_id: {p_v_model.attitude_id}.'
@@ -319,39 +299,120 @@ async def check_personal_values_input(
                 raise exc.BadRequest('; '.join(message_parts))
 
 
-def contact_to_read_model(
-    *, contact: Contact, unread_msg_count: int | None = None
-) -> ContactRead:
+async def get_contact_pair(
+    *,
+    my_user_id: UUID,
+    other_user_id: UUID,
+    asession: AsyncSession,
+    raise_not_found: bool = False,
+) -> tuple[list[cnt.RichContactRead], str]:
+    """
+    Returns a tuple with results and message.
+    Results:
+    if found - list of 2 contacts, 'my' first;
+    if not found - empty list
+    or raises error if optional raise_not_found param set to True.
+    Raises ServerError if different number of contacts found.
+    """
+    my_contact_results = await crud.read_contacts(
+        my_user_id=my_user_id, other_user_id=other_user_id, asession=asession
+    )
+    other_contact_results = await crud.read_contacts(
+        my_user_id=other_user_id, other_user_id=my_user_id, asession=asession
+    )
+    contact_pair = [*my_contact_results, *other_contact_results]
+    if not contact_pair:
+        if raise_not_found:
+            raise exc.NotFound(
+                (f'Contacts not found for {my_user_id=}, {other_user_id=}.')
+            )
+        return [], 'No contact pair.'
+    number_of_my_results = len(my_contact_results)
+    number_of_other_results = len(other_contact_results)
+    if not (number_of_my_results == 1 and number_of_other_results == 1):
+        raise exc.ServerError(
+            f'Inconsistent number of contacts found '
+            f'for {my_user_id=}, {other_user_id=}: '
+            f'{number_of_my_results} and {number_of_other_results} '
+            'accordingly.'
+        )
+    return contact_pair, 'Contact pair.'
+
+
+async def create_or_get_contact_pair(
+    *,
+    my_user_id: UUID,
+    other_user_id: UUID,
+    my_contact_status: str = ContactStatus.REQUESTED_BY_ME,
+    other_user_contact_status: str = ContactStatus.REQUESTED_BY_OTHER,
+    asession: AsyncSession,
+) -> tuple[list[cnt.RichContactRead], bool]:
+    """
+    Creates a pair of mirrored contacts if this pair is not already exist.
+    Returns a tuple: pair ('my' first), created (boolean).
+    """
+    existing_pair, _ = await get_contact_pair(
+        my_user_id=my_user_id, other_user_id=other_user_id, asession=asession
+    )
+    if existing_pair:
+        return existing_pair, False
+    await crud.create_contact_pair(
+        my_user_id=my_user_id,
+        other_user_id=other_user_id,
+        my_contact_status=my_contact_status,
+        other_user_contact_status=other_user_contact_status,
+        asession=asession,
+    )
+    created_pair, _ = await get_contact_pair(
+        my_user_id=my_user_id,
+        other_user_id=other_user_id,
+        asession=asession,
+    )
+    return created_pair, False
+
+
+async def update_contact_pair(
+    my_user_id: UUID,
+    other_user_id: UUID,
+    my_contact_status: ContactStatus,
+    asession: AsyncSession,
+) -> None:
+    my_contact = cnt.ContactWrite(
+        my_user_id=my_user_id,
+        other_user_id=other_user_id,
+        status=my_contact_status,
+    )
+    other_contact = cnt.ContactWrite(
+        my_user_id=other_user_id,
+        other_user_id=my_user_id,
+        status=CNST.OTHER_CONTACT_STATUS[my_contact_status],
+    )
+    await crud.update_contact(contact=my_contact, asession=asession)
+    await crud.update_contact(contact=other_contact, asession=asession)
+
+
+def rich_contact_to_schema(*, contact: cnt.RichContactRead) -> sch.ContactRead:
     """Prepares ContactRead schema."""
     data = {
         'user_id': contact.other_user_id,
-        'status': contact.status,
-        'unread_messages': unread_msg_count,
-        'created_at': contact.created_at,
-        'name': contact.other_user.profile.name,
-    }
-    return ContactRead.model_validate(data)
-
-
-def rich_contact_to_read_model(*, contact: RichContact) -> ContactRichRead:
-    """Prepares ContactRichRead schema."""
-    data = {
-        'user_id': contact.other_user_id,
-        'name': contact.my_name,
+        'name': contact.other_name,
         'status': contact.status,
         'created_at': contact.created_at,
         'distance': contact.distance,
         'similarity': contact.similarity,
         'unread_messages': contact.unread_msg,
+        'time_waiting': None
+        if contact.status == ContactStatus.ONGOING
+        else datetime.now(timezone.utc) - contact.created_at,
     }
 
-    return ContactRichRead.model_validate(data)
+    return sch.ContactRead.model_validate(data)
 
 
 def contact_request_to_read_model(
     *,
     contact: Contact,
-) -> ContactRequestRead:
+) -> sch.ContactRequestRead:
     """Prepares ContactRequestRead schema."""
     data = {
         'user_id': contact.other_user_id,
@@ -360,7 +421,7 @@ def contact_request_to_read_model(
         'created_at': contact.created_at,
         'time_waiting': datetime.now(timezone.utc) - contact.created_at,
     }
-    return ContactRequestRead.model_validate(data)
+    return sch.ContactRequestRead.model_validate(data)
 
 
 async def get_recommendations(
@@ -368,7 +429,7 @@ async def get_recommendations(
     my_user_id: UUID,
     other_user_id: UUID | None = None,
     asession: AsyncSession,
-) -> list[OtherProfileRead]:
+) -> list[sch.RecommendationRead]:
     """Reads user recommendations, returns as OtherProfileRead schema."""
     recommendations = await crud.read_user_recommendations(
         my_user_id=my_user_id,
@@ -382,14 +443,9 @@ async def get_recommendations(
                 f'{my_user_id}, {other_user_id}.'
             )
         )
+
     rec_models = [
-        OtherProfileRead(
-            user_id=r.user_id,
-            name=r.name,
-            similarity=r.similarity_score,
-            distance=r.distance,
-        )
-        for r in recommendations
+        sch.RecommendationRead.model_validate(r) for r in recommendations
     ]
     return rec_models
 

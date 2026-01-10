@@ -4,13 +4,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
+from src import schemas as sch
 from src.db.user_and_profile import User
-from src.models.contact_n_message import (
-    MessageCreate,
-    MessageRead,
-    UnreadMessagesCount,
-)
-from src.models.core import ApiResponse
 from src.services import message as msg_srv
 
 router = APIRouter()
@@ -24,11 +19,11 @@ async def count_unread_messages(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[UnreadMessagesCount]:
+) -> sch.ApiResponse[sch.UnreadMessagesCount]:
     result, message = await msg_srv.count_unread_messages(
         my_user=my_user, asession=asession
     )
-    return ApiResponse(data=result, message=message)
+    return sch.ApiResponse(data=result, message=message)
 
 
 @router.get(
@@ -40,11 +35,11 @@ async def get_messages(
     my_user: User = Depends(dp.current_active_verified_user),
     contact_user_id: UUID,
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[list[MessageRead]]:
+) -> sch.ApiResponse[list[sch.MessageRead]]:
     results, message = await msg_srv.read_messages(
         my_user=my_user, contact_user_id=contact_user_id, asession=asession
     )
-    return ApiResponse(data=results, message=message)
+    return sch.ApiResponse(data=results, message=message)
 
 
 @router.post(
@@ -59,10 +54,10 @@ async def get_messages(
 async def send_message(
     *,
     my_user: User = Depends(dp.current_active_verified_user),
-    model: MessageCreate,
+    model: sch.MessageCreate,
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> ApiResponse[MessageRead]:
+) -> sch.ApiResponse[sch.MessageRead]:
     result, message = await msg_srv.send_message(
         my_user=my_user, create_model=model, asession=asession
     )
-    return ApiResponse(data=result, message=message)
+    return sch.ApiResponse(data=result, message=message)

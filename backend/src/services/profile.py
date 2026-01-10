@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
+from src import schemas as sch
 from src.context import get_current_language
 from src.db.user_and_profile import User
-from src.models.user_and_profile import ProfileRead, ProfileUpdate
 from src.services._utils import (
     personal_values_already_set,
     profile_model_to_write_data,
@@ -15,7 +15,7 @@ async def get_profile(
     *,
     my_user: User,
     asession: AsyncSession,
-) -> tuple[ProfileRead, str]:
+) -> tuple[sch.ProfileRead, str]:
     """Gets Profile with user_id. Returns as ProfileRead."""
     profile = await crud.read_profile_by_user_id(
         user_id=my_user.id,
@@ -28,9 +28,9 @@ async def get_profile(
 async def edit_profile(
     *,
     my_user: User,
-    update_model: ProfileUpdate,
+    update_model: sch.ProfileUpdate,
     asession: AsyncSession,
-) -> tuple[ProfileRead, str]:
+) -> tuple[sch.ProfileRead, str]:
     """
     Updates ('my') Profile.
     Raises BadRequest if distance_limit set without location.

@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.bootstrap import Bootstrap
+from src import crud
+from src import schemas as sch
+from src.config.enums import SearchAllowedStatus
 from src.services import _utils as _utils
 from src.services import contact as srv_cnct
 from src.services.profile import get_profile
@@ -8,7 +10,7 @@ from src.services.profile import get_profile
 
 async def bootstrap(
     *, my_user, asession: AsyncSession
-) -> tuple[Bootstrap, str]:
+) -> tuple[sch.Bootstrap, str]:
     """
     Returns UpdateRead schema:
     current user profile, contacts with unread messages counts,
@@ -19,17 +21,30 @@ async def bootstrap(
         my_user_id=my_user.id, asession=asession
     )
     (
-        contacts,
-        contact_requests,
+        active_contacts_and_requests,
         _,
     ) = await srv_cnct.get_contacts_and_requests(
         my_user=my_user,
         asession=asession,
     )
-
-    return Bootstrap(
+    filtered_recoms = []
+    ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
+    if ud.search_allowed_status != SearchAllowedStatus.COOLDOWN:
+        contacts_user_ids = [
+            req.user_id
+            for req in [
+                *active_contacts_and_requests.contact_requests,
+                *active_contacts_and_requests.active_contacts,
+            ]
+        ]
+        filtered_recoms = [
+            rec
+            for rec in recommendations
+            if rec.user_id not in contacts_user_ids
+        ]
+    return sch.Bootstrap(
         profile=profile,
-        active_contacts=contacts,
-        contact_requests=contact_requests,
-        recommendations=recommendations,
+        active_contacts=active_contacts_and_requests.active_contacts,
+        contact_requests=active_contacts_and_requests.contact_requests,
+        recommendations=filtered_recoms,
     ), 'Bootstrap data.'

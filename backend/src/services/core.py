@@ -1,14 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
+from src import schemas as sch
 from src.context import get_current_language
 from src.exceptions import exceptions as exc
-from src.models.core import AttitudeRead, DefinitionsRead, ValueRead
 
 
 async def read_definitions(
     *, asession: AsyncSession
-) -> tuple[DefinitionsRead, str]:
+) -> tuple[sch.DefinitionsRead, str]:
     """
     Reads Attitudes, Values and Aspects.
     Returns DefinitionsRead schema.
@@ -23,8 +23,8 @@ async def read_definitions(
     )
     if not definitions:
         raise exc.ServerError('Definitions not found.')
-    def_model = DefinitionsRead(
-        attitudes=[AttitudeRead.model_validate(a) for a in attitudes],
-        values=[ValueRead.model_validate(v) for v in definitions],
+    def_model = sch.DefinitionsRead(
+        attitudes=[sch.AttitudeRead.model_validate(a) for a in attitudes],
+        values=[sch.ValueRead.model_validate(v) for v in definitions],
     )
     return def_model, 'Definitions.'

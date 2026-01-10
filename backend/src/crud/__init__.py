@@ -9,11 +9,10 @@ from ._prepare_db import (  # noqa
     prepare_funcs_and_matviews,
 )
 from .contacts import (  # noqa
-    create_or_read_contact_pair,
-    read_contact_pair,
+    create_contact_pair,
     read_other_profile,
+    update_contact,
     read_contacts,
-    read_contacts_rich,
     read_user_recommendations,
 )
 from .core import read_attitudes, read_values, read_unique_values  # noqa

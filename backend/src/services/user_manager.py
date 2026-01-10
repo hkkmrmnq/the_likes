@@ -12,11 +12,11 @@ from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 from zxcvbn import zxcvbn
 
+from src import schemas as sch
 from src.config import constants as CNST
 from src.config.config import CFG
 from src.config.enums import SearchAllowedStatus
 from src.db.user_and_profile import Profile, User, UserDynamic
-from src.models.user_and_profile import UserCreate
 from src.services._utils import is_password_pwned
 from src.tasks import (
     send_email_confirmation_token,
@@ -102,7 +102,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
     async def validate_password(
         self,
         password: str,
-        user: UserCreate,
+        user: sch.UserCreate,
         password_checker=is_password_pwned,
     ) -> None:
         """
@@ -138,7 +138,7 @@ async def _create_user(
     asession: AsyncSession,
 ) -> User:
     user_manager = UserManager(FixedSQLAlchemyUserDatabase(asession, User))
-    user_data = UserCreate(
+    user_data = sch.UserCreate(
         email=email,
         password=password,
         is_superuser=is_superuser,

@@ -61,6 +61,17 @@ UQ_CNSTR_CONTACT_MY_USER_ID_TARGET_USER_ID = (
 )
 DISTANCE_LIMIT_KM_MAX = 20037.509
 MESSAGE_MAX_LENGTH = 2000
+OTHER_CONTACT_STATUS = {
+    ContactStatus.ONGOING: ContactStatus.ONGOING,
+    ContactStatus.REQUESTED_BY_ME: ContactStatus.REQUESTED_BY_OTHER,
+    ContactStatus.REQUESTED_BY_OTHER: ContactStatus.REQUESTED_BY_ME,
+    ContactStatus.CANCELLED_BY_ME: ContactStatus.CANCELLED_BY_OTHER,
+    ContactStatus.CANCELLED_BY_OTHER: ContactStatus.CANCELLED_BY_ME,
+    ContactStatus.REJECTED_BY_ME: ContactStatus.REJECTED_BY_OTHER,
+    ContactStatus.REJECTED_BY_OTHER: ContactStatus.REJECTED_BY_ME,
+    ContactStatus.BLOCKED_BY_ME: ContactStatus.BLOCKED_BY_OTHER,
+    ContactStatus.BLOCKED_BY_OTHER: ContactStatus.BLOCKED_BY_ME,
+}
 BLOCKABLE_CONTACT_STATUSES = [
     ContactStatus.ONGOING,
     ContactStatus.REJECTED_BY_ME,
@@ -68,3 +79,7 @@ BLOCKABLE_CONTACT_STATUSES = [
 ]
 MESSAGES_HISTORY_LENGTH_DEFAULT = 20
 MATCH_NOTIFIED_REDIS_KEY = 'match_notified'
+COOLDOWN_RESPONSE_MESSAGE = (
+    'Search for new contact is temporarily unavailable.'
+    ' It will be available again after a cooldown.'
+)
