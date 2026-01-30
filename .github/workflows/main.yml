@@ -32,7 +32,8 @@ jobs:
       POSTGRES_PORT: 5432
       POSTGRES_DB: test_db
       JWT_SECRET: jwttestsecret
-      JWT_ACCESS_LIFETIME: 1800
+      JWT_ACCESS_LIFETIME_MINUTES: 5
+      JWT_ALGORITHM: HS256
       RESET_PASSWORD_TOKEN_SECRET: jwtresettestsecret
       VERIFICATION_TOKEN_SECRET: jwtverificationtestsecret
       REDIS_HOST: localhost
