@@ -3,8 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from src.config import constants as CNST
-from src.config.enums import ContactStatus
+from src.config import CNST, ENM
 
 
 class UserToNotifyOfMatchRead(BaseModel):
@@ -39,7 +38,7 @@ class RecommendationRead(SimilarityAndDistanceMixin, BaseModel):
 class ContactReadBase(BaseModel):
     user_id: UUID
     name: str | None
-    status: ContactStatus
+    status: ENM.ContactStatus
     created_at: datetime
 
 
@@ -52,14 +51,19 @@ class ContactRequestRead(ContactReadBase):
     time_waiting: timedelta
 
 
-class OngoingContactsAndRequestsRead(BaseModel):
-    received_requests: list[ContactRequestRead]
-    sent_requests: list[ContactRequestRead]
+class ActiveContactsAndRequests(BaseModel):
     active_contacts: list[ContactRead]
+    contact_requests: list[ContactRead]
+
+
+class ContsNReqstsNRecoms(BaseModel):
+    recommendations: list[RecommendationRead]
+    active_contacts: list[ContactRead]
+    contact_requests: list[ContactRead]
 
 
 class TargetUser(BaseModel):
-    id: UUID
+    id: UUID  # TODO change to user_id
 
 
 class UnreadMessagesCountByContact(BaseModel):
@@ -75,6 +79,7 @@ class UnreadMessagesCount(BaseModel):
 class MessageCreate(BaseModel):
     receiver_id: UUID
     text: str = Field(max_length=CNST.MESSAGE_MAX_LENGTH)
+    client_id: UUID
 
 
 class MessageRead(BaseModel):

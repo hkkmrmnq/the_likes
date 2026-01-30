@@ -3,42 +3,28 @@ from itertools import combinations
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from src.config.config import CFG
-from src.crud import sql
-from src.crud.core import read_attitudes, read_values
-from src.db.core import (
-    Aspect,
-    Attitude,
-    UniqueValue,
-    Value,
-)
-from src.db.personal_values import UniqueValueAspectLink
-from src.db.translations import (
-    AspectTranslation,
-    AttitudeTranslation,
-    ValueTranslation,
-)
-from src.db.user_and_profile import User
-from src.exceptions.exceptions import ServerError
+from src import crud, db
+from src import exceptions as EXC
+from src.config import CFG
 
 
 async def read_first_user(asession: AsyncSession):
-    return await asession.scalar(select(User).limit(1))
+    return await asession.scalar(select(db.User).limit(1))
 
 
 async def clear_db(asession: AsyncSession) -> None:
-    await asession.execute(delete(User))
-    await asession.execute(delete(Value))
-    await asession.execute(delete(Attitude))
+    await asession.execute(delete(db.User))
+    await asession.execute(delete(db.Value))
+    await asession.execute(delete(db.Attitude))
 
 
 async def create_attitudes(
     *,
     attitudes_data: dict,
     asession: AsyncSession,
-) -> list[Attitude]:
+) -> list[db.Attitude]:
     attitudes = [
-        Attitude(statement_default=data_statement)
+        db.Attitude(statement_default=data_statement)
         for data_statement in attitudes_data
     ]
     asession.add_all(attitudes)
@@ -47,13 +33,13 @@ async def create_attitudes(
 
 async def create_definitions(
     definitions_data: dict, asession: AsyncSession
-) -> list[Value]:
+) -> list[db.Value]:
     definitions = []
     for value_name in definitions_data:
-        db_value = Value(name_default=value_name)
+        db_value = db.Value(name_default=value_name)
         aspects_input_data = definitions_data[value_name]['aspects']
         for asp_stmt_dflt in aspects_input_data:
-            db_aspect = Aspect(
+            db_aspect = db.Aspect(
                 statement_default=asp_stmt_dflt,
                 key_phrase_default=aspects_input_data[asp_stmt_dflt][
                     f'key_phrase_{CFG.DEFAULT_LANGUAGE}'
@@ -67,10 +53,10 @@ async def create_definitions(
 
 async def create_unique_values(
     asession: AsyncSession,
-) -> list[UniqueValue]:
-    definitions = await read_values(asession=asession)
+) -> list[db.UniqueValue]:
+    definitions = await crud.read_values(asession=asession)
     if not definitions:
-        raise ServerError('Definitions not found.')
+        raise EXC.ServerError('Definitions not found.')
     unique_values = []
     for vt in definitions:
         aspect_ids = [s.id for s in vt.aspects]
@@ -78,12 +64,12 @@ async def create_unique_values(
         for r in range(len(vt.aspects) + 1):
             aspect_id_combinations.extend(combinations(aspect_ids, r))
         for a_id_combination in aspect_id_combinations:
-            new_uv = UniqueValue(
+            new_uv = db.UniqueValue(
                 value=vt,
                 aspect_ids=a_id_combination,
             )
             new_uv.aspect_links = [
-                UniqueValueAspectLink(unique_value=new_uv, aspect_id=a_id)
+                db.UniqueValueAspectLink(unique_value=new_uv, aspect_id=a_id)
                 for a_id in new_uv.aspect_ids
             ]
             unique_values.append(new_uv)
@@ -93,10 +79,10 @@ async def create_unique_values(
 
 async def create_attitude_translations(
     attitudes_data: dict, asession: AsyncSession
-) -> list[AttitudeTranslation]:
-    db_attitudes = await read_attitudes(asession=asession)
+) -> list[db.AttitudeTranslation]:
+    db_attitudes = await crud.read_attitudes(asession=asession)
     translations = [
-        AttitudeTranslation(
+        db.AttitudeTranslation(
             attitude=db_attitude,
             language_code=lan,
             statement=attitudes_data[db_attitude.statement_default][lan],
@@ -111,22 +97,22 @@ async def create_attitude_translations(
 async def create_definitions_translations(
     definitions_data: dict,
     asession: AsyncSession,
-) -> tuple[list[ValueTranslation], list[AspectTranslation]]:
-    db_definitions = await read_values(asession=asession)
+) -> tuple[list[db.ValueTranslation], list[db.AspectTranslation]]:
+    db_definitions = await crud.read_values(asession=asession)
     value_translations = []
     aspect_translations = []
     for value in db_definitions:
         for lan in CFG.TRANSLATE_TO:
             translated_name = definitions_data[value.name_default][lan]
             value_translations.append(
-                ValueTranslation(
+                db.ValueTranslation(
                     value=value, language_code=lan, name=translated_name
                 )
             )
             input_aspects = definitions_data[value.name_default]['aspects']
             for db_aspect in value.aspects:
                 aspect_translations.append(
-                    AspectTranslation(
+                    db.AspectTranslation(
                         aspect=db_aspect,
                         language_code=lan,
                         key_phrase=input_aspects[db_aspect.statement_default][
@@ -143,5 +129,5 @@ async def create_definitions_translations(
 
 
 async def prepare_funcs_and_matviews(asession: AsyncSession):
-    for query in sql.prepare_funcs_and_matviews_commands:
+    for query in crud.sql.prepare_funcs_and_matviews_commands:
         await asession.execute(text(query))

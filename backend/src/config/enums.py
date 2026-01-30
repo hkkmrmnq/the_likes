@@ -46,3 +46,24 @@ SearchAllowedStatusPG = ENUM(
     name='search_allowed_status',
     create_type=True,
 )
+
+
+class ChatPayloadType(str, Enum):
+    CREATE = 'CREATE'
+    NEW = 'NEW'
+    SENT = 'SENT'
+    ERROR = 'ERROR'
+    READ = 'READ'
+    PING = 'PING'
+    PONG = 'PONG'
+
+
+class ClientMessageId(str, Enum):
+    PENDING = 'pending'
+    SENT = 'sent'
+
+
+class AuthResultDetail(str, Enum):
+    OK = 'OK'
+    ERROR = 'ERROR'
+    EXPIRED = 'EXPIRED'

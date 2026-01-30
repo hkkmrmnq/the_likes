@@ -79,6 +79,7 @@ BLOCKABLE_CONTACT_STATUSES = [
 ]
 MESSAGES_HISTORY_LENGTH_DEFAULT = 20
 MATCH_NOTIFIED_REDIS_KEY = 'match_notified'
+CONFIRM_EMAIL_REDIS_KEY = 'confirm:email:'
 COOLDOWN_RESPONSE_MESSAGE = (
     'Search for new contact is temporarily unavailable.'
     ' It will be available again after a cooldown.'

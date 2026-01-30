@@ -10,11 +10,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.config.config import CFG
-from src.config.enums import PolarityPG
-from src.db.base import Base, BaseWithIntPK
-from src.db.core import Aspect, UniqueValue, Value
-from src.db.user_and_profile import User
+from src.config import CFG, ENM
+
+from .base import Base, BaseWithIntPK
+from .core import Aspect, UniqueValue, Value
+from .user_and_profile import User
 
 
 class UniqueValueAspectLink(Base):
@@ -50,7 +50,7 @@ class PersonalValue(BaseWithIntPK):
     unique_value_id: Mapped[int] = mapped_column(
         Integer, ForeignKey('uniquevalues.id', ondelete='CASCADE')
     )
-    polarity: Mapped[str] = mapped_column(PolarityPG)
+    polarity: Mapped[str] = mapped_column(ENM.PolarityPG)
     user_order: Mapped[int] = mapped_column(Integer)
     user: Mapped[User] = relationship(
         User, back_populates='personal_values', uselist=False

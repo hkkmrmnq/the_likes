@@ -9,8 +9,3 @@ class Bootstrap(BaseModel):
     active_contacts: list[ContactRead]
     contact_requests: list[ContactRead]
     recommendations: list[RecommendationRead]
-
-
-class ActiveContactsAndRequests(BaseModel):
-    active_contacts: list[ContactRead]
-    contact_requests: list[ContactRead]

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import crud
 from src import schemas as sch
 from src.context import get_current_language
-from src.exceptions import exceptions as exc
+from src.exceptions import exc
 
 
 async def read_definitions(

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, time
 from uuid import UUID
 
-from src.config.enums import ContactStatus
+from src.config import ENM
 
 
 @dataclass
@@ -11,7 +11,7 @@ class RichContactRead:
     other_user_id: UUID
     my_name: str | None
     other_name: str | None
-    status: ContactStatus
+    status: ENM.ContactStatus
     distance: float | None
     similarity: float
     unread_msg: int
@@ -30,4 +30,29 @@ class ContactRead:
 class ContactWrite:
     my_user_id: UUID
     other_user_id: UUID
-    status: ContactStatus
+    status: ENM.ContactStatus
+
+
+@dataclass
+class MessageCreate:
+    sender_id: UUID
+    receiver_id: UUID
+    text: str
+    client_id: UUID
+
+
+@dataclass
+class MessageRead:
+    sender_id: UUID
+    sender_name: str | None
+    receiver_id: UUID
+    receiver_name: str | None
+    text: str
+    created_at: datetime
+    time: time
+
+
+@dataclass
+class AuthResult:
+    subject: str
+    detail: ENM.AuthResultDetail

@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from src.config.config import CFG
+from src.config import CFG
 
 
 class PersonalAttitude(BaseModel):

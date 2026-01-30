@@ -12,7 +12,6 @@ dependencies = [
     "celery[redis]>=5.5.3",
     "click==8.2.1",
     "dotenv>=0.9.9",
-    "fastapi-users[sqlalchemy]>=14.0.1",
     "fastapi[standard]>=0.116.1",
     "geoalchemy2[shapely]>=0.18.0",
     "geopy>=2.4.1",
@@ -27,10 +26,12 @@ dependencies = [
     "pydantic-settings>=2.10.1",
     "pyjwt>=2.10.1",
     "pytest>=8.4.2",
+    "python-multipart>=0.0.20",
     "redis[hiredis]>=5.2.1",
     "sqlalchemy>=2.0.41",
     "typer>=0.16.0",
     "uvicorn[standard]>=0.35.0",
+    "websockets>=15.0.1",
     "zxcvbn-python>=4.4.24",
 ]
 

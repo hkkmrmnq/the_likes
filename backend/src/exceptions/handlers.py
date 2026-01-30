@@ -2,17 +2,17 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 
-async def handle_unverified_user(request: Request, exc):
+async def handle_bad_request(request: Request, exc):
     return JSONResponse(
-        status_code=status.HTTP_403_FORBIDDEN,
-        content={'detail': getattr(exc, 'message', 'User not verified.')},
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={'detail': getattr(exc, 'message', 'Bad request.')},
     )
 
 
-async def handle_inactive_user(request: Request, exc):
+async def handle_unauthorized(request: Request, exc):
     return JSONResponse(
-        status_code=status.HTTP_403_FORBIDDEN,
-        content={'detail': getattr(exc, 'message', 'Account inactive.')},
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={'detail': getattr(exc, 'message', 'Unauthorized.')},
     )
 
 
@@ -32,7 +32,7 @@ async def handle_not_found(request: Request, exc):
     )
 
 
-async def handle_already_exists(request: Request, exc):
+async def handle_conflict(request: Request, exc):
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
@@ -41,10 +41,10 @@ async def handle_already_exists(request: Request, exc):
     )
 
 
-async def handle_bad_request(request: Request, exc):
+async def handle_unacceptable(request: Request, exc):
     return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content={'detail': getattr(exc, 'message', 'Bad request.')},
+        status_code=status.HTTP_406_NOT_ACCEPTABLE,
+        content={'detail': getattr(exc, 'message', "Can't accept.")},
     )
 
 

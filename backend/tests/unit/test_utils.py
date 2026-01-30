@@ -2,7 +2,7 @@ from sqlalchemy import select
 
 from src.config.config import CFG
 from src.db.core import Attitude, Value
-from src.services._utils import generate_random_personal_values
+from src.services.utils.other import generate_random_personal_values
 
 
 async def test_random_pv_input_generation(asession):

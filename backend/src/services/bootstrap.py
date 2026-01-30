@@ -2,10 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
 from src import schemas as sch
-from src.config.enums import SearchAllowedStatus
-from src.services import _utils as _utils
-from src.services import contact as srv_cnct
-from src.services.profile import get_profile
+from src import services as srv
+from src.config import ENM
+from src.services.utils import other as other
 
 
 async def bootstrap(
@@ -16,20 +15,20 @@ async def bootstrap(
     current user profile, contacts with unread messages counts,
     contacts requests, recommendations.
     """
-    profile, _ = await get_profile(my_user=my_user, asession=asession)
-    recommendations = await _utils.get_recommendations(
+    profile, _ = await srv.get_profile(current_user=my_user, asession=asession)
+    recommendations = await other.get_recommendations(
         my_user_id=my_user.id, asession=asession
     )
     (
         active_contacts_and_requests,
         _,
-    ) = await srv_cnct.get_contacts_and_requests(
-        my_user=my_user,
+    ) = await srv.get_contacts_and_requests(
+        current_user=my_user,
         asession=asession,
     )
     filtered_recoms = []
     ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
-    if ud.search_allowed_status != SearchAllowedStatus.COOLDOWN:
+    if ud.search_allowed_status != ENM.SearchAllowedStatus.COOLDOWN:
         contacts_user_ids = [
             req.user_id
             for req in [

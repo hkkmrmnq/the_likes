@@ -1,10 +1,8 @@
-import hashlib
 import json
 import random
 from datetime import datetime, timezone
 from uuid import UUID
 
-import httpx
 from async_lru import alru_cache
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
@@ -12,53 +10,14 @@ from shapely.geometry import Point
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import containers as cnt
-from src import crud
+from src import crud, db
 from src import schemas as sch
-from src.config import constants as CNST
-from src.config.config import CFG
-from src.config.enums import ContactStatus, Polarity
-from src.db.contact_n_message import Contact
-from src.db.core import Attitude
-from src.db.personal_values import PersonalValue
-from src.db.user_and_profile import Profile, User
-from src.exceptions import exceptions as exc
-from src.logger import logger
-
-
-async def is_password_pwned(*, password: str) -> bool | None:
-    """
-    Returns:
-        True if password was pwned.
-        False if not pwned.
-        None if request failed (timeout, network, etc.).
-    """
-    try:
-        sha1_hash = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
-        prefix, suffix = sha1_hash[:5], sha1_hash[5:]
-
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(
-                f'https://api.pwnedpasswords.com/range/{prefix}'
-            )
-            response.raise_for_status()
-
-        for line in response.text.splitlines():
-            h, _ = line.split(':')
-            if h == suffix:
-                return True
-        return False
-
-    except (
-        httpx.RequestError,
-        httpx.TimeoutException,
-        httpx.HTTPStatusError,
-    ) as e:
-        logger.error(e)
-        return None
+from src.config import CFG, CNST, ENM
+from src.exceptions import exc
 
 
 async def personal_values_already_set(
-    *, my_user: User, asession: AsyncSession
+    *, my_user: db.User, asession: AsyncSession
 ) -> bool:
     pvl_count = await crud.count_personal_values(
         user_id=my_user.id, asession=asession
@@ -73,7 +32,7 @@ async def personal_values_already_set(
     return bool(pvl_count)
 
 
-def profile_to_read_model(profile: Profile) -> sch.ProfileRead:
+def profile_to_read_model(profile: db.Profile) -> sch.ProfileRead:
     longitude: float | None = None
     latitude: float | None = None
     if profile.location is not None:
@@ -92,6 +51,7 @@ def profile_to_read_model(profile: Profile) -> sch.ProfileRead:
         latitude = geom.y
     return sch.ProfileRead.model_validate(
         {
+            'user_id': profile.user_id,
             'name': profile.name,
             'languages': profile.languages,
             'distance_limit': profile.distance_limit,
@@ -119,9 +79,9 @@ def profile_model_to_write_data(model: sch.ProfileUpdate) -> dict:
 
 async def personal_values_to_read_model(
     *,
-    value_links: list[PersonalValue],
-    attitudes: list[Attitude],
-    profile: Profile,
+    value_links: list[db.PersonalValue],
+    attitudes: list[db.Attitude],
+    profile: db.Profile,
 ) -> sch.PersonalValuesRead:
     """Prepares PersonalValuesRead schema based on existing personal values."""
     personal_value_models = []
@@ -195,7 +155,7 @@ async def values_to_p_v_read_model(
             {
                 'value_id': value.id,
                 'value_name': value.name,
-                'polarity': Polarity.NEUTRAL,
+                'polarity': ENM.Polarity.NEUTRAL,
                 'user_order': dummy_order,
                 'aspects': personal_aspect_models,
             }
@@ -343,8 +303,8 @@ async def create_or_get_contact_pair(
     *,
     my_user_id: UUID,
     other_user_id: UUID,
-    my_contact_status: str = ContactStatus.REQUESTED_BY_ME,
-    other_user_contact_status: str = ContactStatus.REQUESTED_BY_OTHER,
+    my_contact_status: str = ENM.ContactStatus.REQUESTED_BY_ME,
+    other_user_contact_status: str = ENM.ContactStatus.REQUESTED_BY_OTHER,
     asession: AsyncSession,
 ) -> tuple[list[cnt.RichContactRead], bool]:
     """
@@ -374,7 +334,7 @@ async def create_or_get_contact_pair(
 async def update_contact_pair(
     my_user_id: UUID,
     other_user_id: UUID,
-    my_contact_status: ContactStatus,
+    my_contact_status: ENM.ContactStatus,
     asession: AsyncSession,
 ) -> None:
     my_contact = cnt.ContactWrite(
@@ -402,7 +362,7 @@ def rich_contact_to_schema(*, contact: cnt.RichContactRead) -> sch.ContactRead:
         'similarity': contact.similarity,
         'unread_messages': contact.unread_msg,
         'time_waiting': None
-        if contact.status == ContactStatus.ONGOING
+        if contact.status == ENM.ContactStatus.ONGOING
         else datetime.now(timezone.utc) - contact.created_at,
     }
 
@@ -411,7 +371,7 @@ def rich_contact_to_schema(*, contact: cnt.RichContactRead) -> sch.ContactRead:
 
 def contact_request_to_read_model(
     *,
-    contact: Contact,
+    contact: db.Contact,
 ) -> sch.ContactRequestRead:
     """Prepares ContactRequestRead schema."""
     data = {

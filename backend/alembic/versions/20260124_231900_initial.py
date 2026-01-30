@@ -1,8 +1,8 @@
 """Initial
 
-Revision ID: 1f592873c8ed
+Revision ID: 1c1dca43d682
 Revises:
-Create Date: 2026-01-08 17:28:30.732049
+Create Date: 2026-01-24 23:19:00.949230
 
 """
 
@@ -10,15 +10,12 @@ from typing import Sequence, Union
 
 import geoalchemy2
 import sqlalchemy as sa
-from fastapi_users_db_sqlalchemy.generics import GUID
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
-from src.config import CFG
-from src.config import constants as CNST
-from src.config.enums import ContactStatusPG, PolarityPG, SearchAllowedStatusPG
+from src.config import CFG, CNST, ENM
 
-revision: str = 'af444c2207e5'
+revision: str = '1c1dca43d682'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -47,12 +44,12 @@ def upgrade() -> None:
     )
     op.create_table(
         'users',
-        sa.Column('id', GUID(), nullable=False),
-        sa.Column('email', sa.String(length=320), nullable=False),
-        sa.Column('hashed_password', sa.String(length=1024), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('email', sa.String(), nullable=False),
+        sa.Column('password_hash', sa.String(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('is_superuser', sa.Boolean(), nullable=False),
         sa.Column('is_verified', sa.Boolean(), nullable=False),
+        sa.Column('is_superuser', sa.Boolean(), nullable=False),
         sa.Column(
             'created_at',
             sa.DateTime(timezone=True),
@@ -66,8 +63,8 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('email'),
     )
-    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_table(
         'values',
         sa.Column('name_default', sa.String(length=100), nullable=False),
@@ -112,19 +109,11 @@ def upgrade() -> None:
     )
     op.create_table(
         'contacts',
-        sa.Column(
-            'my_user_id',
-            GUID(),
-            nullable=False,
-        ),
-        sa.Column(
-            'other_user_id',
-            GUID(),
-            nullable=False,
-        ),
+        sa.Column('my_user_id', sa.UUID(), nullable=False),
+        sa.Column('other_user_id', sa.UUID(), nullable=False),
         sa.Column(
             'status',
-            ContactStatusPG,
+            ENM.ContactStatusPG,
             nullable=False,
         ),
         sa.Column(
@@ -154,16 +143,8 @@ def upgrade() -> None:
     )
     op.create_table(
         'messages',
-        sa.Column(
-            'sender_id',
-            GUID(),
-            nullable=False,
-        ),
-        sa.Column(
-            'receiver_id',
-            GUID(),
-            nullable=False,
-        ),
+        sa.Column('sender_id', sa.UUID(), nullable=False),
+        sa.Column('receiver_id', sa.UUID(), nullable=False),
         sa.Column('text', sa.String(length=2000), nullable=False),
         sa.Column('is_read', sa.Boolean(), nullable=False),
         sa.Column('id', sa.Integer(), nullable=False),
@@ -189,11 +170,7 @@ def upgrade() -> None:
     )
     op.create_table(
         'profiles',
-        sa.Column(
-            'user_id',
-            GUID(),
-            nullable=False,
-        ),
+        sa.Column('user_id', sa.UUID(), nullable=False),
         sa.Column('attitude_id', sa.Integer(), nullable=True),
         sa.Column('languages', postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column(
@@ -268,14 +245,10 @@ def upgrade() -> None:
     )
     op.create_table(
         'userdynamics',
-        sa.Column(
-            'user_id',
-            GUID(),
-            nullable=False,
-        ),
+        sa.Column('user_id', sa.UUID(), nullable=False),
         sa.Column(
             'search_allowed_status',
-            SearchAllowedStatusPG,
+            ENM.SearchAllowedStatusPG,
             nullable=False,
         ),
         sa.Column(
@@ -358,16 +331,12 @@ def upgrade() -> None:
     )
     op.create_table(
         'personalvalues',
-        sa.Column(
-            'user_id',
-            GUID(),
-            nullable=False,
-        ),
+        sa.Column('user_id', sa.UUID(), nullable=False),
         sa.Column('value_id', sa.Integer(), nullable=False),
         sa.Column('unique_value_id', sa.Integer(), nullable=False),
         sa.Column(
             'polarity',
-            PolarityPG,
+            ENM.PolarityPG,
             nullable=False,
         ),
         sa.Column('user_order', sa.Integer(), nullable=False),
@@ -385,8 +354,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.CheckConstraint(
-            CFG.PERSONAL_VALUE_MAX_ORDER_CONSTRAINT_TEXT,
-            name='max_user_order',
+            CFG.PERSONAL_VALUE_MAX_ORDER_CONSTRAINT_TEXT, name='max_user_order'
         ),
         sa.CheckConstraint('user_order >= 1', name='min_user_order'),
         sa.ForeignKeyConstraint(
@@ -431,11 +399,7 @@ def upgrade() -> None:
     )
     op.create_table(
         'personalaspects',
-        sa.Column(
-            'user_id',
-            GUID(),
-            nullable=False,
-        ),
+        sa.Column('user_id', sa.UUID(), nullable=False),
         sa.Column('aspect_id', sa.Integer(), nullable=False),
         sa.Column('included', sa.Boolean(), nullable=False),
         sa.Column('personal_value_id', sa.Integer(), nullable=False),
@@ -507,11 +471,13 @@ def downgrade() -> None:
     )
     op.drop_table('uniquevalues')
     op.drop_index(op.f('ix_profiles_location'), table_name='profiles')
+    op.drop_index(
+        'idx_profiles_location', table_name='profiles', postgresql_using='gist'
+    )
     op.drop_table('profiles')
     op.drop_table('messages')
     op.drop_table('contacts')
     op.drop_table('attitudetranslations')
     op.drop_table('values')
-    op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_table('attitudes')

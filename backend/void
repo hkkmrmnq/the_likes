@@ -1,0 +1,626 @@
+2026-01-25 12:15:17 | ERROR | asyncio.events:_run:84 | An error has been caught in function '_run', process 'MainProcess' (19184), thread 'MainThread' (16060):
+Traceback (most recent call last):
+
+  File "F:\my_projects\the_likes\backend\prepare.py", line 45, in <module>
+    app()
+    └ <typer.main.Typer object at 0x0000029AC9071610>
+
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\main.py", line 310, in __call__
+    return get_command(self)(*args, **kwargs)
+           │           │      │       └ {}
+           │           │      └ ()
+           │           └ <typer.main.Typer object at 0x0000029AC9071610>
+           └ <function get_command at 0x0000029ACB13F240>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           │    │     │       └ {}
+           │    │     └ ()
+           │    └ <function TyperGroup.main at 0x0000029ACB13ED40>
+           └ <TyperGroup >
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\core.py", line 803, in main
+    return _main(
+           └ <function _main at 0x0000029ACB13D9E0>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\core.py", line 192, in _main
+    rv = self.invoke(ctx)
+         │    │      └ <click.core.Context object at 0x0000029AE74A7F20>
+         │    └ <function Group.invoke at 0x0000029ACB040C20>
+         └ <TyperGroup >
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+           │               │       │       │      └ <click.core.Context object at 0x0000029AE729FEC0>
+           │               │       │       └ <function Command.invoke at 0x0000029ACB0379C0>
+           │               │       └ <TyperCommand data>
+           │               └ <click.core.Context object at 0x0000029AE729FEC0>
+           └ <function Group.invoke.<locals>._process_result at 0x0000029AE7A73880>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           │   │      │    │           │   └ {}
+           │   │      │    │           └ <click.core.Context object at 0x0000029AE729FEC0>
+           │   │      │    └ <function data at 0x0000029AE7A73420>
+           │   │      └ <TyperCommand data>
+           │   └ <function Context.invoke at 0x0000029ACB036C00>
+           └ <click.core.Context object at 0x0000029AE729FEC0>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           │         │       └ {}
+           │         └ ()
+           └ <function data at 0x0000029AE7A73420>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\main.py", line 691, in wrapper
+    return callback(**use_params)
+           │          └ {}
+           └ <function data at 0x0000029AE7A731A0>
+
+  File "F:\my_projects\the_likes\backend\prepare.py", line 24, in data
+    asyncio.run(prep_srv.prepare_db())
+    │       │   │        └ <function prepare_db at 0x0000029AE7A72DE0>
+    │       │   └ <module 'src.services._prepare_db' from 'F:\\my_projects\\the_likes\\backend\\src\\services\\_prepare_db.py'>
+    │       └ <function run at 0x0000029ACA9EA3E0>
+    └ <module 'asyncio' from 'C:\\Users\\1\\AppData\\Roaming\\uv\\python\\cpython-3.12.0-windows-x86_64-none\\Lib\\asyncio\\__init_...
+
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object prepare_db at 0x0000029AE7A7C140>
+           │      └ <function Runner.run at 0x0000029ACAAB5620>
+           └ <asyncio.runners.Runner object at 0x0000029AE6F69E20>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<prepare_db() running at F:\my_projects\the_likes\backend\.venv\Lib\site-packages\loguru\_lo...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x0000029ACAAA71A0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x0000029AE6F69E20>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 651, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000029ACAB73740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 618, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000029ACAAB4F40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 1951, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000029ACA9EB1A0>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000029AE79631C0>()>
+> File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000029AE79631C0>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000029AE79631C0>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000029AE79631C0>()>
+
+  File "F:\my_projects\the_likes\backend\src\services\_prepare_db.py", line 181, in prepare_db
+    input_data = read_basic_data_from_file()
+                 └ <function read_basic_data_from_file at 0x0000029AE6D91080>
+
+  File "F:\my_projects\the_likes\backend\src\services\_prepare_db.py", line 51, in read_basic_data_from_file
+    attitudes_sheet, values_sheet, aspects_sheet = check_file_data_consistency(
+                                                   └ <function check_file_data_consistency at 0x0000029AE6D90FE0>
+
+  File "F:\my_projects\the_likes\backend\src\services\_prepare_db.py", line 19, in check_file_data_consistency
+    assert set(CFG.SUPPORTED_LANGUAGES) == set(values_sheet.columns), (
+               │                               │            └ <pandas._libs.properties.AxisProperty object at 0x0000029AE775FC40>
+               │                               └            en            ru
+               │                                 0    Pleasure  Удовольствие
+               │                                 1     Comfort       Комфорт
+               │                                 2   Happiness       Счастье
+               │                                 3        Love...
+               └ <class 'src.config.config.CFG'>
+
+AttributeError: type object 'CFG' has no attribute 'SUPPORTED_LANGUAGES'
+2026-01-25 12:16:27 | ERROR | asyncio.events:_run:84 | An error has been caught in function '_run', process 'MainProcess' (11960), thread 'MainThread' (16752):
+Traceback (most recent call last):
+
+  File "F:\my_projects\the_likes\backend\prepare.py", line 45, in <module>
+    app()
+    └ <typer.main.Typer object at 0x000002D6AE301610>
+
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\main.py", line 310, in __call__
+    return get_command(self)(*args, **kwargs)
+           │           │      │       └ {}
+           │           │      └ ()
+           │           └ <typer.main.Typer object at 0x000002D6AE301610>
+           └ <function get_command at 0x000002D6B034F240>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           │    │     │       └ {}
+           │    │     └ ()
+           │    └ <function TyperGroup.main at 0x000002D6B034ED40>
+           └ <TyperGroup >
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\core.py", line 803, in main
+    return _main(
+           └ <function _main at 0x000002D6B034D9E0>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\core.py", line 192, in _main
+    rv = self.invoke(ctx)
+         │    │      └ <click.core.Context object at 0x000002D6CCB3AE10>
+         │    └ <function Group.invoke at 0x000002D6B0230C20>
+         └ <TyperGroup >
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+           │               │       │       │      └ <click.core.Context object at 0x000002D6CC9732F0>
+           │               │       │       └ <function Command.invoke at 0x000002D6B02279C0>
+           │               │       └ <TyperCommand data>
+           │               └ <click.core.Context object at 0x000002D6CC9732F0>
+           └ <function Group.invoke.<locals>._process_result at 0x000002D6CCD13880>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           │   │      │    │           │   └ {}
+           │   │      │    │           └ <click.core.Context object at 0x000002D6CC9732F0>
+           │   │      │    └ <function data at 0x000002D6CCD13420>
+           │   │      └ <TyperCommand data>
+           │   └ <function Context.invoke at 0x000002D6B0226C00>
+           └ <click.core.Context object at 0x000002D6CC9732F0>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           │         │       └ {}
+           │         └ ()
+           └ <function data at 0x000002D6CCD13420>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\main.py", line 691, in wrapper
+    return callback(**use_params)
+           │          └ {}
+           └ <function data at 0x000002D6CCD131A0>
+
+  File "F:\my_projects\the_likes\backend\prepare.py", line 24, in data
+    asyncio.run(prep_srv.prepare_db())
+    │       │   │        └ <function prepare_db at 0x000002D6CCD12DE0>
+    │       │   └ <module 'src.services._prepare_db' from 'F:\\my_projects\\the_likes\\backend\\src\\services\\_prepare_db.py'>
+    │       └ <function run at 0x000002D6AFBDA3E0>
+    └ <module 'asyncio' from 'C:\\Users\\1\\AppData\\Roaming\\uv\\python\\cpython-3.12.0-windows-x86_64-none\\Lib\\asyncio\\__init_...
+
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object prepare_db at 0x000002D6CCD1C140>
+           │      └ <function Runner.run at 0x000002D6AFCA5620>
+           └ <asyncio.runners.Runner object at 0x000002D6CCC60F80>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<prepare_db() running at F:\my_projects\the_likes\backend\.venv\Lib\site-packages\loguru\_lo...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x000002D6AFC971A0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x000002D6CCC60F80>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 651, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x000002D6AFD63740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 618, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x000002D6AFCA4F40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 1951, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000002D6AFBDB1A0>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002D6CC164490>()>
+> File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002D6CC164490>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002D6CC164490>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002D6CC164490>()>
+
+  File "F:\my_projects\the_likes\backend\src\services\_prepare_db.py", line 184, in prepare_db
+    input_data = read_basic_data_from_file()
+                 └ <function read_basic_data_from_file at 0x000002D6CC030FE0>
+
+  File "F:\my_projects\the_likes\backend\src\services\_prepare_db.py", line 54, in read_basic_data_from_file
+    attitudes_sheet, values_sheet, aspects_sheet = check_file_data_consistency(
+                                                   └ <function check_file_data_consistency at 0x000002D6CC031080>
+
+  File "F:\my_projects\the_likes\backend\src\services\_prepare_db.py", line 22, in check_file_data_consistency
+    assert set(CFG.SUPPORTED_LANGUAGES) == set(values_sheet.columns), (
+               │                               │            └ <pandas._libs.properties.AxisProperty object at 0x000002D6CC93D540>
+               │                               └            en            ru
+               │                                 0    Pleasure  Удовольствие
+               │                                 1     Comfort       Комфорт
+               │                                 2   Happiness       Счастье
+               │                                 3        Love...
+               └ <class 'src.config.config.CFG'>
+
+AttributeError: type object 'CFG' has no attribute 'SUPPORTED_LANGUAGES'
+2026-01-25 12:18:45 | INFO | src.services._prepare_db:add_basic_data_to_db:134 | Basic data added to 
+2026-01-25 12:18:45 | ERROR | asyncio.events:_run:84 | An error has been caught in function '_run', process 'MainProcess' (14244), thread 'MainThread' (11972):
+Traceback (most recent call last):
+
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                      │                └ <function AsyncAdapt_asyncpg_connection._prepare at 0x0000017F89135D00>
+                                      └ <AdaptedConnection <asyncpg.connection.Connection object at 0x0000017FA317DB80>>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                          │    └ <member '_connection' of 'AdaptedConnection' objects>
+                          └ <AdaptedConnection <asyncpg.connection.Connection object at 0x0000017FA317DB80>>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\asyncpg\connection.py", line 635, in prepare
+    return await self._prepare(
+                 │    └ <function Connection._prepare at 0x0000017FA1F720C0>
+                 └ <asyncpg.connection.Connection object at 0x0000017FA317DB80>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\asyncpg\connection.py", line 653, in _prepare
+    stmt = await self._get_statement(
+                 │    └ <function Connection._get_statement at 0x0000017FA1F71DA0>
+                 └ <asyncpg.connection.Connection object at 0x0000017FA317DB80>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\asyncpg\connection.py", line 432, in _get_statement
+    statement = await self._protocol.prepare(
+                      │    └ <member '_protocol' of 'Connection' objects>
+                      └ <asyncpg.connection.Connection object at 0x0000017FA317DB80>
+  File "asyncpg\\protocol\\protocol.pyx", line 165, in prepare
+    return await waiter
+
+asyncpg.exceptions.PostgresSyntaxError: syntax error at or near ")"
+
+
+The above exception was the direct cause of the following exception:
+
+
+Traceback (most recent call last):
+
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    │    │       └ <function DefaultDialect.do_execute at 0x0000017F88BE2020>
+    │    └ <sqlalchemy.dialects.postgresql.asyncpg.PGDialect_asyncpg object at 0x0000017FA1E809E0>
+    └ <sqlalchemy.engine.base.Connection object at 0x0000017FA2DEC260>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    │      │       │          └ ()
+    │      │       └ "\nCREATE MATERIALIZED VIEW recommendations AS\nWITH\nnow_cte AS (\n    SELECT CURRENT_TIMESTAMP as now\n),\nallowed_for_sear...
+    │      └ <function AsyncAdapt_asyncpg_cursor.execute at 0x0000017F89135080>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           │       │             └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x0000017FA2FE4C10>
+           │       └ <attribute 'parent' of 'greenlet.greenlet' objects>
+           └ <_AsyncIoGreenlet object at 0x0000017FA3063FC0 (otid=0x0000017F8752DC80) dead>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+                  └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x0000017FA2FE4C10>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    │    └ <function AsyncAdapt_asyncpg_cursor._handle_exception at 0x0000017F89134EA0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    │    │                                   └ PostgresSyntaxError('syntax error at or near ")"')
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+          │                     └ PostgresSyntaxError('syntax error at or near ")"')
+          └ ProgrammingError('<class \'asyncpg.exceptions.PostgresSyntaxError\'>: syntax error at or near ")"')
+
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.PostgresSyntaxError'>: syntax error at or near ")"
+
+
+The above exception was the direct cause of the following exception:
+
+
+Traceback (most recent call last):
+
+  File "F:\my_projects\the_likes\backend\prepare.py", line 45, in <module>
+    app()
+    └ <typer.main.Typer object at 0x0000017F842B1610>
+
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\main.py", line 310, in __call__
+    return get_command(self)(*args, **kwargs)
+           │           │      │       └ {}
+           │           │      └ ()
+           │           └ <typer.main.Typer object at 0x0000017F842B1610>
+           └ <function get_command at 0x0000017F8632F240>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           │    │     │       └ {}
+           │    │     └ ()
+           │    └ <function TyperGroup.main at 0x0000017F8632ED40>
+           └ <TyperGroup >
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\core.py", line 803, in main
+    return _main(
+           └ <function _main at 0x0000017F8632D9E0>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\core.py", line 192, in _main
+    rv = self.invoke(ctx)
+         │    │      └ <click.core.Context object at 0x0000017FA2BC53D0>
+         │    └ <function Group.invoke at 0x0000017F86230C20>
+         └ <TyperGroup >
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+           │               │       │       │      └ <click.core.Context object at 0x0000017FA2990C50>
+           │               │       │       └ <function Command.invoke at 0x0000017F862279C0>
+           │               │       └ <TyperCommand data>
+           │               └ <click.core.Context object at 0x0000017FA2990C50>
+           └ <function Group.invoke.<locals>._process_result at 0x0000017FA2CB3880>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           │   │      │    │           │   └ {}
+           │   │      │    │           └ <click.core.Context object at 0x0000017FA2990C50>
+           │   │      │    └ <function data at 0x0000017FA2CB3420>
+           │   │      └ <TyperCommand data>
+           │   └ <function Context.invoke at 0x0000017F86226C00>
+           └ <click.core.Context object at 0x0000017FA2990C50>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           │         │       └ {}
+           │         └ ()
+           └ <function data at 0x0000017FA2CB3420>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\typer\main.py", line 691, in wrapper
+    return callback(**use_params)
+           │          └ {}
+           └ <function data at 0x0000017FA2CB31A0>
+
+  File "F:\my_projects\the_likes\backend\prepare.py", line 24, in data
+    asyncio.run(prep_srv.prepare_db())
+    │       │   │        └ <function prepare_db at 0x0000017FA2CB2DE0>
+    │       │   └ <module 'src.services._prepare_db' from 'F:\\my_projects\\the_likes\\backend\\src\\services\\_prepare_db.py'>
+    │       └ <function run at 0x0000017F85BDA3E0>
+    └ <module 'asyncio' from 'C:\\Users\\1\\AppData\\Roaming\\uv\\python\\cpython-3.12.0-windows-x86_64-none\\Lib\\asyncio\\__init_...
+
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object prepare_db at 0x0000017FA2CBC140>
+           │      └ <function Runner.run at 0x0000017F85CA5620>
+           └ <asyncio.runners.Runner object at 0x0000017FA28517C0>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<prepare_db() running at F:\my_projects\the_likes\backend\.venv\Lib\site-packages\loguru\_lo...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x0000017F85C971A0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x0000017FA28517C0>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 651, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000017F85D63740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 618, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000017F85CA4F40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\base_events.py", line 1951, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000017F85BDB1A0>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "C:\Users\1\AppData\Roaming\uv\python\cpython-3.12.0-windows-x86_64-none\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+
+  File "F:\my_projects\the_likes\backend\src\services\_prepare_db.py", line 196, in prepare_db
+    await crud.prepare_funcs_and_matviews(asession=asession)
+          │    │                                   └ <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x0000017FA2E10740>
+          │    └ <function prepare_funcs_and_matviews at 0x0000017F9F8AA660>
+          └ <module 'src.crud' from 'F:\\my_projects\\the_likes\\backend\\src\\crud\\__init__.py'>
+
+  File "F:\my_projects\the_likes\backend\src\crud\_prepare_db.py", line 133, in prepare_funcs_and_matviews
+    await asession.execute(text(query))
+          │        │       │    └ "\nCREATE MATERIALIZED VIEW recommendations AS\nWITH\nnow_cte AS (\n    SELECT CURRENT_TIMESTAMP as now\n),\nallowed_for_sear...
+          │        │       └ <function text at 0x0000017F87B03A60>
+          │        └ <function AsyncSession.execute at 0x0000017F88FD80E0>
+          └ <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x0000017FA2E10740>
+
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 449, in execute
+    result = await greenlet_spawn(
+                   └ <function greenlet_spawn at 0x0000017F8756F240>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             │       │      │   └ <built-in function exc_info>
+             │       │      └ <module 'sys' (built-in)>
+             │       └ <method 'throw' of 'greenlet.greenlet' objects>
+             └ <_AsyncIoGreenlet object at 0x0000017FA3063FC0 (otid=0x0000017F8752DC80) dead>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           │    └ <function Session._execute_internal at 0x0000017F88EFA660>
+           └ <sqlalchemy.orm.session.Session object at 0x0000017FA2DD5070>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2258, in _execute_internal
+    result = conn.execute(
+             │    └ <function Connection.execute at 0x0000017F87B72660>
+             └ <sqlalchemy.engine.base.Connection object at 0x0000017FA2DEC260>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+           └ <bound method ClauseElement._execute_on_connection of <sqlalchemy.sql.elements.TextClause object at 0x0000017FA3616000>>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           │          └ <function Connection._execute_clauseelement at 0x0000017F87B72980>
+           └ <sqlalchemy.engine.base.Connection object at 0x0000017FA2DEC260>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          │    └ <function Connection._execute_context at 0x0000017F87B72B60>
+          └ <sqlalchemy.engine.base.Connection object at 0x0000017FA2DEC260>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           │    └ <function Connection._exec_single_context at 0x0000017F87B72C00>
+           └ <sqlalchemy.engine.base.Connection object at 0x0000017FA2DEC260>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    │    └ <function Connection._handle_dbapi_exception at 0x0000017F87B72E80>
+    └ <sqlalchemy.engine.base.Connection object at 0x0000017FA2DEC260>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+          │                    │              │                 └ ProgrammingError('<class \'asyncpg.exceptions.PostgresSyntaxError\'>: syntax error at or near ")"')
+          │                    │              └ (<class 'sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError'>, ProgrammingError('<class \'async...
+          │                    └ <method 'with_traceback' of 'BaseException' objects>
+          └ ProgrammingError('(sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class \'asyncpg.exceptions.PostgresSyntaxError\'...
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    │    │       └ <function DefaultDialect.do_execute at 0x0000017F88BE2020>
+    │    └ <sqlalchemy.dialects.postgresql.asyncpg.PGDialect_asyncpg object at 0x0000017FA1E809E0>
+    └ <sqlalchemy.engine.base.Connection object at 0x0000017FA2DEC260>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    │      │       │          └ ()
+    │      │       └ "\nCREATE MATERIALIZED VIEW recommendations AS\nWITH\nnow_cte AS (\n    SELECT CURRENT_TIMESTAMP as now\n),\nallowed_for_sear...
+    │      └ <function AsyncAdapt_asyncpg_cursor.execute at 0x0000017F89135080>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           │       │             └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x0000017FA2FE4C10>
+           │       └ <attribute 'parent' of 'greenlet.greenlet' objects>
+           └ <_AsyncIoGreenlet object at 0x0000017FA3063FC0 (otid=0x0000017F8752DC80) dead>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+                  └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x0000017FA2FE4C10>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    │    └ <function AsyncAdapt_asyncpg_cursor._handle_exception at 0x0000017F89134EA0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    │    │                                   └ PostgresSyntaxError('syntax error at or near ")"')
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x0000017FA3599A20>
+  File "F:\my_projects\the_likes\backend\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+          │                     └ PostgresSyntaxError('syntax error at or near ")"')
+          └ ProgrammingError('<class \'asyncpg.exceptions.PostgresSyntaxError\'>: syntax error at or near ")"')
+
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.PostgresSyntaxError'>: syntax error at or near ")"
+[SQL: 
+CREATE MATERIALIZED VIEW recommendations AS
+WITH
+now_cte AS (
+    SELECT CURRENT_TIMESTAMP as now
+),
+allowed_for_search AS (
+    SELECT user_id, search_allowed_status, values_created, values_changes
+    FROM userdynamics
+    WHERE search_allowed_status IN (
+         --'ok',
+        'ok',
+        --'suspended'
+        'suspended'
+    )
+),
+recommendable_profiles AS (
+    SELECT
+        mp.*,
+        p.name,
+        p.location,
+        p.languages,
+        afs.search_allowed_status,
+        public.calculate_stability(
+            afs.values_created,
+            (SELECT now FROM now_cte),
+            afs.values_changes
+            ) as stability
+    FROM moral_profiles mp
+    JOIN profiles p ON mp.profile_id = p.id AND p.recommend_me
+    JOIN users u ON mp.user_id = u.id AND u.is_active
+    JOIN allowed_for_search afs ON mp.user_id = afs.user_id
+),
+profile_pairs AS (
+    SELECT
+        p1.profile_id as p_id_1,
+        p2.profile_id as p_id_2,
+        p1.user_id as u_id_1,
+        p2.user_id as u_id_2,
+        p1.name as name_1,
+        p2.name as name_2,
+        p1.distance_limit as distance_limit_1,
+        p2.distance_limit as distance_limit_2,
+        public.search_status_sort_priority(p1.search_allowed_status) +
+        public.search_status_sort_priority(p2.search_allowed_status)
+            as search_status_priority,
+        LEAST(p1.stability, p2.stability) as stability_modifier,
+        p1.attitude_id as attitude_1,
+        p2.attitude_id as attitude_2,
+        p1.best_uv_ids as best_1,
+        p2.best_uv_ids as best_2,
+        p1.worst_uv_ids as worst_1,
+        p2.worst_uv_ids as worst_2,
+        p1.good_uv_ids as good_1,
+        p2.good_uv_ids as good_2,
+        p1.bad_uv_ids as bad_1,
+        p2.bad_uv_ids as bad_2,
+        p1.neutral_uv_ids as neutral_1,
+        p2.neutral_uv_ids as neutral_2,
+
+        CASE
+            WHEN
+                p1.distance_limit IS NOT NULL
+                OR p2.distance_limit IS NOT NULL
+            THEN ST_Distance(p1.location, p2.location) / 1000.0
+            )
+            ELSE
+                NULL
+        END as distance
+
+        FROM recommendable_profiles p1
+        JOIN recommendable_profiles p2 ON p1.profile_id < p2.profile_id
+        WHERE
+            p1.attitude_id = p2.attitude_id
+            AND p1.languages && p2.languages
+            AND public.array_similarity(
+                p1.best_uv_ids::integer[], p2.best_uv_ids::integer[]
+                ) = 1
+),
+filterd_pairs AS (
+    SELECT
+        u_id_1,
+        u_id_2,
+        ARRAY[u_id_1, u_id_2] as user_ids,
+        ARRAY[p_id_1, p_id_2] as profile_ids,
+        ARRAY[name_1, name_2] as profile_names,
+
+        public.compare_moral_profiles(
+            attitude_1, best_1, worst_1, good_1, bad_1, neutral_1,
+            attitude_2, best_2, worst_2, good_2, bad_2, neutral_2
+        )
+            as similarity,
+        distance,
+        search_status_priority,
+        stability_modifier
+
+    FROM profile_pairs
+    WHERE
+        (distance IS NULL)
+        OR
+        (
+            (distance <= COALESCE(
+                --distance_limit_1, 20037.509)
+                distance_limit_1, 20037.509)
+                )
+            AND
+            (distance <= COALESCE(
+                --distance_limit_1, 20037.509)
+                distance_limit_1, 20037.509)
+                )
+        )
+)
+
+SELECT
+    user_ids,
+    profile_ids,
+    profile_names,
+    similarity,
+    distance,
+    search_status_priority,
+    stability_modifier
+
+FROM filterd_pairs fp
+
+WHERE NOT EXISTS (
+    SELECT 1 FROM contacts c
+    WHERE c.my_user_id = fp.u_id_1 AND c.other_user_id = fp.u_id_2
+);
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-01-25 12:22:37 | INFO | src.services._prepare_db:compare_db_to_file_data:170 | Data in DB matches input.
+2026-01-25 12:22:37 | INFO | src.services._prepare_db:prepare_db:198 | DB prepared.
+2026-01-25 12:22:55 | INFO | src.services._prepare_db:add_superuser:215 | Superuser created.
+2026-01-25 12:49:16 | INFO | src.services._prepare_db:add_superuser:215 | Superuser created.
+2026-01-25 12:51:00 | INFO | src.tasks:send_email:22 | TO: randomguy@email.com
+SUBJECT: Welcome to The Likes!
+CONTENT: To verify your email copy this code to our page and click "Confirm email".
+
+624726

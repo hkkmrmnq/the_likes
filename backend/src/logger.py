@@ -2,7 +2,7 @@ import sys
 
 from loguru import logger
 
-from src.config.config import CFG
+from src.config import CFG
 
 logger.remove()
 

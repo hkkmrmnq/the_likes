@@ -10,12 +10,12 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from src.config import constants as CNST
-from src.config.config import CFG
+from src.config import CFG, CNST
 from src.context import get_current_language
-from src.db.base import BaseWithIntPK
-from src.exceptions.exceptions import ServerError
+from src.exceptions import exc
 from src.logger import logger
+
+from .base import BaseWithIntPK
 
 if TYPE_CHECKING:
     from .personal_values import (
@@ -42,7 +42,7 @@ def _translate_attribute(self: 'Value | Aspect | Attitude'):
     if current_frame is None or current_frame.f_back is None:
         msg = 'current_frame / current_frame.f_back is None'
         logger.error(msg)
-        raise ServerError(msg)
+        raise exc.ServerError(msg)
     lan_code = get_current_language()
     attr_name = current_frame.f_back.f_code.co_name
     if lan_code != CFG.DEFAULT_LANGUAGE and lan_code in CFG.TRANSLATE_TO:

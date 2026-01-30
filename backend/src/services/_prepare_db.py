@@ -2,13 +2,11 @@ from getpass import getpass
 
 from pandas import DataFrame, read_excel
 
-from src import crud
+from src import crud, db
+from src import dependencies as dp
+from src import services as srv
 from src.config.config import CFG
-from src.db.core import Attitude
-from src.db.personal_values import UniqueValue, Value
 from src.logger import logger
-from src.services.user_manager import _create_user
-from src.sessions import asession_factory
 
 
 def check_file_data_consistency(
@@ -92,7 +90,7 @@ def read_basic_data_from_file(*, path: str = CFG.BASIC_DATA_PATH) -> dict:
 
 
 async def clear_db() -> None:
-    async with asession_factory() as asession:
+    async with dp.asession_factory() as asession:
         some_user = await crud.read_first_user(asession=asession)
         if some_user is not None:
             answer = 'dunno'
@@ -111,7 +109,7 @@ async def add_basic_data_to_db(
     *,
     input_data: dict,
 ) -> None:
-    async with asession_factory() as asession:
+    async with dp.asession_factory() as asession:
         async with asession.begin():
             await crud.create_attitudes(
                 attitudes_data=input_data['attitudes'], asession=asession
@@ -137,9 +135,9 @@ async def add_basic_data_to_db(
 
 def compare_db_to_file_data(
     *,
-    db_definitions: list[Value],
-    db_attitudes: list[Attitude],
-    db_u_v_s: list[UniqueValue],
+    db_definitions: list[db.Value],
+    db_attitudes: list[db.Attitude],
+    db_u_v_s: list[db.UniqueValue],
     input_data: dict,
 ):
     assert len(db_attitudes) == len(input_data['attitudes']), (
@@ -180,7 +178,7 @@ async def prepare_db():
     else - compares file data to
     """
     input_data = read_basic_data_from_file()
-    async with asession_factory() as asession:
+    async with dp.asession_factory() as asession:
         definitions = await crud.read_values(asession=asession)
         attitudes = await crud.read_attitudes(asession=asession)
         u_v_s = await crud.read_unique_values(asession=asession)
@@ -193,7 +191,7 @@ async def prepare_db():
             db_u_v_s=u_v_s,
             input_data=input_data,
         )
-    async with asession_factory() as asession:
+    async with dp.asession_factory() as asession:
         await crud.prepare_funcs_and_matviews(asession=asession)
         await asession.commit()
     logger.info('DB prepared.')
@@ -204,12 +202,9 @@ async def add_superuser():
     password1 = getpass('Password: ')
     password2 = getpass('Repeat password: ')
     assert password1 == password2, 'Typo in password?'
-    async with asession_factory() as asession:
-        await _create_user(
-            email=email,
-            password=password1,
-            is_superuser=True,
-            asession=asession,
+    async with dp.asession_factory() as asession:
+        await srv.user.create_superuser(
+            email=email, password=password1, asession=asession
         )
         await asession.commit()
     logger.info('Superuser created.')

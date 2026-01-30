@@ -1,6 +1,5 @@
 from uuid import UUID
 
-from fastapi_users import schemas as fu_schemas
 from pydantic import (
     BaseModel,
     EmailStr,
@@ -11,18 +10,15 @@ from pydantic import (
 )
 from pydantic_extra_types.coordinate import Latitude, Longitude
 
-from src.config import constants as CNST
-from src.config.config import CFG
+from src.config import CFG, CNST
 
 
-class UserRead(fu_schemas.BaseUser[UUID]):
+class UserRead(BaseModel):
     id: UUID
     email: str
 
-    model_config = {'arbitrary_types_allowed': True}
 
-
-class UserCreate(fu_schemas.BaseUserCreate):
+class UserCreate(BaseModel):
     email: EmailStr = Field(
         max_length=CNST.EMAIL_MAX_LENGTH, examples=['johndoe@example.com']
     )
@@ -33,7 +29,7 @@ class UserCreate(fu_schemas.BaseUserCreate):
     )
 
 
-class UserUpdate(fu_schemas.BaseUserUpdate):
+class UserUpdate(BaseModel):
     email: EmailStr | None = Field(
         max_length=CNST.EMAIL_MAX_LENGTH,
         examples=['johndoe@example.com'],
@@ -48,6 +44,7 @@ class UserUpdate(fu_schemas.BaseUserUpdate):
 
 
 class ProfileRead(BaseModel):
+    user_id: UUID
     name: str | None
     languages: list[str]
     distance_limit: float | None

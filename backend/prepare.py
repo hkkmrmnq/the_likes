@@ -2,9 +2,9 @@ import asyncio
 
 import typer
 
+from src.dependencies import asession_factory
 from src.services import _prepare_db as prep_srv
-from src.services._utils import generate_random_personal_values
-from src.sessions import asession_factory
+from src.services.utils.other import generate_random_personal_values
 
 app = typer.Typer()
 

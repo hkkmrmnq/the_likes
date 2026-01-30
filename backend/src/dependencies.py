@@ -1,61 +1,29 @@
-from typing import Any
+from typing import Annotated, Any, AsyncGenerator
+from uuid import UUID
 
-from fastapi import Depends
-from fastapi_users.authentication import (
-    AuthenticationBackend,
-    BearerTransport,
-    JWTStrategy,
-)
-from fastapi_users.authentication.authenticator import Authenticator
+from fastapi import Depends, HTTPException, Query, WebSocketException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.config import CFG
-from src.db.user_and_profile import User
-from src.exceptions.descriptions import COMMON_RESPONSES, ErrorResponse
-from src.services.user_manager import FixedSQLAlchemyUserDatabase, UserManager
-from src.sessions import get_async_session
-
-bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
-
-
-def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(
-        secret=CFG.JWT_SECRET,
-        lifetime_seconds=CFG.JWT_ACCESS_LIFETIME,
-    )
-
-
-auth_backend = AuthenticationBackend(
-    name='jwt', transport=bearer_transport, get_strategy=get_jwt_strategy
+from src import crud, db
+from src import services as srv
+from src.config import ENM
+from src.logger import logger
+from src.schemas.descriptions import (
+    COMMON_RESPONSES,
+    ErrorResponseSchema,
 )
+from src.sessions import asession_factory, sync_session_factory
 
 
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield FixedSQLAlchemyUserDatabase(session, User)
+def get_sync_session():
+    with sync_session_factory() as session:
+        yield session
 
 
-async def get_user_manager(user_db=Depends(get_user_db)):
-    yield UserManager(user_db)
-
-
-authenticatior = Authenticator(
-    backends=[auth_backend], get_user_manager=get_user_manager
-)
-
-current_user = authenticatior.current_user()
-current_active_verified_user = authenticatior.current_user(
-    active=True, verified=True
-)
-
-
-# 500: {
-#     'model': ErrorResponse,
-#     'content': {
-#         'application/json': {
-#             'example': {'detail': extra_responses[k]}
-#         }
-#     },
-# }
+async def get_async_session() -> AsyncGenerator:
+    async with asession_factory() as session:
+        yield session
 
 
 def with_common_responses(
@@ -70,7 +38,7 @@ def with_common_responses(
     extra_responses = {}
     for er_key in extra_responses_to_iclude:
         extra_responses[er_key] = {
-            'model': ErrorResponse,
+            'model': ErrorResponseSchema,
             'content': {
                 'application/json': {
                     'example': {'detail': extra_responses_to_iclude[er_key]}
@@ -79,3 +47,91 @@ def with_common_responses(
         }
 
     return {**common_responces, **extra_responses}
+
+
+security = HTTPBearer()
+
+
+async def get_current_user_with_asession(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    asession: AsyncSession = Depends(get_async_session),
+) -> tuple[db.User, AsyncSession]:
+    token = credentials.credentials
+    result = srv.validate_token(token)
+    if result.detail == ENM.AuthResultDetail.ERROR:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid token.',
+        )
+    elif result.detail == ENM.AuthResultDetail.EXPIRED:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Expired token.',
+        )
+    user = await crud.read_user_by_id(
+        user_id=UUID(result.subject), asession=asession
+    )
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='User not found',
+        )
+    return user, asession
+
+
+async def get_current_active_and_virified_user_with_asession(
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        get_current_user_with_asession
+    ),
+) -> tuple[db.User, AsyncSession]:
+    user, asession = user_and_asession
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='User deactivated.',
+        )
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Email is not verified. Try request email verification.',
+        )
+    return user, asession
+
+
+async def get_current_active_and_virified_websocket_user(
+    token: Annotated[str | None, Query()] = None,
+) -> db.User:
+    if token is None:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason='Access token not provided.',
+        )
+    result = srv.validate_token(token)
+    if result.detail == ENM.AuthResultDetail.ERROR:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason='Invalid authentication credentials.',
+        )
+    if result == ENM.AuthResultDetail.EXPIRED:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION, reason='Expired token.'
+        )
+    async with asession_factory() as asession:
+        user = await crud.read_user_by_id(
+            user_id=UUID(result.subject), asession=asession
+        )
+    if user is None:
+        logger.error(f'User ({result.subject=}) not found.')
+        raise WebSocketException(
+            code=status.WS_1011_INTERNAL_ERROR, reason='User not found.'
+        )
+    if not user.is_active:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION, reason='Inactive user.'
+        )
+    if not user.is_verified:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason='Email is not verified.',
+        )
+    return user

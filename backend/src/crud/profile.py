@@ -8,22 +8,19 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, contains_eager
 
+from src import db
 from src import schemas as sch
-from src.config.config import CFG
-from src.config.enums import SearchAllowedStatus
+from src.config import CFG, ENM
 from src.crud import sql
-from src.db.core import Attitude
-from src.db.translations import AttitudeTranslation
-from src.db.user_and_profile import Profile, UserDynamic
-from src.exceptions.exceptions import ServerError
+from src.exceptions import exc
 
 
-async def create_profile(
+def create_profile(
     *,
-    user_id: UUID,
+    user: db.User,
     asession: AsyncSession,
 ) -> None:
-    asession.add(Profile(user_id=user_id))
+    asession.add(db.Profile(user=user))
 
 
 async def read_profile_by_user_id(
@@ -31,35 +28,35 @@ async def read_profile_by_user_id(
     user_id: UUID,
     user_language: str = CFG.DEFAULT_LANGUAGE,
     asession: AsyncSession,
-) -> Profile:
+) -> db.Profile:
     stmt = (
-        select(Profile)
-        .outerjoin(Profile.attitude)
-        .where(Profile.user_id == user_id)
+        select(db.Profile)
+        .outerjoin(db.Profile.attitude)
+        .where(db.Profile.user_id == user_id)
     )
     if user_language in CFG.TRANSLATE_TO:
         stmt = (
-            stmt.outerjoin(Attitude.translations)
+            stmt.outerjoin(db.Attitude.translations)
             .where(
-                (AttitudeTranslation.language_code == user_language)
-                | (AttitudeTranslation.language_code.is_(None))
+                (db.AttitudeTranslation.language_code == user_language)
+                | (db.AttitudeTranslation.language_code.is_(None))
             )
             .where(
-                (AttitudeTranslation.attitude_id == Attitude.id)
-                | (Attitude.id.is_(None))
+                (db.AttitudeTranslation.attitude_id == db.Attitude.id)
+                | (db.Attitude.id.is_(None))
             )
             .options(
-                contains_eager(Profile.attitude).contains_eager(
-                    Attitude.translations
+                contains_eager(db.Profile.attitude).contains_eager(
+                    db.Attitude.translations
                 )
             )
         )
     else:
-        stmt = stmt.options(contains_eager(Profile.attitude))
+        stmt = stmt.options(contains_eager(db.Profile.attitude))
 
     profile = await asession.scalar(stmt)
     if profile is None:
-        raise ServerError(f'Profile not found for user_id {user_id}')
+        raise exc.ServerError(f'Profile not found for user_id {user_id}')
     return profile
 
 
@@ -69,18 +66,20 @@ async def update_profile(
     data: dict,
     asession: AsyncSession,
 ) -> None:
-    stmt = update(Profile).where(Profile.user_id == user_id).values(**data)
+    stmt = (
+        update(db.Profile).where(db.Profile.user_id == user_id).values(**data)
+    )
     await asession.execute(stmt)
 
 
 async def create_user_dynamic(
     *,
     user_id: UUID,
-    search_allowed_status: str = SearchAllowedStatus.OK.value,
+    search_allowed_status: str = ENM.SearchAllowedStatus.OK.value,
     asession: AsyncSession,
 ) -> None:
     asession.add(
-        UserDynamic(
+        db.UserDynamic(
             user_id=user_id, search_allowed_status=search_allowed_status
         )
     )
@@ -90,12 +89,12 @@ async def read_user_dynamics(
     *,
     user_id: UUID,
     asession: AsyncSession,
-) -> UserDynamic:
+) -> db.UserDynamic:
     ud = await asession.scalar(
-        select(UserDynamic).where(UserDynamic.user_id == user_id)
+        select(db.UserDynamic).where(db.UserDynamic.user_id == user_id)
     )
     if ud is None:
-        raise ServerError('UserDynamic not found')
+        raise exc.ServerError('UserDynamic not found')
     return ud
 
 
@@ -103,34 +102,34 @@ async def reset_match_notifications_counter(
     *, user_id: UUID, asession: AsyncSession
 ) -> None:
     await asession.execute(
-        update(UserDynamic)
-        .where(UserDynamic.user_id == user_id)
+        update(db.UserDynamic)
+        .where(db.UserDynamic.user_id == user_id)
         .values(match_notified=0)
     )
 
 
 async def set_to_cooldown(*, user_ids: list[UUID], asession: AsyncSession):
     stmt = (
-        update(UserDynamic)
-        .where(UserDynamic.user_id.in_(user_ids))
+        update(db.UserDynamic)
+        .where(db.UserDynamic.user_id.in_(user_ids))
         .values(
-            search_allowed_status=SearchAllowedStatus.COOLDOWN,
+            search_allowed_status=ENM.SearchAllowedStatus.COOLDOWN,
             last_cooldown_start=datetime.now(),
         )
-        .returning(UserDynamic)
+        .returning(db.UserDynamic)
     )
     return list(await asession.execute(stmt))
 
 
 async def unsuspend(*, user_id: UUID, asession: AsyncSession):
     await asession.execute(
-        update(UserDynamic)
-        .where(UserDynamic.user_id == user_id)
+        update(db.UserDynamic)
+        .where(db.UserDynamic.user_id == user_id)
         .where(
-            UserDynamic.search_allowed_status
-            == SearchAllowedStatus.SUSPENDED.value
+            db.UserDynamic.search_allowed_status
+            == ENM.SearchAllowedStatus.SUSPENDED.value
         )
-        .values({'search_allowed_status': SearchAllowedStatus.OK.value})
+        .values({'search_allowed_status': ENM.SearchAllowedStatus.OK.value})
     )
 
 
@@ -149,32 +148,34 @@ def increment_match_notification_counters(
     *, users_ids: list[UUID], ssession: Session
 ):
     ssession.execute(
-        update(UserDynamic)
-        .where(UserDynamic.user_id.in_(users_ids))
-        .values(match_notified=UserDynamic.match_notified + 1)
+        update(db.UserDynamic)
+        .where(db.UserDynamic.user_id.in_(users_ids))
+        .values(match_notified=db.UserDynamic.match_notified + 1)
     )
 
 
 def end_cooldowns(*, update_after: datetime, ssession: Session):
     ssession.execute(
-        update(UserDynamic)
+        update(db.UserDynamic)
         .where(
-            UserDynamic.search_allowed_status
-            == SearchAllowedStatus.COOLDOWN.value
+            db.UserDynamic.search_allowed_status
+            == ENM.SearchAllowedStatus.COOLDOWN.value
         )
-        .where(UserDynamic.last_cooldown_start < update_after)
-        .values({'search_allowed_status': SearchAllowedStatus.OK.value})
+        .where(db.UserDynamic.last_cooldown_start < update_after)
+        .values({'search_allowed_status': ENM.SearchAllowedStatus.OK.value})
     )
 
 
 def suspend(*, session: Session):
     session.execute(
-        update(UserDynamic)
+        update(db.UserDynamic)
         .where(
-            UserDynamic.match_notified
+            db.UserDynamic.match_notified
             > CFG.IGNORED_MATCH_NOTIFICATIONS_BEFORE_SUSPEND
         )
-        .where(UserDynamic.search_allowed_status == SearchAllowedStatus.OK)
-        .values(search_allowed_status=SearchAllowedStatus.SUSPENDED)
-        .returning(UserDynamic.user_id)
+        .where(
+            db.UserDynamic.search_allowed_status == ENM.SearchAllowedStatus.OK
+        )
+        .values(search_allowed_status=ENM.SearchAllowedStatus.SUSPENDED)
+        .returning(db.UserDynamic.user_id)
     )

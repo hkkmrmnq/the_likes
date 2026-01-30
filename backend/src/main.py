@@ -1,26 +1,13 @@
-import uuid
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_users import FastAPIUsers
+from fastapi.openapi.utils import get_openapi
 
 from src import endpoints
-from src.config.config import CFG
-from src.db.user_and_profile import User
-from src.dependencies import auth_backend, get_user_manager
-from src.exceptions import exceptions as exc
-from src.exceptions import handlers
+from src.config import CFG
+from src.exceptions import exc, handlers
 from src.middleware import LanguageMiddleware
-from src.schemas.user_and_profile import (
-    UserCreate,
-    UserRead,
-    UserUpdate,
-)
 
-fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
-
-
-app = FastAPI(root_path='/api')
+app = FastAPI(root_path='/api')  # root_path='/api'
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,27 +20,9 @@ app.add_middleware(
 app.add_middleware(LanguageMiddleware)
 
 app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix='/auth/jwt',
-    tags=['auth'],
-)
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
+    endpoints.auth_router,
     prefix='/auth',
     tags=['auth'],
-)
-app.include_router(
-    fastapi_users.get_verify_router(UserRead), prefix='/auth', tags=['auth']
-)
-app.include_router(
-    fastapi_users.get_reset_password_router(), prefix='/auth', tags=['auth']
-)
-app.include_router(
-    fastapi_users.get_users_router(
-        UserRead, UserUpdate, requires_verification=True
-    ),
-    prefix='/users',
-    tags=['users'],
 )
 app.include_router(endpoints.core_router, tags=['definitions'])
 app.include_router(endpoints.profiles_router, tags=['profile'])
@@ -62,10 +31,40 @@ app.include_router(endpoints.contacts_router, tags=['contacts'])
 app.include_router(endpoints.messages_router, tags=['messages'])
 app.include_router(endpoints.bootstrap_router, tags=['bootstrap'])
 
-app.add_exception_handler(exc.InactiveUser, handlers.handle_inactive_user)
-app.add_exception_handler(exc.UnverifiedUser, handlers.handle_unverified_user)
-app.add_exception_handler(exc.NotFound, handlers.handle_not_found)
-app.add_exception_handler(exc.AlreadyExists, handlers.handle_already_exists)
 app.add_exception_handler(exc.BadRequest, handlers.handle_bad_request)
-app.add_exception_handler(exc.ServerError, handlers.handle_server_error)
+app.add_exception_handler(exc.UnverifiedUser, handlers.handle_unauthorized)
 app.add_exception_handler(exc.Forbidden, handlers.handle_forbidden)
+app.add_exception_handler(exc.NotFound, handlers.handle_not_found)
+app.add_exception_handler(exc.AlreadyExists, handlers.handle_conflict)
+app.add_exception_handler(exc.NotAcceptable, handlers.handle_unacceptable)
+app.add_exception_handler(exc.ServerError, handlers.handle_server_error)
+
+app.include_router(endpoints.chat_router)
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title='The likes',
+        version='1.0.0',
+        description='Find people with similar core values.',
+        routes=app.routes,
+    )
+    openapi_schema['paths']['/ws'] = {
+        'get': {
+            'summary': 'WebSocket Endpoint',
+            'description': 'Establishes a WebSocket connection.',
+            'responses': {
+                101: {'description': 'Switching Protocols'},
+                200: {'description': 'WebSocket Connection'},
+            },
+            'tags': ['chat'],
+        }
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi_schema = custom_openapi()

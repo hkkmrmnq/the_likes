@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from geoalchemy2 import Geography
+from sqlalchemy import UUID as SA_UUID
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -16,20 +16,33 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.config import constants as CNST
-from src.config.enums import SearchAllowedStatusPG
-from src.db.base import Base, BaseWithIntPK
-from src.db.core import Attitude
+from src.config import CNST, ENM
+
+from .base import Base, BaseWithIntPK
+from .core import Attitude
 
 if TYPE_CHECKING:
     from .contact_n_message import Contact, Message
     from .personal_values import PersonalAspect, PersonalValue
 
 
-class User(SQLAlchemyBaseUserTableUUID, Base):
-    """User model, inherited from FastAPI Users."""
+class User(Base):
+    """User DB model."""
 
-    __tablename__ = 'users'
+    id: Mapped[UUID] = mapped_column(
+        SA_UUID(as_uuid=True), primary_key=True, nullable=False, default=uuid4
+    )
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    is_superuser: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     profile: Mapped['Profile'] = relationship(
         'Profile',
         back_populates='user',
@@ -127,7 +140,9 @@ class UserDynamic(BaseWithIntPK):
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False
     )
-    search_allowed_status: Mapped[str] = mapped_column(SearchAllowedStatusPG)
+    search_allowed_status: Mapped[str] = mapped_column(
+        ENM.SearchAllowedStatusPG
+    )
     last_cooldown_start: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )

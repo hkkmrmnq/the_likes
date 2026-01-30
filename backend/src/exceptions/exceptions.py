@@ -35,6 +35,14 @@ class Forbidden(Error):
         super().__init__(message)
 
 
+class Unauthorized(Error):
+    def __init__(
+        self,
+        message: str = 'Unauthorized.',
+    ):
+        super().__init__(message)
+
+
 class AlreadyExists(Error):
     def __init__(
         self,
@@ -47,6 +55,14 @@ class BadRequest(Error):
     def __init__(
         self,
         message: str = 'Bad request.',
+    ):
+        super().__init__(message)
+
+
+class NotAcceptable(Error):
+    def __init__(
+        self,
+        message: str = "Can't accept.",
     ):
         super().__init__(message)
 

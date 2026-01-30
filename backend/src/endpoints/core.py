@@ -3,14 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
 from src import schemas as sch
-from src.db.user_and_profile import User
-from src.services import core as core_srv
+from src import services as srv
+from src.config import CFG
 
 router = APIRouter()
 
 
 @router.get(
-    '/definitions',
+    CFG.PATHS.PUBLIC.DEFINITIONS,
     responses=dp.with_common_responses(
         common_response_codes=[401, 403],
         extra_responses_to_iclude={500: 'Definitions not found.'},
@@ -18,8 +18,7 @@ router = APIRouter()
 )
 async def get_definitions(
     *,
-    user: User = Depends(dp.current_active_verified_user),
     asession: AsyncSession = Depends(dp.get_async_session),
 ) -> sch.ApiResponse[sch.DefinitionsRead]:
-    definitions_model, msg = await core_srv.read_definitions(asession=asession)
+    definitions_model, msg = await srv.read_definitions(asession=asession)
     return sch.ApiResponse(data=definitions_model, message=msg)

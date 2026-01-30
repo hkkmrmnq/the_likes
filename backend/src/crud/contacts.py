@@ -6,10 +6,8 @@ from sqlalchemy.dialects.postgresql import ARRAY, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import containers as cnt
-from src.config.config import CFG
-from src.config.enums import ContactStatusPG
-from src.crud import sql
-from src.db.contact_n_message import Contact
+from src import crud, db
+from src.config import CFG, ENM
 
 
 async def read_user_recommendations(
@@ -20,7 +18,7 @@ async def read_user_recommendations(
     asession: AsyncSession,
 ) -> list[cnt.ContactRead]:
     results = await asession.execute(
-        sql.read_user_recommendations.bindparams(
+        crud.sql.read_user_recommendations.bindparams(
             bindparam('my_user_id', value=my_user_id, type_=SA_UUID),
             bindparam('other_user_id', value=other_user_id, type_=SA_UUID),
             bindparam('limit_param', value=limit, type_=Integer),
@@ -58,7 +56,7 @@ async def create_contact_pair(
             'status': other_user_contact_status,
         },
     ]
-    stmt = insert(Contact).values(contacts_data)
+    stmt = insert(db.Contact).values(contacts_data)
     await asession.execute(stmt)
 
 
@@ -76,11 +74,11 @@ async def read_contacts(
     statuses: optional, if to filter by status.
     """
     results = await asession.execute(
-        sql.read_contacts.bindparams(
+        crud.sql.read_contacts.bindparams(
             bindparam('my_user_id', value=my_user_id, type_=SA_UUID),
             bindparam('other_user_id', value=other_user_id, type_=SA_UUID),
             bindparam(
-                'statuses', value=statuses, type_=ARRAY(ContactStatusPG)
+                'statuses', value=statuses, type_=ARRAY(ENM.ContactStatusPG)
             ),
         )
     )
@@ -104,11 +102,11 @@ async def update_contact(
     contact: cnt.ContactWrite, asession: AsyncSession
 ) -> None:
     await asession.execute(
-        update(Contact)
-        .where(Contact.my_user_id == contact.my_user_id)
-        .where(Contact.other_user_id == contact.other_user_id)
+        update(db.Contact)
+        .where(db.Contact.my_user_id == contact.my_user_id)
+        .where(db.Contact.other_user_id == contact.other_user_id)
         .values(status=contact.status)
-        .returning(Contact)
+        .returning(db.Contact)
     )
 
 
@@ -124,7 +122,7 @@ async def read_other_profile(
     Returns user_id, name, similarity and distance.
     """
     result = await asession.execute(
-        sql.read_other_profile,
+        crud.sql.read_other_profile,
         {'my_user_id': my_user_id, 'other_user_id': other_user_id},
     )
     r = result.one_or_none()

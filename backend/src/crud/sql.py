@@ -1,8 +1,6 @@
 from sqlalchemy import text
 
-from src.config import constants as CNST
-from src.config.config import CFG
-from src.config.enums import SearchAllowedStatus
+from src.config import CFG, CNST, ENM
 
 prepare_funcs_and_matviews_commands: list[str] = [
     """
@@ -83,8 +81,8 @@ CREATE OR REPLACE FUNCTION public.search_status_sort_priority(
 RETURNS INT AS $$
 BEGIN
     RETURN CASE status
-        WHEN '{SearchAllowedStatus.OK.value}' THEN 0
-        WHEN '{SearchAllowedStatus.SUSPENDED.value}' THEN 1
+        WHEN '{ENM.SearchAllowedStatus.OK.value}' THEN 0
+        WHEN '{ENM.SearchAllowedStatus.SUSPENDED.value}' THEN 1
         ELSE 4
     END;
 END;
@@ -241,9 +239,9 @@ allowed_for_search AS (
     FROM userdynamics
     WHERE search_allowed_status IN (
          --'ok',
-        '{SearchAllowedStatus.OK.value}',
+        '{ENM.SearchAllowedStatus.OK.value}',
         --'suspended'
-        '{SearchAllowedStatus.SUSPENDED.value}'
+        '{ENM.SearchAllowedStatus.SUSPENDED.value}'
     )
 ),
 recommendable_profiles AS (
@@ -295,7 +293,6 @@ profile_pairs AS (
                 p1.distance_limit IS NOT NULL
                 OR p2.distance_limit IS NOT NULL
             THEN ST_Distance(p1.location, p2.location) / 1000.0
-            )
             ELSE
                 NULL
         END as distance
@@ -434,8 +431,8 @@ JOIN userdynamics ON matches.match_user_id = userdynamics.user_id
 JOIN profiles ON matches.match_user_id = profiles.user_id
 WHERE
     userdynamics.search_allowed_status IN (
-        '{SearchAllowedStatus.OK.value}',
-        '{SearchAllowedStatus.SUSPENDED.value}'
+        '{ENM.SearchAllowedStatus.OK.value}',
+        '{ENM.SearchAllowedStatus.SUSPENDED.value}'
     )
     AND profiles.recommend_me;
 """)

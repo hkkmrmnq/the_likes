@@ -1,7 +1,7 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.config.config import CFG
+from src.config import CFG
 from src.context import set_current_language
 
 

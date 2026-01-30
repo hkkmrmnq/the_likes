@@ -2,11 +2,10 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from celery import Celery
+from celery.schedules import crontab
 
 from src import crud
-from src.config import constants as CNST
-from src.config.config import CFG
-from src.crud import sql
+from src.config import CFG, CNST
 from src.logger import logger
 from src.redis_client import redis_client
 from src.sessions import sync_engine, sync_session_factory
@@ -21,7 +20,6 @@ celery_app = Celery(
 def send_email(*, email_to: str, subject: str, content: str) -> None:
     message = f'TO: {email_to}\nSUBJECT: {subject}\nCONTENT: {content}'
     logger.info(f'{message}')
-    redis_client.set(f'email_to_{email_to}', content)
 
 
 #     message = EmailMessage()
@@ -40,14 +38,14 @@ def send_email(*, email_to: str, subject: str, content: str) -> None:
 
 
 @celery_app.task
-def send_email_confirmation_token(*, email: str, token: str):
+def send_email_confirmation_code(*, email: str, code: str):
     send_email(
         email_to=email,
         subject='Welcome to The Likes!',
         content=(
-            'To verify your email copy this token to our page '
-            'and click "Confirm email".\n\n'
-            f'{token}'
+            'To verify your email copy this code to our page '
+            'and click "Confirm email".\n'
+            f'{code}'
         ),
     )
 
@@ -98,7 +96,7 @@ def send_match_notification(*, user_data: dict):
             subject='Match found!',
             content='Similar user found!',
         )
-        redis_client.rpush(
+        redis_client.rpush(  # type: ignore
             CNST.MATCH_NOTIFIED_REDIS_KEY, str(user_data['user_id'])
         )
         redis_client.expire(
@@ -119,10 +117,10 @@ def refresh_materialized_views():
         with sync_engine.connect().execution_options(
             isolation_level='AUTOCOMMIT'
         ) as connection:
-            connection.execute(sql.refresh_moral_profiles)
-            connection.execute(sql.vacuum_moral_profiles)
-            connection.execute(sql.refresh_recommendations)
-            connection.execute(sql.vacuum_recommendations)
+            connection.execute(crud.sql.refresh_moral_profiles)
+            connection.execute(crud.sql.vacuum_moral_profiles)
+            connection.execute(crud.sql.refresh_recommendations)
+            connection.execute(crud.sql.vacuum_recommendations)
 
     except Exception as e:
         raise e
@@ -136,7 +134,9 @@ def update_match_notification_counters():
     Reads 'match found'-notified users ids from redis
     and increments UserDynamic match_notified.
     """
-    str_ids = redis_client.lrange(CNST.MATCH_NOTIFIED_REDIS_KEY, 0, -1)
+    str_ids = redis_client.lrange(  # type: ignore
+        CNST.MATCH_NOTIFIED_REDIS_KEY, 0, -1
+    )
     assert isinstance(str_ids, list)
     user_uuids = [UUID(s) for s in str_ids]
     with sync_session_factory() as session:
@@ -163,7 +163,9 @@ def end_cooldowns():
     Sets back to 'ok' UserDynamic.search_allowed_status if it's 'coooldown'
     and CFG.COOLDOWN_DURATION time passed.
     """
-    update_after = datetime.now() - CFG.COOLDOWN_DURATION
+    update_after = datetime.now() - timedelta(
+        hours=CFG.COOLDOWN_DURATION_HOURS
+    )
     with sync_session_factory() as session:
         crud.end_cooldowns(update_after=update_after, ssession=session)
         session.commit()
@@ -179,25 +181,31 @@ def suspend():
     return 'Suspended.'
 
 
+ntfy_matches_h, ntfy_matches_m = CFG.NOTIFY_MATCHES_AT_HOUR_MIN
+upd_cntrs_h, updt_cntrs_m = CFG.UPDATE_MATCH_NOTIFICATION_COUNTERS_AT_HOUR_MIN
+suspend_h, suspend_m = CFG.SUSPEND_AT_HOUR_MIN
+
 celery_app.conf.beat_schedule = {
     'refresh_materialized_views': {
         'task': 'src.tasks.refresh_materialized_views',
-        'schedule': CFG.REFRESH_MATERIALIZED_VIEWS_EVERY,
+        'schedule': timedelta(
+            hours=CFG.REFRESH_MATERIALIZED_VIEWS_EVERY_HOURS
+        ),
     },
     'notify_matches': {
         'task': 'src.tasks.notify_matches',
-        'schedule': CFG.NOTIFY_MATCHES_AT,
+        'schedule': crontab(hour=ntfy_matches_h, minute=ntfy_matches_m),
     },
     'update_match_notification_counters': {
         'task': 'src.tasks.update_match_notification_counters',
-        'schedule': CFG.UPDATE_MATCH_NOTIFICATION_COUNTERS_AT,
+        'schedule': crontab(hour=upd_cntrs_h, minute=updt_cntrs_m),
     },
     'end_cooldowns': {
         'task': 'src.tasks.end_cooldowns',
-        'schedule': CFG.END_COOLDOWNS_EVERY,
+        'schedule': timedelta(hours=CFG.END_COOLDOWNS_EVERY_HOURS),
     },
     'suspend': {
         'task': 'src.tasks.suspend',
-        'schedule': CFG.SUSPEND_AT,
+        'schedule': crontab(hour=suspend_h, minute=suspend_m),
     },
 }

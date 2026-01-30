@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import select
 
-from src.config import constants as CNST
-from src.db.user_and_profile import User
+from src import db
+from src.config import CNST
 
 
 @pytest.mark.order(1)
@@ -38,7 +38,7 @@ async def test_verification(redis_client, client, fixed_user_credentials):
 @pytest.mark.order(after='test_verification')
 async def test_db_user_is_verified(asession, fixed_user_credentials):
     user = await asession.scalar(
-        select(User).where(User.email == fixed_user_credentials['email'])
+        select(db.User).where(db.User.email == fixed_user_credentials['email'])
     )
     assert user is not None
     assert user.is_verified
@@ -62,7 +62,7 @@ async def test_login(*, client, fixed_user_credentials) -> str:
 @pytest.mark.order(-1)
 async def test_cleanup(asession, redis_client):
     test_users = await asession.scalars(
-        select(User).where(User.email.startswith('testuser'))  # type: ignore
+        select(db.User).where(db.User.email.startswith('testuser'))
     )
     for user in test_users:
         await asession.delete(user)

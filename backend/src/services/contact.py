@@ -2,19 +2,18 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud
+from src import crud, db
 from src import schemas as sch
-from src.config import constants as CNST
-from src.config.enums import ContactStatus, SearchAllowedStatus
-from src.db.user_and_profile import User
-from src.exceptions import exceptions as exc
-from src.services import _utils
-from src.services.profile import personal_values_already_set
+from src.config import CNST, ENM
+from src.exceptions import exc
+from src.services.utils import other
+
+from . import utils as utl
 
 
 async def get_contacts_and_requests(
     *,
-    my_user: User,
+    current_user: db.User,
     asession: AsyncSession,
 ) -> tuple[sch.ActiveContactsAndRequests, str]:
     """
@@ -24,11 +23,11 @@ async def get_contacts_and_requests(
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
     contacts = await crud.read_contacts(
-        my_user_id=my_user.id,
+        my_user_id=current_user.id,
         statuses=[
-            ContactStatus.ONGOING,
-            ContactStatus.REQUESTED_BY_ME,
-            ContactStatus.REQUESTED_BY_OTHER,
+            ENM.ContactStatus.ONGOING,
+            ENM.ContactStatus.REQUESTED_BY_ME,
+            ENM.ContactStatus.REQUESTED_BY_OTHER,
         ],
         asession=asession,
     )
@@ -41,8 +40,8 @@ async def get_contacts_and_requests(
     contact_models = []
     request_models = []
     for contact in contacts:
-        model = _utils.rich_contact_to_schema(contact=contact)
-        if contact.status == ContactStatus.ONGOING:
+        model = other.rich_contact_to_schema(contact=contact)
+        if contact.status == ENM.ContactStatus.ONGOING:
             contact_models.append(model)
         else:
             request_models.append(model)
@@ -53,7 +52,7 @@ async def get_contacts_and_requests(
 
 async def get_rejected_requests(
     *,
-    my_user: User,
+    current_user: db.User,
     asession: AsyncSession,
 ) -> tuple[list[sch.ContactRead], str]:
     """
@@ -61,11 +60,11 @@ async def get_rejected_requests(
     Returns as tuple[ContactRead schema, info message].
     """
     contacts = await crud.read_contacts(
-        my_user_id=my_user.id,
-        statuses=[ContactStatus.REJECTED_BY_ME],
+        my_user_id=current_user.id,
+        statuses=[ENM.ContactStatus.REJECTED_BY_ME],
         asession=asession,
     )
-    c_models = [_utils.rich_contact_to_schema(contact=c) for c in contacts]
+    c_models = [other.rich_contact_to_schema(contact=c) for c in contacts]
     message = (
         'Rejected contact requests.'
         if c_models
@@ -76,7 +75,7 @@ async def get_rejected_requests(
 
 async def get_cancelled_requests(
     *,
-    my_user: User,
+    current_user: db.User,
     asession: AsyncSession,
 ) -> tuple[list[sch.ContactRead], str]:
     """
@@ -84,11 +83,11 @@ async def get_cancelled_requests(
     returns as tuple[ContactRead schema, info message].
     """
     contacts = await crud.read_contacts(
-        my_user_id=my_user.id,
-        statuses=[ContactStatus.CANCELLED_BY_ME],
+        my_user_id=current_user.id,
+        statuses=[ENM.ContactStatus.CANCELLED_BY_ME],
         asession=asession,
     )
-    c_models = [_utils.rich_contact_to_schema(contact=c) for c in contacts]
+    c_models = [other.rich_contact_to_schema(contact=c) for c in contacts]
     message = (
         'Cancelled contact requests.'
         if c_models
@@ -99,39 +98,41 @@ async def get_cancelled_requests(
 
 async def get_blocked_contacts(
     *,
-    my_user: User,
+    current_user: db.User,
     asession: AsyncSession,
 ) -> tuple[list[sch.ContactRead], str]:
     """Reads blocked contacts, returns as ContactRead schema."""
     contacts = await crud.read_contacts(
-        my_user_id=my_user.id,
-        statuses=[ContactStatus.BLOCKED_BY_ME],
+        my_user_id=current_user.id,
+        statuses=[ENM.ContactStatus.BLOCKED_BY_ME],
         asession=asession,
     )
-    c_models = [_utils.rich_contact_to_schema(contact=c) for c in contacts]
+    c_models = [other.rich_contact_to_schema(contact=c) for c in contacts]
     message = 'Blocked contacts.' if c_models else 'No blocked contacts.'
     return c_models, message
 
 
 async def check_for_alike(
-    *, my_user: User, asession: AsyncSession
-) -> tuple[list[sch.RecommendationRead] | None, str]:
+    *, current_user: db.User, asession: AsyncSession
+) -> tuple[list[sch.RecommendationRead], str]:
     """
     Checks search_allowed_status and if personal values are set.
     Then reads recommendations for user.
     """
-    ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
-    if ud.search_allowed_status == SearchAllowedStatus.COOLDOWN:
-        return None, CNST.COOLDOWN_RESPONSE_MESSAGE
-    if not await personal_values_already_set(
-        my_user=my_user, asession=asession
+    ud = await crud.read_user_dynamics(
+        user_id=current_user.id, asession=asession
+    )
+    if ud.search_allowed_status == ENM.SearchAllowedStatus.COOLDOWN:
+        return [], CNST.COOLDOWN_RESPONSE_MESSAGE
+    if not await utl.personal_values_already_set(
+        my_user=current_user, asession=asession
     ):
-        raise exc.NotFound('Personal values have not yet been set.')
-    recommendations = await _utils.get_recommendations(
-        my_user_id=my_user.id, asession=asession
+        return [], 'Personal values have not yet been set.'
+    recommendations = await other.get_recommendations(
+        my_user_id=current_user.id, asession=asession
     )
     contacts = await crud.read_contacts(
-        my_user_id=my_user.id, asession=asession
+        my_user_id=current_user.id, asession=asession
     )
     contacts_user_ids = [c.other_user_id for c in contacts]
     matches = [
@@ -141,9 +142,27 @@ async def check_for_alike(
     return matches, message
 
 
+async def get_conts_n_reqsts_n_recoms(
+    *,
+    current_user: db.User,
+    asession: AsyncSession,
+) -> tuple[sch.ContsNReqstsNRecoms, str]:
+    conts_n_reqsts, _ = await get_contacts_and_requests(
+        current_user=current_user, asession=asession
+    )
+    recoms, msg = await check_for_alike(
+        current_user=current_user, asession=asession
+    )
+    return sch.ContsNReqstsNRecoms(
+        recommendations=recoms,
+        active_contacts=conts_n_reqsts.active_contacts,
+        contact_requests=conts_n_reqsts.contact_requests,
+    ), msg
+
+
 async def agree_to_start(
     *,
-    my_user: User,
+    current_user: db.User,
     other_user_id: UUID,
     asession: AsyncSession,
 ) -> tuple[sch.ActiveContactsAndRequests, str]:
@@ -164,45 +183,48 @@ async def agree_to_start(
 
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    if my_user.id == other_user_id:
+    if current_user.id == other_user_id:
         raise exc.BadRequest("Current user's id passed as target.")
     requested_profile = await crud.read_other_profile(
-        my_user_id=my_user.id, other_user_id=other_user_id, asession=asession
+        my_user_id=current_user.id,
+        other_user_id=other_user_id,
+        asession=asession,
     )
     if requested_profile is None or requested_profile.similarity == 0:
         raise exc.NotFound(f'Requested user not found: {other_user_id}.')
     await crud.reset_match_notifications_counter(
-        user_id=my_user.id, asession=asession
+        user_id=current_user.id, asession=asession
     )
-    await crud.unsuspend(user_id=my_user.id, asession=asession)
-    (my_contact, _), created = await _utils.create_or_get_contact_pair(
-        my_user_id=my_user.id,
+    await crud.unsuspend(user_id=current_user.id, asession=asession)
+    (my_contact, _), created = await other.create_or_get_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
     )
     match my_contact.status, created:
-        case ContactStatus.REQUESTED_BY_ME, _:
+        case ENM.ContactStatus.REQUESTED_BY_ME, _:
             message = 'Accepted. Waiting for the other user.'
-        case ContactStatus.REQUESTED_BY_OTHER, False:
-            await _utils.update_contact_pair(
-                my_user_id=my_user.id,
+        case ENM.ContactStatus.REQUESTED_BY_OTHER, False:
+            await other.update_contact_pair(
+                my_user_id=current_user.id,
                 other_user_id=other_user_id,
-                my_contact_status=ContactStatus.ONGOING,
+                my_contact_status=ENM.ContactStatus.ONGOING,
                 asession=asession,
             )
             await crud.set_to_cooldown(
-                user_ids=[my_user.id, other_user_id],
+                user_ids=[current_user.id, other_user_id],
                 asession=asession,
             )
             message = 'Chat started!'
         case (
-            ContactStatus.CANCELLED_BY_ME | ContactStatus.REJECTED_BY_ME,
+            ENM.ContactStatus.CANCELLED_BY_ME
+            | ENM.ContactStatus.REJECTED_BY_ME,
             False,
         ):
-            await _utils.update_contact_pair(
-                my_user_id=my_user.id,
+            await other.update_contact_pair(
+                my_user_id=current_user.id,
                 other_user_id=other_user_id,
-                my_contact_status=ContactStatus.REQUESTED_BY_ME,
+                my_contact_status=ENM.ContactStatus.REQUESTED_BY_ME,
                 asession=asession,
             )
             message = 'Accepted. Waiting for the other user.'
@@ -210,14 +232,14 @@ async def agree_to_start(
             message = f'Contact status is: {my_contact.status}.'
     await asession.commit()
     contacts_and_requests, _ = await get_contacts_and_requests(
-        my_user=my_user, asession=asession
+        current_user=current_user, asession=asession
     )
     return contacts_and_requests, message
 
 
 async def cancel_contact_request(
     *,
-    my_user: User,
+    current_user: db.User,
     other_user_id: UUID,
     asession: AsyncSession,
 ) -> tuple[sch.ActiveContactsAndRequests, str]:
@@ -226,26 +248,26 @@ async def cancel_contact_request(
     Only allowed for contacts with status REQUESTED_BY_ME.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await _utils.get_contact_pair(
-        my_user_id=my_user.id,
+    contact_pair, _ = await other.get_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
         raise_not_found=True,
     )
     my_contact, _ = contact_pair
-    if my_contact.status != ContactStatus.REQUESTED_BY_ME:
+    if my_contact.status != ENM.ContactStatus.REQUESTED_BY_ME:
         raise exc.BadRequest(
             'Only outgoing contact requests can be cancelled.'
         )
-    await _utils.update_contact_pair(
-        my_user_id=my_user.id,
+    await other.update_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
-        my_contact_status=ContactStatus.CANCELLED_BY_ME,
+        my_contact_status=ENM.ContactStatus.CANCELLED_BY_ME,
         asession=asession,
     )
     await asession.commit()
     active_contacts_and_requests, _ = await get_contacts_and_requests(
-        my_user=my_user,
+        current_user=current_user,
         asession=asession,
     )
     return active_contacts_and_requests, 'Contact request cancelled.'
@@ -253,7 +275,7 @@ async def cancel_contact_request(
 
 async def reject_contact_request(
     *,
-    my_user: User,
+    current_user: db.User,
     other_user_id: UUID,
     asession: AsyncSession,
 ) -> tuple[sch.ActiveContactsAndRequests, str]:
@@ -262,24 +284,24 @@ async def reject_contact_request(
     Only allowed for received requests.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await _utils.get_contact_pair(
-        my_user_id=my_user.id,
+    contact_pair, _ = await other.get_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
         raise_not_found=True,
     )
     my_contact, _ = contact_pair
-    if my_contact.status != ContactStatus.REQUESTED_BY_OTHER:
+    if my_contact.status != ENM.ContactStatus.REQUESTED_BY_OTHER:
         raise exc.BadRequest('Only received contact requests can be rejected.')
-    await _utils.update_contact_pair(
-        my_user_id=my_user.id,
+    await other.update_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
-        my_contact_status=ContactStatus.REJECTED_BY_ME,
+        my_contact_status=ENM.ContactStatus.REJECTED_BY_ME,
         asession=asession,
     )
     await asession.commit()
     active_contacts_and_requests, _ = await get_contacts_and_requests(
-        my_user=my_user,
+        current_user=current_user,
         asession=asession,
     )
     return active_contacts_and_requests, 'Contact request rejected.'
@@ -287,7 +309,7 @@ async def reject_contact_request(
 
 async def block_contact(
     *,
-    my_user: User,
+    current_user: db.User,
     other_user_id: UUID,
     asession: AsyncSession,
 ) -> tuple[sch.ActiveContactsAndRequests, str]:
@@ -296,8 +318,8 @@ async def block_contact(
     Only allowed for ongoing contacts.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await _utils.get_contact_pair(
-        my_user_id=my_user.id,
+    contact_pair, _ = await other.get_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
         raise_not_found=True,
@@ -310,55 +332,55 @@ async def block_contact(
                 f'{", ".join(CNST.BLOCKABLE_CONTACT_STATUSES)}.'
             )
         )
-    await _utils.update_contact_pair(
-        my_user_id=my_user.id,
+    await other.update_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
-        my_contact_status=ContactStatus.BLOCKED_BY_ME,
+        my_contact_status=ENM.ContactStatus.BLOCKED_BY_ME,
         asession=asession,
     )
     await asession.commit()
     active_contacts_and_requests, _ = await get_contacts_and_requests(
-        my_user=my_user, asession=asession
+        current_user=current_user, asession=asession
     )
     return active_contacts_and_requests, 'Contact blocked.'
 
 
 async def unblock_contact(
-    my_user: User, other_user_id: UUID, asession: AsyncSession
+    current_user: db.User, other_user_id: UUID, asession: AsyncSession
 ) -> tuple[sch.ActiveContactsAndRequests, str]:
     """
     Unblocks contact (puts to 'ongoing' status).
     Only allowed for contacts blocked by me.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await _utils.get_contact_pair(
-        my_user_id=my_user.id,
+    contact_pair, _ = await other.get_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
         raise_not_found=True,
     )
     my_contact, _ = contact_pair
-    if my_contact.status != ContactStatus.BLOCKED_BY_ME:
+    if my_contact.status != ENM.ContactStatus.BLOCKED_BY_ME:
         raise exc.BadRequest(
             f'Requested contact status is {my_contact.status}. '
             'Only contacts in status BLOCKED_BY_ME can be unblocked.'
         )
-    await _utils.update_contact_pair(
-        my_user_id=my_user.id,
+    await other.update_contact_pair(
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
-        my_contact_status=ContactStatus.ONGOING,
+        my_contact_status=ENM.ContactStatus.ONGOING,
         asession=asession,
     )
     await asession.commit()
     active_contacts_and_requests, _ = await get_contacts_and_requests(
-        my_user=my_user, asession=asession
+        current_user=current_user, asession=asession
     )
     return active_contacts_and_requests, 'Contact unblocked.'
 
 
 async def get_other_profile(
     *,
-    my_user: User,
+    current_user: db.User,
     other_user_id: UUID,
     asession: AsyncSession,
 ) -> tuple[sch.RecommendationRead, str]:
@@ -367,11 +389,13 @@ async def get_other_profile(
     Returns as tuple[OtherProfileRead schema, info message].
     """
     contacts = await crud.read_contacts(
-        my_user_id=my_user.id, other_user_id=other_user_id, asession=asession
+        my_user_id=current_user.id,
+        other_user_id=other_user_id,
+        asession=asession,
     )
     if not contacts:
         recommendations = await crud.read_user_recommendations(
-            my_user_id=my_user.id,
+            my_user_id=current_user.id,
             other_user_id=other_user_id,
             asession=asession,
         )
@@ -383,11 +407,11 @@ async def get_other_profile(
         raise exc.ServerError(
             (
                 'Inconsistent number of contacts found '
-                f'for {my_user.id}, {other_user_id}'
+                f'for {current_user.id}, {other_user_id}'
             )
         )
     other_profile = await crud.read_other_profile(
-        my_user_id=my_user.id,
+        my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
     )

@@ -2,16 +2,17 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud
+from src import crud, db
 from src import schemas as sch
 from src.context import get_current_language
-from src.db.user_and_profile import User
-from src.exceptions import exceptions as exc
-from src.services import _utils, core
+from src.exceptions import exc
+from src.services.utils import other
+
+from .core import read_definitions
 
 
 async def get_personal_values(
-    *, user: User, asession: AsyncSession
+    *, current_user: db.User, asession: AsyncSession
 ) -> tuple[sch.PersonalValuesRead, str]:
     """
     Reads personal values.
@@ -19,7 +20,7 @@ async def get_personal_values(
     """
     user_language = get_current_language()
     profile = await crud.read_profile_by_user_id(
-        user_id=user.id,
+        user_id=current_user.id,
         user_language=user_language,
         asession=asession,
     )
@@ -27,11 +28,11 @@ async def get_personal_values(
         user_language=user_language, asession=asession
     )
     message = 'Your values.'
-    if not await _utils.personal_values_already_set(
-        my_user=user, asession=asession
+    if not await other.personal_values_already_set(
+        my_user=current_user, asession=asession
     ):
-        definitions, _ = await core.read_definitions(asession=asession)
-        pv_read_model = await _utils.values_to_p_v_read_model(
+        definitions, _ = await read_definitions(asession=asession)
+        pv_read_model = await other.values_to_p_v_read_model(
             definitions=definitions
         )
         return (
@@ -41,11 +42,11 @@ async def get_personal_values(
         )
 
     personal_values = await crud.read_personal_values(
-        user_id=user.id,
+        user_id=current_user.id,
         current_language=user_language,
         asession=asession,
     )
-    pv_read_model = await _utils.personal_values_to_read_model(
+    pv_read_model = await other.personal_values_to_read_model(
         value_links=personal_values, profile=profile, attitudes=attitudes
     )
 
@@ -56,7 +57,7 @@ async def get_personal_values(
 
 async def create_personal_values(
     *,
-    my_user: User,
+    current_user: db.User,
     p_v_model: sch.PersonalValuesCreateUpdate,
     asession: AsyncSession,
 ) -> tuple[sch.PersonalValuesRead, str]:
@@ -66,33 +67,35 @@ async def create_personal_values(
     Updates UserDynamic accordingly.
     Updates Profile with attitude_id.
     """
-    if await _utils.personal_values_already_set(
-        my_user=my_user, asession=asession
+    if await other.personal_values_already_set(
+        my_user=current_user, asession=asession
     ):
         raise exc.AlreadyExists('Profile values are already set.')
-    await _utils.check_personal_values_input(
+    await other.check_personal_values_input(
         p_v_model=p_v_model, asession=asession
     )
-    ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
+    ud = await crud.read_user_dynamics(
+        user_id=current_user.id, asession=asession
+    )
     ud.values_created = datetime.now()
     await crud.create_personal_values(
-        user_id=my_user.id, data=p_v_model.model_dump(), asession=asession
+        user_id=current_user.id, data=p_v_model.model_dump(), asession=asession
     )
     await crud.update_profile(
-        user_id=my_user.id,
+        user_id=current_user.id,
         data={'attitude_id': p_v_model.attitude_id},
         asession=asession,
     )
     await asession.commit()
     pv_read_model, _ = await get_personal_values(
-        user=my_user, asession=asession
+        current_user=current_user, asession=asession
     )
     return pv_read_model, 'Personal Values set.'
 
 
 async def update_personal_values(
     *,
-    my_user: User,
+    current_user: db.User,
     p_v_model: sch.PersonalValuesCreateUpdate,
     asession: AsyncSession,
 ) -> tuple[sch.PersonalValuesRead, str]:
@@ -103,27 +106,31 @@ async def update_personal_values(
     Updates Profile with attitude_id.
     """
 
-    if not await _utils.personal_values_already_set(
-        my_user=my_user, asession=asession
+    if not await other.personal_values_already_set(
+        my_user=current_user, asession=asession
     ):
         raise exc.NotFound('Personal Values have not yet been set.')
-    await _utils.check_personal_values_input(
+    await other.check_personal_values_input(
         p_v_model=p_v_model, asession=asession
     )
-    ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
+    ud = await crud.read_user_dynamics(
+        user_id=current_user.id, asession=asession
+    )
     ud.values_changes = ud.values_changes + [datetime.now()]
-    await crud.delete_personal_values(user_id=my_user.id, asession=asession)
+    await crud.delete_personal_values(
+        user_id=current_user.id, asession=asession
+    )
     await crud.create_personal_values(
-        user_id=my_user.id, data=p_v_model.model_dump(), asession=asession
+        user_id=current_user.id, data=p_v_model.model_dump(), asession=asession
     )
     await crud.update_profile(
-        user_id=my_user.id,
+        user_id=current_user.id,
         data={'attitude_id': p_v_model.attitude_id},
         asession=asession,
     )
     await asession.commit()
     pv_read_model, message = await get_personal_values(
-        user=my_user, asession=asession
+        current_user=current_user, asession=asession
     )
     message = message.replace('Your values.', 'Personal Values updated.')
     return pv_read_model, message

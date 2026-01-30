@@ -1,23 +1,22 @@
-from uuid import UUID
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import db
 from src import dependencies as dp
 from src import schemas as sch
-from src.db.user_and_profile import User
-from src.services import contact as contact_srv
+from src import services as srv
+from src.config import CFG
 
 router = APIRouter()
 
 
 @router.get(
-    '/check-for-alike',
+    CFG.PATHS.PRIVATE.RECOMMENDATIONS,
     responses=dp.with_common_responses(
         common_response_codes=[401],
         extra_responses_to_iclude={
             403: 'Temporarily unavailable.',
-            404: ('Profile values have not yet been set.'),
+            # 404: ('Profile values have not yet been set.'),
             500: (
                 'Profile not found. / '
                 'Contact not found right after creation. / '
@@ -28,11 +27,13 @@ router = APIRouter()
 )
 async def check_for_alike(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
-    asession: AsyncSession = Depends(dp.get_async_session),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
 ) -> sch.ApiResponse[list[sch.RecommendationRead]]:
-    results, message = await contact_srv.check_for_alike(
-        my_user=my_user, asession=asession
+    current_user, asession = user_and_asession
+    results, message = await srv.check_for_alike(
+        current_user=current_user, asession=asession
     )
     return sch.ApiResponse(data=results, message=message)
 
@@ -46,13 +47,15 @@ async def check_for_alike(
 )
 async def agree_to_start(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
-    model: sch.TargetUser,
-    asession: AsyncSession = Depends(dp.get_async_session),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
+    payload: sch.TargetUser,
 ) -> sch.ApiResponse[sch.ActiveContactsAndRequests]:
-    results, message = await contact_srv.agree_to_start(
-        my_user=my_user,
-        other_user_id=model.id,
+    current_user, asession = user_and_asession
+    results, message = await srv.agree_to_start(
+        current_user=current_user,
+        other_user_id=payload.id,
         asession=asession,
     )
     return sch.ApiResponse(data=results, message=message)
@@ -64,11 +67,31 @@ async def agree_to_start(
 )
 async def contacts(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
-    asession: AsyncSession = Depends(dp.get_async_session),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
 ) -> sch.ApiResponse[sch.ActiveContactsAndRequests]:
-    results, message = await contact_srv.get_contacts_and_requests(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    results, message = await srv.get_contacts_and_requests(
+        current_user=current_user,
+        asession=asession,
+    )
+    return sch.ApiResponse(data=results, message=message)
+
+
+@router.get(
+    '/contacts-and-recommendations',
+    responses=dp.with_common_responses(common_response_codes=[401, 403]),
+)
+async def contacts_and_recommendations(
+    *,
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
+) -> sch.ApiResponse[sch.ContsNReqstsNRecoms]:
+    current_user, asession = user_and_asession
+    results, message = await srv.get_conts_n_reqsts_n_recoms(
+        current_user=current_user,
         asession=asession,
     )
     return sch.ApiResponse(data=results, message=message)
@@ -83,12 +106,14 @@ async def contacts(
 )
 async def cancel_contact_request(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
     target_user: sch.TargetUser,
-    asession: AsyncSession = Depends(dp.get_async_session),
 ) -> sch.ApiResponse[sch.ActiveContactsAndRequests]:
-    results, messgae = await contact_srv.cancel_contact_request(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    results, messgae = await srv.cancel_contact_request(
+        current_user=current_user,
         other_user_id=target_user.id,
         asession=asession,
     )
@@ -104,12 +129,14 @@ async def cancel_contact_request(
 )
 async def reject_contact_request(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
     target_user: sch.TargetUser,
-    asession: AsyncSession = Depends(dp.get_async_session),
 ) -> sch.ApiResponse[sch.ActiveContactsAndRequests]:
-    result, message = await contact_srv.reject_contact_request(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    result, message = await srv.reject_contact_request(
+        current_user=current_user,
         other_user_id=target_user.id,
         asession=asession,
     )
@@ -125,12 +152,14 @@ async def reject_contact_request(
 )
 async def block_contact(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
     target_user: sch.TargetUser,
-    asession: AsyncSession = Depends(dp.get_async_session),
 ) -> sch.ApiResponse[sch.ActiveContactsAndRequests]:
-    results, message = await contact_srv.block_contact(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    results, message = await srv.block_contact(
+        current_user=current_user,
         other_user_id=target_user.id,
         asession=asession,
     )
@@ -145,11 +174,13 @@ async def block_contact(
 )
 async def get_rejected_requests(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
-    asession: AsyncSession = Depends(dp.get_async_session),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
 ) -> sch.ApiResponse[list[sch.ContactRead]]:
-    results, message = await contact_srv.get_rejected_requests(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    results, message = await srv.get_rejected_requests(
+        current_user=current_user,
         asession=asession,
     )
     return sch.ApiResponse(data=results, message=message)
@@ -163,11 +194,13 @@ async def get_rejected_requests(
 )
 async def get_cancelled_requests(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
-    asession: AsyncSession = Depends(dp.get_async_session),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
 ) -> sch.ApiResponse[list[sch.ContactRead]]:
-    results, message = await contact_srv.get_cancelled_requests(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    results, message = await srv.get_cancelled_requests(
+        current_user=current_user,
         asession=asession,
     )
     return sch.ApiResponse(data=results, message=message)
@@ -181,11 +214,13 @@ async def get_cancelled_requests(
 )
 async def get_blocked_contacts(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
-    asession: AsyncSession = Depends(dp.get_async_session),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
 ) -> sch.ApiResponse[list[sch.ContactRead]]:
-    results, message = await contact_srv.get_blocked_contacts(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    results, message = await srv.get_blocked_contacts(
+        current_user=current_user,
         asession=asession,
     )
     return sch.ApiResponse(data=results, message=message)
@@ -200,12 +235,14 @@ async def get_blocked_contacts(
 )
 async def unblock_contact(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
     target_user: sch.TargetUser,
-    asession: AsyncSession = Depends(dp.get_async_session),
 ) -> sch.ApiResponse[sch.ActiveContactsAndRequests]:
-    results, message = await contact_srv.unblock_contact(
-        my_user=my_user,
+    current_user, asession = user_and_asession
+    results, message = await srv.unblock_contact(
+        current_user=current_user,
         other_user_id=target_user.id,
         asession=asession,
     )
@@ -223,11 +260,15 @@ async def unblock_contact(
 )
 async def get_contact_profile(
     *,
-    my_user: User = Depends(dp.current_active_verified_user),
-    user_id: UUID,
-    asession: AsyncSession = Depends(dp.get_async_session),
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
+    target_user: sch.TargetUser,
 ) -> sch.ApiResponse[sch.RecommendationRead]:
-    profile_model, message = await contact_srv.get_other_profile(
-        my_user=my_user, other_user_id=user_id, asession=asession
+    current_user, asession = user_and_asession
+    profile_model, message = await srv.get_other_profile(
+        current_user=current_user,
+        other_user_id=target_user.id,
+        asession=asession,
     )
     return sch.ApiResponse(data=profile_model, message=message)

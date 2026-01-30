@@ -6,10 +6,9 @@ from httpx import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud
-from src.config.config import CFG
-from src.db.user_and_profile import Profile
-from src.services._utils import generate_random_personal_values
+from src import crud, db
+from src.config import CFG
+from src.services.utils.other import generate_random_personal_values
 
 
 async def test_get_profile(client, unique_db_user):
@@ -40,7 +39,7 @@ async def test_edit_profile(client, unique_db_user, asession):
     )
     assert response.status_code == 200, f'{response.content}'
     db_profile = await asession.scalar(
-        select(Profile).where(Profile.user_id == unique_db_user['id'])
+        select(db.Profile).where(db.Profile.user_id == unique_db_user['id'])
     )
     assert (
         str(to_shape(db_profile.location))
@@ -62,9 +61,9 @@ async def check_personal_values(
     sent_personal_values = sorted(
         input_data['value_links'], key=lambda x: x['user_order']
     )
-    response_body = response.json()
-    assert 'data' in response_body
-    response_data = response_body['data']
+    response_payload = response.json()
+    assert 'data' in response_payload
+    response_data = response_payload['data']
     assert 'initial' in response_data
     assert isinstance(response_data['initial'], bool)
     assert 'attitudes' in response_data
@@ -90,7 +89,7 @@ async def check_personal_values(
     )
     assert len(returned_personal_values) == CFG.PERSONAL_VALUE_MAX_ORDER
     db_profile = await asession.scalar(
-        select(Profile).where(Profile.user_id == user_id)
+        select(db.Profile).where(db.Profile.user_id == user_id)
     )
     assert db_profile is not None
     db_personal_values_result = await crud.read_personal_values(

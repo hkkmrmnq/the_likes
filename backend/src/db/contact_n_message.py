@@ -1,22 +1,23 @@
-from fastapi_users_db_sqlalchemy import UUID_ID
+from uuid import UUID
+
 from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.config import constants as CNST
-from src.config.enums import ContactStatus, ContactStatusPG
-from src.db.base import Base, BaseWithIntPK
-from src.db.user_and_profile import User
+from src.config import CNST, ENM
+
+from .base import Base, BaseWithIntPK
+from .user_and_profile import User
 
 
 class Contact(Base):
-    my_user_id: Mapped[UUID_ID] = mapped_column(
+    my_user_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'), primary_key=True
     )
-    other_user_id: Mapped[UUID_ID] = mapped_column(
+    other_user_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'), primary_key=True
     )
     status: Mapped[str] = mapped_column(
-        ContactStatusPG, default=ContactStatus.REJECTED_BY_ME.value
+        ENM.ContactStatusPG, default=ENM.ContactStatus.REJECTED_BY_ME.value
     )
     my_user: Mapped[User] = relationship(
         User,
@@ -37,10 +38,10 @@ class Contact(Base):
 
 
 class Message(BaseWithIntPK):
-    sender_id: Mapped[UUID_ID] = mapped_column(
+    sender_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE')
     )
-    receiver_id: Mapped[UUID_ID] = mapped_column(
+    receiver_id: Mapped[UUID] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE')
     )
     text: Mapped[str] = mapped_column(
