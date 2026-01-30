@@ -36,6 +36,8 @@ jobs:
       JWT_ALGORITHM: HS256
       RESET_PASSWORD_TOKEN_SECRET: jwtresettestsecret
       VERIFICATION_TOKEN_SECRET: jwtverificationtestsecret
+      DEFAULT_LANGUAGE: en
+      TRANSLATE_TO: ru
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_DB: 0
