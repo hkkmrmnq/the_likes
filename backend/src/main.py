@@ -19,11 +19,7 @@ app.add_middleware(
 
 app.add_middleware(LanguageMiddleware)
 
-app.include_router(
-    endpoints.auth_router,
-    prefix='/auth',
-    tags=['auth'],
-)
+app.include_router(endpoints.auth_router, tags=['auth'])
 app.include_router(endpoints.core_router, tags=['definitions'])
 app.include_router(endpoints.profiles_router, tags=['profile'])
 app.include_router(endpoints.values_router, tags=['values'])

@@ -5,15 +5,17 @@ from src.db.core import Attitude, Value
 from src.services.utils.other import generate_random_personal_values
 
 
-async def test_random_pv_input_generation(asession):
-    result = await asession.scalars(select(Attitude.id))
+async def test_random_pv_input_generation(asession_fixture):
+    result = await asession_fixture.scalars(select(Attitude.id))
     assert result is not None
     db_attitude_ids = set(sorted(result))
-    result = await asession.scalars(select(Value.id))
+    result = await asession_fixture.scalars(select(Value.id))
     assert result is not None
     db_value_ids = set(sorted(result))
     for _ in range(CFG.RANDOM_PV_TEST_ATTEMPTS):
-        input_data = await generate_random_personal_values(asession=asession)
+        input_data = await generate_random_personal_values(
+            asession=asession_fixture
+        )
         assert isinstance(input_data, dict)
         assert 'attitude_id' in input_data
         assert input_data['attitude_id'] in db_attitude_ids

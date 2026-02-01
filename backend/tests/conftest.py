@@ -12,20 +12,11 @@ from src import crud, db
 from src import services as srv
 from src.config import CFG
 from src.exceptions import exc
+from src.services.utils import create_access_token
 
 
 @pytest_asyncio.fixture
 async def asession_fixture():
-    asession_factory = async_sessionmaker(
-        create_async_engine(CFG.ASYNC_DATABASE_URL, echo=True),
-        expire_on_commit=False,
-    )
-    async with asession_factory() as asession:
-        yield asession
-
-
-@pytest_asyncio.fixture
-async def second_asession():
     asession_factory = async_sessionmaker(
         create_async_engine(CFG.ASYNC_DATABASE_URL, echo=True),
         expire_on_commit=False,
@@ -76,10 +67,6 @@ def fixed_user_credentials():
     }
 
 
-async def create_access_token(db_user):
-    return await create_access_token(db_user=db_user)
-
-
 @pytest_asyncio.fixture
 async def unique_db_user(asession_fixture, second_unique_user_credentials):
     email = second_unique_user_credentials['email']
@@ -97,9 +84,9 @@ async def unique_db_user(asession_fixture, second_unique_user_credentials):
     try:
         yield {
             'id': user.id,
-            'username': user.email,
+            'email': user.email,
             'password': second_unique_user_credentials['password'],
-            'access_token': await create_access_token(user),
+            'access_token': create_access_token(user.id),
         }
     except Exception:
         raise exc.ServerError(

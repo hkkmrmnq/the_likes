@@ -26,7 +26,7 @@ async def get_profile(
 
 async def edit_profile(
     *,
-    current_user: db.User,
+    user: db.User,
     update_model: sch.ProfileUpdate,
     asession: AsyncSession,
 ) -> tuple[sch.ProfileRead, str]:
@@ -35,18 +35,16 @@ async def edit_profile(
     Raises BadRequest if distance_limit set without location.
     """
     data = profile_model_to_write_data(update_model)
-    await crud.update_profile(
-        user_id=current_user.id, data=data, asession=asession
-    )
+    await crud.update_profile(user_id=user.id, data=data, asession=asession)
     await asession.commit()
     profile = await crud.read_profile_by_user_id(
-        user_id=current_user.id,
+        user_id=user.id,
         user_language=get_current_language(),
         asession=asession,
     )
     message = 'Profile updated.'
     if profile.recommend_me and not await personal_values_already_set(
-        my_user=current_user, asession=asession
+        my_user=user, asession=asession
     ):
         message += ' Personal Values not yet defined - choose them to proceed.'
     return profile_to_read_model(profile), message

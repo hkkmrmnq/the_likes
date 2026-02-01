@@ -48,7 +48,7 @@ async def edit_profile(
 ) -> sch.ApiResponse[sch.ProfileRead]:
     current_user, asession = user_and_asession
     profile_model_read, message = await srv.edit_profile(
-        current_user=current_user,
+        user=current_user,
         update_model=payload,
         asession=asession,
     )

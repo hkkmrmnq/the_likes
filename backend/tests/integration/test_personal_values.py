@@ -8,47 +8,65 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, db
 from src.config import CFG
-from src.services.utils.other import generate_random_personal_values
+from src.services.utils import generate_random_personal_values
 
 
 async def test_get_profile(client, unique_db_user):
     access_token = unique_db_user['access_token']
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.get(
-        '/profile',
+        CFG.PATHS.PRIVATE.PROFILE,
         headers=headers,
     )
     assert response.status_code == 200, f'{response.content}'
 
 
-async def test_edit_profile(client, unique_db_user, asession):
-    data = {
+async def test_edit_profile(client, unique_db_user, asession_fixture):
+    input_data = {
         'longitude': 125,
         'latitude': 29,
-        'distance_limit': 10000.000,
+        'distance_limit': 1111.11,
         'name': 'test name',
         'languages': ['ru'],
-        'recommend_me': True,
+        'recommend_me': False,
     }
     access_token = unique_db_user['access_token']
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.put(
-        '/profile',
-        json=data,
+        CFG.PATHS.PRIVATE.PROFILE,
+        json=input_data,
         headers=headers,
     )
     assert response.status_code == 200, f'{response.content}'
-    db_profile = await asession.scalar(
+    response_data = response.json()
+    db_profile = await asession_fixture.scalar(
         select(db.Profile).where(db.Profile.user_id == unique_db_user['id'])
     )
+    await asession_fixture.refresh(db_profile)
     assert (
         str(to_shape(db_profile.location))
-        == f'POINT ({data["longitude"]} {data["latitude"]})'
+        == f'POINT ({input_data["longitude"]} {input_data["latitude"]})'
     )
-    assert db_profile.name == data['name']
-    assert db_profile.languages == data['languages']
-    assert db_profile.distance_limit == data['distance_limit']
-    assert db_profile.recommend_me == data['recommend_me']
+    assert 'data' in response_data
+    response_profile = response_data['data']
+    assert 'user_id' in response_profile
+    assert response_profile['user_id'] == str(unique_db_user['id'])
+    assert 'name' in response_profile
+    assert response_profile['name'] == input_data['name']
+    assert 'languages' in response_profile
+    assert response_profile['languages'] == input_data['languages']
+    assert 'distance_limit' in response_profile
+    assert response_profile['distance_limit'] == input_data['distance_limit']
+    assert 'recommend_me' in response_profile
+    assert response_profile['recommend_me'] == input_data['recommend_me']
+    assert 'longitude' in response_profile
+    assert response_profile['longitude'] == input_data['longitude']
+    assert 'latitude' in response_profile
+    assert response_profile['latitude'] == input_data['latitude']
+    assert db_profile.name == input_data['name']
+    assert db_profile.languages == input_data['languages']
+    assert db_profile.distance_limit == input_data['distance_limit']
+    assert db_profile.recommend_me == input_data['recommend_me']
 
 
 async def check_personal_values(
@@ -118,15 +136,17 @@ async def check_personal_values(
 async def test_create_personal_values(
     unique_db_user,
     client,
-    asession,
+    asession_fixture,
     redis_client,
 ):
-    input_data = await generate_random_personal_values(asession=asession)
+    input_data = await generate_random_personal_values(
+        asession=asession_fixture
+    )
     redis_client.set('create', f'{input_data}')
     access_token = unique_db_user['access_token']
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.post(
-        '/values',
+        CFG.PATHS.PRIVATE.VALUES,
         json=input_data,
         headers=headers,
     )
@@ -137,22 +157,24 @@ async def test_create_personal_values(
         input_data=input_data,
         user_id=unique_db_user['id'],
         response=response,
-        asession=asession,
+        asession=asession_fixture,
     )
 
 
 async def test_edit_personal_values(
     db_user_with_personal_values,
     client,
-    asession,
+    asession_fixture,
     redis_client,
 ):
-    input_data = await generate_random_personal_values(asession=asession)
+    input_data = await generate_random_personal_values(
+        asession=asession_fixture
+    )
     redis_client.set('edit', f'{input_data}')
     access_token = db_user_with_personal_values['access_token']
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.put(
-        '/values',
+        CFG.PATHS.PRIVATE.VALUES,
         json=input_data,
         headers=headers,
     )
@@ -161,5 +183,5 @@ async def test_edit_personal_values(
         input_data=input_data,
         user_id=db_user_with_personal_values['id'],
         response=response,
-        asession=asession,
+        asession=asession_fixture,
     )
