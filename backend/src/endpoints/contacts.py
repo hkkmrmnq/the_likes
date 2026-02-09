@@ -272,3 +272,20 @@ async def get_contact_profile(
         asession=asession,
     )
     return sch.ApiResponse(data=profile_model, message=message)
+
+
+@router.get(
+    '/contacts-options',
+    responses=dp.with_common_responses(common_response_codes=[401, 403]),
+)
+async def get_additional_contacts_options(
+    *,
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
+) -> sch.ApiResponse[sch.AdditionalContactsOptions]:
+    current_user, asession = user_and_asession
+    results, message = await srv.get_additional_contacts_options(
+        current_user=current_user, asession=asession
+    )
+    return sch.ApiResponse(data=results, message=message)

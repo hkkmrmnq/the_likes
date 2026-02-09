@@ -1,5 +1,6 @@
 import hashlib
 from datetime import datetime, timedelta, timezone
+from random import randint
 from uuid import UUID
 
 import httpx
@@ -10,10 +11,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from zxcvbn import zxcvbn
 
 from src import containers as cnt
-from src import crud
+from src import crud, db, tasks
 from src.config import CFG, CNST, ENM
 from src.exceptions import exceptions as exc
 from src.logger import logger
+from src.redis_client import redis_client
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
@@ -57,7 +59,7 @@ def validate_token(token: str) -> cnt.AuthResult:
         )
 
 
-async def is_password_pwned(*, password: str) -> bool | None:
+async def _is_password_pwned(*, password: str) -> bool | None:
     """
     Returns:
         True if password was pwned.
@@ -95,7 +97,8 @@ async def validate_password(
     email: str,
 ) -> None:
     """
-    Validates password with pwnedpasswords API. Waek passwords rejected.
+    Validates password with pwnedpasswords API.
+    Raises if password is weak or leaked.
     Skips if no responce from API.
     """
     result = zxcvbn(
@@ -104,17 +107,26 @@ async def validate_password(
     )
 
     if result['score'] < CNST.PASSWORD_MIN_SCORE:
-        raise exc.NotAcceptable(
+        raise exc.Forbidden(
             f'Password too weak: {result["feedback"]["suggestions"]}'
         )
-    is_pwned = await is_password_pwned(password=password)
+    is_pwned = await _is_password_pwned(password=password)
     if is_pwned:
-        raise exc.NotAcceptable(
+        raise exc.Forbidden(
             (
                 "This password is not secure because it's been "
                 'leaked before. Please use different password.'
             )
         )
+
+
+async def get_user_by_email_or_raise(
+    *, email: str, asession: AsyncSession
+) -> db.User:
+    user = await crud.read_user_by_email(email=email, asession=asession)
+    if user is None:
+        raise exc.NotFound('User not found.')
+    return user
 
 
 async def create_user(
@@ -139,4 +151,71 @@ async def create_user(
         is_verified=is_verified,
         asession=asession,
     )
+    await asession.commit()
+
+
+async def get_active_user_by_email(
+    email: str, asession: AsyncSession
+) -> db.User:
+    """
+    Raises if user not found or deactivated.
+    Returns user (ignores is_verified).
+    """
+    user = await crud.read_user_by_email(email=email, asession=asession)
+    if user is None:
+        raise exc.NotFound(
+            'Requested email not found. You can create an account.'
+        )
+    if not user.is_active:
+        raise exc.Forbidden('Account deactivated.')
+    return user
+
+
+def run_email_verification(email: str) -> str:
+    code = ''
+    for _ in range(6):
+        code += str(randint(1, 9))
+    key = f'{CNST.CONFIRM_EMAIL_REDIS_KEY}{email}'
+    data = {
+        'code': code,
+        'email': email,
+        'attempts': 0,
+    }
+    redis_client.hset(key, mapping=data)
+    redis_client.expire(
+        key, timedelta(seconds=CFG.CONFIRMATION_CODE_LIFETIME_SECONDS)
+    )
+    tasks.send_email_confirmation_code.delay(email=email, code=code)
+    return (
+        f'Email confirmation code sent to {email}. '
+        'Please enter the code to verify your email.'
+    )
+
+
+def check_verification_code(*, email: str, code: int) -> tuple[bool, str]:
+    key = f'{CNST.CONFIRM_EMAIL_REDIS_KEY}{email}'
+    data = redis_client.hgetall(key)
+    if not data:
+        return False, 'Invalid email or expired code.'
+    attempts = int(data.get('attempts', 0))  # type: ignore
+    if attempts >= 3:
+        redis_client.delete(key)
+        return False, 'To many attempts.'
+    if int(data['code']) != code:  # type: ignore
+        redis_client.hincrby(key, 'attempts', 1)
+        return False, 'Invalid code.'
+    return True, 'Valid code'
+
+
+async def set_existing_user_to_verified(
+    *, email: str, asession: AsyncSession
+) -> None:
+    """
+    Raises if user not found.
+    Sets is_verified to True (ignores previous value).
+    """
+    db_user = await crud.read_user_by_email(email=email, asession=asession)
+    if db_user is None:
+        raise exc.ServerError('User not found, unexpectedly.')
+    db_user.is_verified = True
     await asession.commit()

@@ -11,14 +11,6 @@ class NotFound(Error):
         super().__init__(message)
 
 
-class UnverifiedUser(Error):
-    def __init__(
-        self,
-        message: str = 'User is not verified.',
-    ):
-        super().__init__(message)
-
-
 class InactiveUser(Error):
     def __init__(
         self,
@@ -55,14 +47,6 @@ class BadRequest(Error):
     def __init__(
         self,
         message: str = 'Bad request.',
-    ):
-        super().__init__(message)
-
-
-class NotAcceptable(Error):
-    def __init__(
-        self,
-        message: str = "Can't accept.",
     ):
         super().__init__(message)
 

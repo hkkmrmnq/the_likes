@@ -420,3 +420,39 @@ async def get_other_profile(
     return sch.RecommendationRead.model_validate(
         other_profile
     ), 'Other user profile.'
+
+
+async def get_additional_contacts_options(
+    current_user: db.User, asession: AsyncSession
+) -> tuple[sch.AdditionalContactsOptions, str]:
+    contacts = await crud.read_contacts(
+        my_user_id=current_user.id,
+        statuses=[
+            ENM.ContactStatus.REJECTED_BY_ME,
+            ENM.ContactStatus.CANCELLED_BY_ME,
+            ENM.ContactStatus.BLOCKED_BY_ME,
+        ],
+        asession=asession,
+    )
+    c_schemas = [other.rich_contact_to_schema(contact=c) for c in contacts]
+    message = (
+        'Rejected contact requests.'
+        if c_schemas
+        else 'No rejected contact requests.'
+    )
+    options_schema = sch.AdditionalContactsOptions(
+        cancelled_requests=[
+            c
+            for c in c_schemas
+            if c.status == ENM.ContactStatus.CANCELLED_BY_ME
+        ],
+        rejected_requests=[
+            c
+            for c in c_schemas
+            if c.status == ENM.ContactStatus.REJECTED_BY_ME
+        ],
+        blocked_contacts=[
+            c for c in c_schemas if c.status == ENM.ContactStatus.BLOCKED_BY_ME
+        ],
+    )
+    return options_schema, message

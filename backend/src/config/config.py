@@ -10,6 +10,8 @@ load_dotenv()
 class PublicPaths:
     REGISTER: str = '/register'
     VERIFY_EMAIL: str = '/verify-email'
+    FORGOT_PASSWORD: str = '/forgot-password'
+    SET_NEW_PASSWORD: str = '/set-new-password'
     REQUEST_EMAIL_VERIFICATION: str = '/request-email-verification'
     LOGIN: str = '/login'
     ABOUT: str = '/about'
@@ -68,6 +70,8 @@ class Config:
     POSTGRES_HOST: str = getenv('POSTGRES_HOST')  # type: ignore
     POSTGRES_PORT: int = int(getenv('POSTGRES_PORT'))  # type: ignore
     POSTGRES_DB: str = getenv('POSTGRES_DB')  # type: ignore
+    CONFIRMATION_CODE_LIFETIME_SECONDS = 60
+    CONFIRMATION_CODE_LENGTH = 6
     JWT_SECRET: str = getenv('JWT_SECRET')  # type: ignore
     JWT_ACCESS_LIFETIME_MINUTES: int = int(
         getenv('JWT_ACCESS_LIFETIME_MINUTES')  # type: ignore

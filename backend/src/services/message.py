@@ -31,17 +31,16 @@ async def read_messages(
     *, current_user_id: UUID, contact_user_id: UUID, asession: AsyncSession
 ) -> tuple[list[sch.MessageRead], str]:
     """
-    Reads messages with the given user.
-    Unread messages are set to 'read'.
+    Reads messages with the given user - both sent and received.
+    Unread received messages are set to 'read'.
     """
-    results = await crud.read_messages(
+    results = await crud.read_conversation_messages(
         sender_id=current_user_id,
         receiver_id=contact_user_id,
         asession=asession,
     )
-    message = (
-        'Messages found.' if results else 'No messages with this contact.'
-    )
+    if not results:
+        return [], 'No messages with this contact.'
     schemas = []
     for msg in results:
         time_full = msg.created_at.time()
@@ -56,8 +55,14 @@ async def read_messages(
                 time=time(time_full.hour, time_full.minute, time_full.second),
             )
         )
+    await crud.mark_as_read(
+        sender_id=contact_user_id,
+        receiver_id=current_user_id,
+        up_to=results[-1].created_at,
+        asession=asession,
+    )
     await asession.commit()
-    return schemas, message
+    return schemas, 'Messages found.'
 
 
 async def add_message(
@@ -65,7 +70,7 @@ async def add_message(
     current_user_id: UUID,
     data: cnt.MessageCreate,
     asession: AsyncSession,
-) -> None:  # tuple[cnt.MessageRead, str]
+) -> tuple[cnt.MessageRead, str]:
     """
     Add new message. Available only for active contacts.
     """
@@ -88,3 +93,18 @@ async def add_message(
             )
         )
     await crud.create_message(data=data, asession=asession)
+    await asession.commit()
+    msg_cnt = await crud.read_last_message(
+        sender_id=current_user_id,
+        receiver_id=data.receiver_id,
+        asession=asession,
+    )
+    if msg_cnt is None:
+        raise exc.ServerError(
+            (
+                'Message not found after creation.'
+                f'sender_id={current_user_id}, '
+                f'receiver_id={data.receiver_id}.'
+            )
+        )
+    return msg_cnt, 'Message added'

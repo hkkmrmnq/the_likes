@@ -4,8 +4,8 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud, db
-from src import exceptions as EXC
 from src.config import CFG
+from src.exceptions import exc
 
 
 async def read_first_user(asession: AsyncSession):
@@ -56,7 +56,7 @@ async def create_unique_values(
 ) -> list[db.UniqueValue]:
     definitions = await crud.read_values(asession=asession)
     if not definitions:
-        raise EXC.ServerError('Definitions not found.')
+        raise exc.ServerError('Definitions not found.')
     unique_values = []
     for vt in definitions:
         aspect_ids = [s.id for s in vt.aspects]

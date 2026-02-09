@@ -10,12 +10,12 @@ from fastapi import (
 
 from src import containers as cnt
 from src import crud, db
-from src import dependencies as dp
 from src import schemas as sch
 from src import services as srv
 from src.config import CFG, ENM
 from src.exceptions import exc
 from src.logger import logger
+from src.sessions import asession_factory
 
 
 class ReentrantLock:
@@ -99,21 +99,21 @@ class ChatManager:
     async def send_payload(
         self,
         *,
-        payload: dict,
+        payload: dict | cnt.MessageRead,
         target_user_id: UUID,
     ):
         try:
-            logger.info(payload)
             data = sch.ChatPayload.model_validate(payload)
             async with self._lock:
                 if target_user_id in self.active_connections:
                     connection = self.active_connections[target_user_id]
                     await connection.ws.send_json(data.model_dump(mode='json'))
                     if isinstance(data.related_content, sch.MessageRead):
-                        async with dp.asession_factory() as asession:
+                        async with asession_factory() as asession:
                             await crud.mark_as_read(
                                 sender_id=data.related_content.sender_id,
                                 receiver_id=data.related_content.receiver_id,
+                                up_to=data.related_content.created_at,
                                 asession=asession,
                             )
                             await asession.commit()
@@ -144,6 +144,11 @@ class ChatManager:
     async def send_offline_messages(self, *, user_id: UUID):
         if user_id in self.offline_messages and self.offline_messages[user_id]:
             messages = self.offline_messages.pop(user_id)
+        else:
+            async with asession_factory() as asession:
+                messages = await crud.read_all_unread_messages_to_user(
+                    receiver_id=user_id, asession=asession
+                )
             for msg in messages:
                 await self.send_payload(
                     payload=msg,
@@ -157,7 +162,7 @@ class ChatManager:
     ):
         received_timestamp = sch.get_now_timestamp_for_zod()
         try:
-            async with dp.asession_factory() as asession:
+            async with asession_factory() as asession:
                 await srv.add_message(
                     current_user_id=current_user_id,
                     data=msg_data,

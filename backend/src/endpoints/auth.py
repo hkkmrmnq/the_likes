@@ -33,18 +33,18 @@ async def register(
     responses=dp.with_common_responses(
         common_response_codes=[400],
         extra_responses_to_iclude={
-            406: 'Invalid verification code.',
+            401: 'Invalid/expired code or to many attempts.',
         },
     ),
 )
 async def verify_email(
-    payload: sch.EmailVerificationCode,
+    payload: sch.EmailVerificationData,
     asession: AsyncSession = Depends(dp.get_async_session),
-) -> sch.ApiResponse[bool]:
-    result, srv_msg = await srv.verify_email_with_code(
+) -> sch.ApiResponse[None]:
+    srv_msg = await srv.verify_email(
         email=payload.email, code=payload.code, asession=asession
     )
-    return sch.ApiResponse(data=result, message=srv_msg)
+    return sch.ApiResponse(message=srv_msg)
 
 
 @router.post(
@@ -71,8 +71,8 @@ async def request_email_verification(
     responses=dp.with_common_responses(
         common_response_codes=[400],
         extra_responses_to_iclude={
+            401: 'Invalid password.',
             404: 'Requested user not found.',
-            406: 'Invalid password.',
         },
     ),
 )
@@ -85,3 +85,47 @@ async def login(
     )
     token_schema = sch.AccessToken(access_token=access_token)
     return sch.ApiResponse(data=token_schema, message=srv_msg)
+
+
+@router.post(
+    CFG.PATHS.PUBLIC.FORGOT_PASSWORD,
+    responses=dp.with_common_responses(
+        common_response_codes=[400],
+        extra_responses_to_iclude={
+            403: 'Account deactivated.',
+            404: 'Requested email not found. You can create an account.',
+        },
+    ),
+)
+async def forgot_password(
+    data: sch.EmailSchema,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> sch.ApiResponse[None]:
+    message = await srv.run_forgot_password_steps(
+        email=data.email, asession=asession
+    )
+    return sch.ApiResponse(message=message)
+
+
+@router.post(
+    CFG.PATHS.PUBLIC.SET_NEW_PASSWORD,
+    responses=dp.with_common_responses(
+        common_response_codes=[400],
+        extra_responses_to_iclude={
+            401: 'Invalid code.',
+            403: 'Account deactivated.',
+            404: 'Requested email not found. You can create an account.',
+        },
+    ),
+)
+async def set_new_password(
+    payload: sch.ChangePasswordSchema,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> sch.ApiResponse[None]:
+    msg = await srv.set_new_password(
+        email=payload.email,
+        new_password=payload.password,
+        code=payload.code,
+        asession=asession,
+    )
+    return sch.ApiResponse(message=msg)

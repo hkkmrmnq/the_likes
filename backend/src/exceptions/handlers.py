@@ -41,13 +41,6 @@ async def handle_conflict(request: Request, exc):
     )
 
 
-async def handle_unacceptable(request: Request, exc):
-    return JSONResponse(
-        status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        content={'detail': getattr(exc, 'message', "Can't accept.")},
-    )
-
-
 async def handle_server_error(request: Request, exc):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

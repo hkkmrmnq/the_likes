@@ -28,11 +28,10 @@ app.include_router(endpoints.messages_router, tags=['messages'])
 app.include_router(endpoints.bootstrap_router, tags=['bootstrap'])
 
 app.add_exception_handler(exc.BadRequest, handlers.handle_bad_request)
-app.add_exception_handler(exc.UnverifiedUser, handlers.handle_unauthorized)
+app.add_exception_handler(exc.Unauthorized, handlers.handle_unauthorized)
 app.add_exception_handler(exc.Forbidden, handlers.handle_forbidden)
 app.add_exception_handler(exc.NotFound, handlers.handle_not_found)
 app.add_exception_handler(exc.AlreadyExists, handlers.handle_conflict)
-app.add_exception_handler(exc.NotAcceptable, handlers.handle_unacceptable)
 app.add_exception_handler(exc.ServerError, handlers.handle_server_error)
 
 app.include_router(endpoints.chat_router)

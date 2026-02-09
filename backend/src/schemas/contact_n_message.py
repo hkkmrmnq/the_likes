@@ -43,7 +43,7 @@ class ContactReadBase(BaseModel):
 
 
 class ContactRead(SimilarityAndDistanceMixin, ContactReadBase):
-    unread_messages: int | None
+    unread_messages: int
     time_waiting: timedelta | None
 
 
@@ -92,3 +92,9 @@ class MessageRead(BaseModel):
     time: time
 
     model_config = {'from_attributes': True}
+
+
+class AdditionalContactsOptions(BaseModel):
+    cancelled_requests: list[ContactRead]
+    rejected_requests: list[ContactRead]
+    blocked_contacts: list[ContactRead]
