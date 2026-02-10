@@ -6,7 +6,6 @@ from src import crud, db
 from src import schemas as sch
 from src.config import CNST, ENM
 from src.exceptions import exc
-from src.services.utils import other
 
 from . import utils as utl
 
@@ -40,7 +39,7 @@ async def get_contacts_and_requests(
     contact_models = []
     request_models = []
     for contact in contacts:
-        model = other.rich_contact_to_schema(contact=contact)
+        model = utl.rich_contact_to_schema(contact=contact)
         if contact.status == ENM.ContactStatus.ONGOING:
             contact_models.append(model)
         else:
@@ -64,7 +63,7 @@ async def get_rejected_requests(
         statuses=[ENM.ContactStatus.REJECTED_BY_ME],
         asession=asession,
     )
-    c_models = [other.rich_contact_to_schema(contact=c) for c in contacts]
+    c_models = [utl.rich_contact_to_schema(contact=c) for c in contacts]
     message = (
         'Rejected contact requests.'
         if c_models
@@ -87,7 +86,7 @@ async def get_cancelled_requests(
         statuses=[ENM.ContactStatus.CANCELLED_BY_ME],
         asession=asession,
     )
-    c_models = [other.rich_contact_to_schema(contact=c) for c in contacts]
+    c_models = [utl.rich_contact_to_schema(contact=c) for c in contacts]
     message = (
         'Cancelled contact requests.'
         if c_models
@@ -107,7 +106,7 @@ async def get_blocked_contacts(
         statuses=[ENM.ContactStatus.BLOCKED_BY_ME],
         asession=asession,
     )
-    c_models = [other.rich_contact_to_schema(contact=c) for c in contacts]
+    c_models = [utl.rich_contact_to_schema(contact=c) for c in contacts]
     message = 'Blocked contacts.' if c_models else 'No blocked contacts.'
     return c_models, message
 
@@ -128,7 +127,7 @@ async def check_for_alike(
         my_user=current_user, asession=asession
     ):
         return [], 'Personal values have not yet been set.'
-    recommendations = await other.get_recommendations(
+    recommendations = await utl.get_recommendations(
         my_user_id=current_user.id, asession=asession
     )
     contacts = await crud.read_contacts(
@@ -196,7 +195,7 @@ async def agree_to_start(
         user_id=current_user.id, asession=asession
     )
     await crud.unsuspend(user_id=current_user.id, asession=asession)
-    (my_contact, _), created = await other.create_or_get_contact_pair(
+    (my_contact, _), created = await utl.create_or_get_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
@@ -205,7 +204,7 @@ async def agree_to_start(
         case ENM.ContactStatus.REQUESTED_BY_ME, _:
             message = 'Accepted. Waiting for the other user.'
         case ENM.ContactStatus.REQUESTED_BY_OTHER, False:
-            await other.update_contact_pair(
+            await utl.update_contact_pair(
                 my_user_id=current_user.id,
                 other_user_id=other_user_id,
                 my_contact_status=ENM.ContactStatus.ONGOING,
@@ -221,7 +220,7 @@ async def agree_to_start(
             | ENM.ContactStatus.REJECTED_BY_ME,
             False,
         ):
-            await other.update_contact_pair(
+            await utl.update_contact_pair(
                 my_user_id=current_user.id,
                 other_user_id=other_user_id,
                 my_contact_status=ENM.ContactStatus.REQUESTED_BY_ME,
@@ -248,7 +247,7 @@ async def cancel_contact_request(
     Only allowed for contacts with status REQUESTED_BY_ME.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await other.get_contact_pair(
+    contact_pair, _ = await utl.get_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
@@ -259,7 +258,7 @@ async def cancel_contact_request(
         raise exc.BadRequest(
             'Only outgoing contact requests can be cancelled.'
         )
-    await other.update_contact_pair(
+    await utl.update_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         my_contact_status=ENM.ContactStatus.CANCELLED_BY_ME,
@@ -284,7 +283,7 @@ async def reject_contact_request(
     Only allowed for received requests.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await other.get_contact_pair(
+    contact_pair, _ = await utl.get_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
@@ -293,7 +292,7 @@ async def reject_contact_request(
     my_contact, _ = contact_pair
     if my_contact.status != ENM.ContactStatus.REQUESTED_BY_OTHER:
         raise exc.BadRequest('Only received contact requests can be rejected.')
-    await other.update_contact_pair(
+    await utl.update_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         my_contact_status=ENM.ContactStatus.REJECTED_BY_ME,
@@ -318,7 +317,7 @@ async def block_contact(
     Only allowed for ongoing contacts.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await other.get_contact_pair(
+    contact_pair, _ = await utl.get_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
@@ -332,7 +331,7 @@ async def block_contact(
                 f'{", ".join(CNST.BLOCKABLE_CONTACT_STATUSES)}.'
             )
         )
-    await other.update_contact_pair(
+    await utl.update_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         my_contact_status=ENM.ContactStatus.BLOCKED_BY_ME,
@@ -353,7 +352,7 @@ async def unblock_contact(
     Only allowed for contacts blocked by me.
     Returns as tuple of sch.ActiveContactsAndRequests and info message.
     """
-    contact_pair, _ = await other.get_contact_pair(
+    contact_pair, _ = await utl.get_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
@@ -365,7 +364,7 @@ async def unblock_contact(
             f'Requested contact status is {my_contact.status}. '
             'Only contacts in status BLOCKED_BY_ME can be unblocked.'
         )
-    await other.update_contact_pair(
+    await utl.update_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         my_contact_status=ENM.ContactStatus.ONGOING,
@@ -434,7 +433,7 @@ async def get_additional_contacts_options(
         ],
         asession=asession,
     )
-    c_schemas = [other.rich_contact_to_schema(contact=c) for c in contacts]
+    c_schemas = [utl.rich_contact_to_schema(contact=c) for c in contacts]
     message = (
         'Rejected contact requests.'
         if c_schemas

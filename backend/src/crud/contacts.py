@@ -1,27 +1,25 @@
 from uuid import UUID
 
 from sqlalchemy import UUID as SA_UUID
-from sqlalchemy import Integer, bindparam, update
+from sqlalchemy import bindparam, update
 from sqlalchemy.dialects.postgresql import ARRAY, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import containers as cnt
 from src import crud, db
-from src.config import CFG, ENM
+from src.config import ENM
 
 
 async def read_user_recommendations(
     *,
     my_user_id: UUID,
     other_user_id: UUID | None = None,
-    limit: int | None = CFG.RECOMMENDATIONS_AT_A_TIME,
     asession: AsyncSession,
 ) -> list[cnt.ContactRead]:
     results = await asession.execute(
         crud.sql.read_user_recommendations.bindparams(
             bindparam('my_user_id', value=my_user_id, type_=SA_UUID),
             bindparam('other_user_id', value=other_user_id, type_=SA_UUID),
-            bindparam('limit_param', value=limit, type_=Integer),
         )
     )
     recommendations = [

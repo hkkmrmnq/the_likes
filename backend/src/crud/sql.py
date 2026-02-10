@@ -22,7 +22,10 @@ DROP FUNCTION IF EXISTS public.calculate_stability CASCADE;
 DROP MATERIALIZED VIEW IF EXISTS moral_profiles CASCADE;
     """,
     """
-DROP MATERIALIZED VIEW IF EXISTS recommendations CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS all_recommendations CASCADE;
+    """,
+    """
+DROP MATERIALIZED VIEW IF EXISTS limited_recommendations CASCADE;
     """,
     """
 CREATE OR REPLACE FUNCTION public.array_similarity(
@@ -229,7 +232,7 @@ CREATE INDEX idx_moral_profiles_worst_uv_ids
 ON moral_profiles USING gin (worst_uv_ids);
     """,
     f"""
-CREATE MATERIALIZED VIEW recommendations AS
+CREATE MATERIALIZED VIEW all_recommendations AS
 WITH
 now_cte AS (
     SELECT CURRENT_TIMESTAMP as now
@@ -354,19 +357,76 @@ FROM filterd_pairs fp
 WHERE NOT EXISTS (
     SELECT 1 FROM contacts c
     WHERE c.my_user_id = fp.u_id_1 AND c.other_user_id = fp.u_id_2
-);
+)
+
+ORDER BY search_status_priority ASC,
+    stability_modifier DESC,
+    similarity DESC;
     """,
     """
-CREATE INDEX idx_recommendations__user_ids_gin
-ON recommendations USING GIN (user_ids);
+CREATE INDEX idx_all_recommendations__user_ids_gin
+ON all_recommendations USING GIN (user_ids);
     """,
     """
-CREATE UNIQUE INDEX idx_recommendations__user_ids
-ON recommendations (user_ids);
+CREATE UNIQUE INDEX idx_all_recommendations__user_ids
+ON all_recommendations (user_ids);
     """,
     """
-CREATE INDEX idx_search_status_priority
-ON recommendations (search_status_priority, similarity DESC);
+CREATE INDEX idx_all_recs_search_status_priority
+ON all_recommendations (search_status_priority, similarity DESC);
+    """,
+    f"""
+CREATE MATERIALIZED VIEW limited_recommendations AS
+WITH recs AS (
+    SELECT
+        user_ids,
+        ROW_NUMBER() OVER () as rn
+    FROM all_recommendations
+),
+selected AS (
+    SELECT
+        user_ids,
+        rn,
+        (
+            SELECT COUNT(*)
+            FROM recs prev
+            WHERE prev.rn < curr.rn
+            AND (
+                prev.user_ids[1] = curr.user_ids[1]
+                OR prev.user_ids[2] = curr.user_ids[1]
+            )
+        ) as user1_prev_count,
+        (
+            SELECT COUNT(*)
+            FROM recs prev
+            WHERE prev.rn < curr.rn
+            AND (
+            prev.user_ids[1] = curr.user_ids[2]
+            OR prev.user_ids[2] = curr.user_ids[2]
+            )
+        ) as user2_prev_count
+    FROM recs curr
+)
+SELECT
+    r.*
+FROM selected s
+JOIN all_recommendations r ON r.user_ids = s.user_ids
+WHERE
+    user1_prev_count < {CFG.RECOMMENDATIONS_AT_A_TIME}
+    AND user2_prev_count < {CFG.RECOMMENDATIONS_AT_A_TIME}
+ORDER BY s.rn;
+""",
+    """
+CREATE INDEX idx_limited_recommendations__user_ids_gin
+ON limited_recommendations USING GIN (user_ids);
+    """,
+    """
+CREATE UNIQUE INDEX idx_limited_recommendations__user_ids
+ON limited_recommendations (user_ids);
+    """,
+    """
+CREATE INDEX idx_lim_recs_search_status_priority
+ON limited_recommendations (search_status_priority, similarity DESC);
     """,
 ]
 
@@ -379,14 +439,21 @@ vacuum_moral_profiles = text("""
 VACUUM moral_profiles;
 """)
 
-refresh_recommendations = text("""
-REFRESH MATERIALIZED VIEW CONCURRENTLY recommendations;
+refresh_all_recommendations = text("""
+REFRESH MATERIALIZED VIEW CONCURRENTLY all_recommendations;
 """)
 
-vacuum_recommendations = text("""
-VACUUM recommendations;
+vacuum_all_recommendations = text("""
+VACUUM all_recommendations;
 """)
 
+refresh_limited_recommendations = text("""
+REFRESH MATERIALIZED VIEW CONCURRENTLY limited_recommendations;
+""")
+
+vacuum_limited_recommendations = text("""
+VACUUM limited_recommendations;
+""")
 
 read_user_recommendations = text("""
 WITH ranked_recommendations AS (
@@ -399,7 +466,7 @@ profile_names[3 - array_position(user_ids, :my_user_id)]
     search_status_priority,
     stability_modifier,
     distance
-FROM recommendations
+FROM limited_recommendations
 WHERE :my_user_id = ANY(user_ids)
 AND (:other_user_id IS NULL OR :other_user_id = ANY(user_ids))
 )
@@ -412,18 +479,14 @@ SELECT
     rec.similarity,
     rec.distance
 
-FROM ranked_recommendations rec
-
-ORDER BY search_status_priority ASC,
-    stability_modifier DESC,
-    similarity DESC
-LIMIT :limit_param;
+FROM ranked_recommendations rec;
 """)
 
 
 users_to_notify_of_match = text(f"""
 WITH matches as
-    (SELECT DISTINCT unnest(user_ids) as match_user_id FROM recommendations)
+    (SELECT DISTINCT unnest(user_ids) as match_user_id
+    FROM limited_recommendations)
 SELECT match_user_id, email
 FROM matches
 JOIN users ON matches.match_user_id = users.id

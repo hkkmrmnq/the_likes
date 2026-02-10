@@ -1,8 +1,8 @@
 """Initial
 
-Revision ID: 1c1dca43d682
+Revision ID: fc36cd081959
 Revises:
-Create Date: 2026-01-24 23:19:00.949230
+Create Date: 2026-02-10 17:39:39.673413
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 from src.config import CFG, CNST, ENM
 
-revision: str = '1c1dca43d682'
+revision: str = 'fc36cd081959'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -248,7 +248,9 @@ def upgrade() -> None:
         sa.Column('user_id', sa.UUID(), nullable=False),
         sa.Column(
             'search_allowed_status',
-            ENM.SearchAllowedStatusPG,
+            postgresql.ENUM(
+                'ok', 'cooldown', 'suspended', name='search_allowed_status'
+            ),
             nullable=False,
         ),
         sa.Column(

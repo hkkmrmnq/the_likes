@@ -1,0 +1,61 @@
+export const CONSTANTS = {
+  APP_NAME: "The Likes",
+  APP_DESCRIPTION: "Find people with similar values",
+  SUPPORTED_LANGUAGES: ["en", "ru"],
+  DEFAULT_LANGUAGE: "en",
+  ROUTES: {
+    PUBLIC: {
+      ABOUT: "/about",
+      GUIDE: "/guide",
+      DOORSTEP: "/doorstep",
+      LOGIN: "/login",
+      REGISTER: "/register",
+      FORGOT_PASSWORD: "/forgot-password",
+    },
+    PRIVATE: {
+      PROFILE: "/profile",
+      VALUES: "/values",
+      MESSAGES: "/messages",
+      CONTACTS: "/contacts",
+    },
+  },
+  DISTANCE_LIMIT_MAX: 20037509,
+  NUMBER_OF_VALUES: 11,
+  POINT_REGEX: /POINT \(([^ ]+) ([^ ]+)\)/,
+  MOBILE_SCREEN_MAX_WIDTH: 768,
+  SMALL_USERNAME: 12,
+  MESSAGE_MAX_LENGTH: 5000,
+} as const;
+
+export const API_CFG = {
+  BASE_URL_REST: "http://localhost:8000/api",
+  PUBLIC: {
+    ABOUT: "/about",
+    GUIDE: "/guide",
+    LOGIN: "/login",
+    REGISTER: "/register",
+    VERIFY: "/verify-email",
+    FORGOT_PASSWORD: "/forgot-password",
+    SET_NEW_PASSWORD: "/set-new-password",
+  },
+  PRIVATE: {
+    PROFILE: "/profile",
+    VALUES: "/values",
+    MESSAGES: "/messages",
+    ACTIVE_CONTACTS_AND_REQUESTS: "/active-contacts-and-requests",
+    CONTACT_PROFILE: "/other-profile",
+    AGREE_TO_START: "/agree-to-start",
+    BLOCK_USER: "/block",
+    CANCEL_REQUEST: "/cancel",
+    ACCEPT_REQUEST: "/accept",
+    REJECT_REQUEST: "/reject",
+    CONTS_N_REQSTS_RECOMS: "/contacts-and-recommendations",
+    CONTACTS_OPTIONS: "/contacts-options",
+    UNBLOCK_USER: "/unblock",
+  },
+  WS_URL: "http://localhost:8000/ws",
+  TIMEOUT: 10000,
+  ACCESS_TOKEN_LIFETIME_MINUTES: 15,
+} as const;
+
+export const WS_PATH = "ws://localhost:8000/ws";
