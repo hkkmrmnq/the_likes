@@ -1,30 +1,28 @@
 @import "tailwindcss";
-/* 
-:root {
-  --background: #111827;
-  --foreground: #ededed;
-} */
-/* 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-} */
 
 .thin-scrollbar::-webkit-scrollbar {
   width: 12px;
 }
+
 .thin-scrollbar::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 10px;
   margin: 8px 0;
 }
+
 .thin-scrollbar::-webkit-scrollbar-thumb {
   background: #94a3b8;
   border-radius: 10px;
   border: 3px solid transparent;
   background-clip: content-box;
+  cursor: pointer; /* Default pointer */
 }
+
 .thin-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1;
+  cursor: grab; /* Open hand on hover */
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:active {
+  cursor: grabbing; /* Closed hand when dragging */
 }

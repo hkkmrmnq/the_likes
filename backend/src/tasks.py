@@ -187,36 +187,12 @@ ntfy_matches_h, ntfy_matches_m = CFG.NOTIFY_MATCHES_AT_HOUR_MIN
 upd_cntrs_h, updt_cntrs_m = CFG.UPDATE_MATCH_NOTIFICATION_COUNTERS_AT_HOUR_MIN
 suspend_h, suspend_m = CFG.SUSPEND_AT_HOUR_MIN
 
-# celery_app.conf.beat_schedule = {
-#     'refresh_materialized_views': {
-#         'task': 'src.tasks.refresh_materialized_views',
-#         'schedule': timedelta(
-#             hours=CFG.REFRESH_MATERIALIZED_VIEWS_EVERY_HOURS
-#         ),
-#     },
-#     'notify_matches': {
-#         'task': 'src.tasks.notify_matches',
-#         'schedule': crontab(hour=ntfy_matches_h, minute=ntfy_matches_m),
-#     },
-#     'update_match_notification_counters': {
-#         'task': 'src.tasks.update_match_notification_counters',
-#         'schedule': crontab(hour=upd_cntrs_h, minute=updt_cntrs_m),
-#     },
-#     'end_cooldowns': {
-#         'task': 'src.tasks.end_cooldowns',
-#         'schedule': timedelta(hours=CFG.END_COOLDOWNS_EVERY_HOURS),
-#     },
-#     'suspend': {
-#         'task': 'src.tasks.suspend',
-#         'schedule': crontab(hour=suspend_h, minute=suspend_m),
-#     },
-# }
-
-
 celery_app.conf.beat_schedule = {
     'refresh_materialized_views': {
         'task': 'src.tasks.refresh_materialized_views',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(
+            hours=CFG.REFRESH_MATERIALIZED_VIEWS_EVERY_HOURS
+        ),
     },
     'notify_matches': {
         'task': 'src.tasks.notify_matches',
@@ -228,7 +204,7 @@ celery_app.conf.beat_schedule = {
     },
     'end_cooldowns': {
         'task': 'src.tasks.end_cooldowns',
-        'schedule': timedelta(minutes=2),
+        'schedule': timedelta(hours=CFG.END_COOLDOWNS_EVERY_HOURS),
     },
     'suspend': {
         'task': 'src.tasks.suspend',

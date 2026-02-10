@@ -1,0 +1,3648 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "The likes",
+    "description": "Find people with similar core values.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Register",
+        "operationId": "register_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCredentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_str_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Incorrect body structure."
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "User already exists."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify-email": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Verify Email",
+        "operationId": "verify_email_verify_email_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailVerificationData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Incorrect body structure."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Invalid/expired code or to many attempts."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/request-email-verification": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Request Email Verification",
+        "operationId": "request_email_verification_request_email_verification_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCredentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_bool_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Incorrect body structure."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "User not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Login",
+        "operationId": "login_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCredentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_AccessToken_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Incorrect body structure."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Invalid password."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Requested user not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forgot-password": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Forgot Password",
+        "operationId": "forgot_password_forgot_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Incorrect body structure."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Account deactivated."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Requested email not found. You can create an account."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set-new-password": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Set New Password",
+        "operationId": "set_new_password_set_new_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Incorrect body structure."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Invalid code."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Account deactivated."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Requested email not found. You can create an account."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/definitions": {
+      "get": {
+        "tags": ["definitions"],
+        "summary": "Get Definitions",
+        "operationId": "get_definitions_definitions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_DefinitionsRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Definitions not found."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": ["profile"],
+        "summary": "Get Profile",
+        "operationId": "get_profile_profile_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ProfileRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Profile not found."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["profile"],
+        "summary": "Edit Profile",
+        "operationId": "edit_profile_profile_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ProfileRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Can't set distance_limit without location."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Profile not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/values": {
+      "get": {
+        "tags": ["values"],
+        "summary": "Get My Values",
+        "operationId": "get_my_values_values_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PersonalValuesRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["values"],
+        "summary": "Edit My Values",
+        "operationId": "edit_my_values_values_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalValuesCreateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PersonalValuesRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Personal values have not yet been set."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Profile not found. / Personal values not found after update."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": ["values"],
+        "summary": "Post My Values",
+        "operationId": "post_my_values_values_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalValuesCreateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PersonalValuesRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Inconsistent polarity/user_order. / Incorrect attitude_id. / Missing/extra values/aspects."
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Personal values are already set."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Profile not found. / Personal values not found after creation."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/check-for-alike": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Check For Alike",
+        "operationId": "check_for_alike_check_for_alike_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_RecommendationRead__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Temporarily unavailable."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Profile not found. / Contact not found right after creation. / To many contacts found."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/agree-to-start": {
+      "post": {
+        "tags": ["contacts"],
+        "summary": "Agree To Start",
+        "operationId": "agree_to_start_agree_to_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ActiveContactsAndRequests_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Incorrect body structure."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Requested user not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/active-contacts-and-requests": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Contacts",
+        "operationId": "contacts_active_contacts_and_requests_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ActiveContactsAndRequests_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/contacts-and-recommendations": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Contacts And Recommendations",
+        "operationId": "contacts_and_recommendations_contacts_and_recommendations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ContsNReqstsNRecoms_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/cancel": {
+      "post": {
+        "tags": ["contacts"],
+        "summary": "Cancel Contact Request",
+        "operationId": "cancel_contact_request_cancel_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ActiveContactsAndRequests_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Contact request not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/reject": {
+      "post": {
+        "tags": ["contacts"],
+        "summary": "Reject Contact Request",
+        "operationId": "reject_contact_request_reject_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ActiveContactsAndRequests_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Contact request not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/block": {
+      "post": {
+        "tags": ["contacts"],
+        "summary": "Block Contact",
+        "operationId": "block_contact_block_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ActiveContactsAndRequests_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Contact not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/rejected-requests": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Get Rejected Requests",
+        "operationId": "get_rejected_requests_rejected_requests_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_ContactRead__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/cancelled-requests": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Get Cancelled Requests",
+        "operationId": "get_cancelled_requests_cancelled_requests_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_ContactRead__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/blocked-contacts": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Get Blocked Contacts",
+        "operationId": "get_blocked_contacts_blocked_contacts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_ContactRead__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/unblock": {
+      "post": {
+        "tags": ["contacts"],
+        "summary": "Unblock Contact",
+        "operationId": "unblock_contact_unblock_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ActiveContactsAndRequests_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Contact not found."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/other-profile/{user_id}": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Get Contact Profile",
+        "operationId": "get_contact_profile_other_profile__user_id__get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_RecommendationRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Requested user not found in contacts/recommendations."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/contacts-options": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Get Additional Contacts Options",
+        "operationId": "get_additional_contacts_options_contacts_options_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_AdditionalContactsOptions_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/messages/unread-count": {
+      "get": {
+        "tags": ["messages"],
+        "summary": "Count Unread Messages",
+        "operationId": "count_unread_messages_messages_unread_count_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_UnreadMessagesCount_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/messages": {
+      "get": {
+        "tags": ["messages"],
+        "summary": "Get Messages",
+        "operationId": "get_messages_messages_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "contact_user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Contact User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_MessageRead__"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Unverified"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["messages"],
+        "summary": "Send Message",
+        "operationId": "send_message_messages_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_MessageRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Unverified"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Contact not found."
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bootstrap": {
+      "get": {
+        "tags": ["bootstrap"],
+        "summary": "Bootstrap",
+        "operationId": "bootstrap_bootstrap_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Bootstrap_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unauthorized / inactive account."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseSchema"
+                },
+                "example": {
+                  "detail": "Unverified"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/ws": {
+      "get": {
+        "summary": "WebSocket Endpoint",
+        "description": "Establishes a WebSocket connection.",
+        "responses": {
+          "101": {
+            "description": "Switching Protocols"
+          },
+          "200": {
+            "description": "WebSocket Connection"
+          }
+        },
+        "tags": ["chat"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccessToken": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "Access"
+          }
+        },
+        "type": "object",
+        "required": ["access_token"],
+        "title": "AccessToken"
+      },
+      "ActiveContactsAndRequests-Input": {
+        "properties": {
+          "active_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Active Contacts"
+          },
+          "contact_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Contact Requests"
+          }
+        },
+        "type": "object",
+        "required": ["active_contacts", "contact_requests"],
+        "title": "ActiveContactsAndRequests"
+      },
+      "ActiveContactsAndRequests-Output": {
+        "properties": {
+          "active_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Active Contacts"
+          },
+          "contact_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Contact Requests"
+          }
+        },
+        "type": "object",
+        "required": ["active_contacts", "contact_requests"],
+        "title": "ActiveContactsAndRequests"
+      },
+      "AdditionalContactsOptions-Input": {
+        "properties": {
+          "cancelled_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Cancelled Requests"
+          },
+          "rejected_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Rejected Requests"
+          },
+          "blocked_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Blocked Contacts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cancelled_requests",
+          "rejected_requests",
+          "blocked_contacts"
+        ],
+        "title": "AdditionalContactsOptions"
+      },
+      "AdditionalContactsOptions-Output": {
+        "properties": {
+          "cancelled_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Cancelled Requests"
+          },
+          "rejected_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Rejected Requests"
+          },
+          "blocked_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Blocked Contacts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cancelled_requests",
+          "rejected_requests",
+          "blocked_contacts"
+        ],
+        "title": "AdditionalContactsOptions"
+      },
+      "ApiResponse_AccessToken_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccessToken"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[AccessToken]"
+      },
+      "ApiResponse_ActiveContactsAndRequests_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActiveContactsAndRequests-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[ActiveContactsAndRequests]"
+      },
+      "ApiResponse_AdditionalContactsOptions_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdditionalContactsOptions-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[AdditionalContactsOptions]"
+      },
+      "ApiResponse_Bootstrap_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Bootstrap-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[Bootstrap]"
+      },
+      "ApiResponse_ContsNReqstsNRecoms_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContsNReqstsNRecoms-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[ContsNReqstsNRecoms]"
+      },
+      "ApiResponse_DefinitionsRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DefinitionsRead-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[DefinitionsRead]"
+      },
+      "ApiResponse_MessageRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessageRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[MessageRead]"
+      },
+      "ApiResponse_NoneType_": {
+        "properties": {
+          "data": {
+            "type": "null",
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[NoneType]"
+      },
+      "ApiResponse_PersonalValuesRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonalValuesRead-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[PersonalValuesRead]"
+      },
+      "ApiResponse_ProfileRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[ProfileRead]"
+      },
+      "ApiResponse_RecommendationRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecommendationRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[RecommendationRead]"
+      },
+      "ApiResponse_UnreadMessagesCount_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnreadMessagesCount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[UnreadMessagesCount]"
+      },
+      "ApiResponse_bool_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[bool]"
+      },
+      "ApiResponse_list_ContactRead__": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ContactRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[list[ContactRead]]"
+      },
+      "ApiResponse_list_MessageRead__": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/MessageRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[list[MessageRead]]"
+      },
+      "ApiResponse_list_RecommendationRead__": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RecommendationRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[list[RecommendationRead]]"
+      },
+      "ApiResponse_str_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse[str]"
+      },
+      "AspectRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "key_phrase": {
+            "type": "string",
+            "title": "Key Phrase"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          }
+        },
+        "type": "object",
+        "required": ["id", "key_phrase", "statement"],
+        "title": "AspectRead"
+      },
+      "AttitudeRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          }
+        },
+        "type": "object",
+        "required": ["id", "statement"],
+        "title": "AttitudeRead"
+      },
+      "Bootstrap-Input": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/ProfileRead"
+          },
+          "active_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Active Contacts"
+          },
+          "contact_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Contact Requests"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationRead"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "active_contacts",
+          "contact_requests",
+          "recommendations"
+        ],
+        "title": "Bootstrap"
+      },
+      "Bootstrap-Output": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/ProfileRead"
+          },
+          "active_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Active Contacts"
+          },
+          "contact_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Contact Requests"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationRead"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "active_contacts",
+          "contact_requests",
+          "recommendations"
+        ],
+        "title": "Bootstrap"
+      },
+      "ChangePasswordSchema": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "code": {
+            "type": "integer",
+            "exclusiveMaximum": 1000000,
+            "minimum": 0,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": ["email", "password", "code"],
+        "title": "ChangePasswordSchema"
+      },
+      "ContactRead": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContactStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "similarity": {
+            "type": "number",
+            "title": "Similarity"
+          },
+          "distance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance"
+          },
+          "unread_messages": {
+            "type": "integer",
+            "title": "Unread Messages"
+          },
+          "time_waiting": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "duration"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Waiting"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "status",
+          "created_at",
+          "similarity",
+          "distance",
+          "unread_messages",
+          "time_waiting"
+        ],
+        "title": "ContactRead"
+      },
+      "ContactStatus": {
+        "type": "string",
+        "enum": [
+          "requested by me",
+          "requested by the other user",
+          "cancelled by me",
+          "cancelled by the other user",
+          "rejected by me",
+          "rejected by the other user",
+          "ongoing",
+          "blocked by me",
+          "blocked by the other user"
+        ],
+        "title": "ContactStatus"
+      },
+      "ContsNReqstsNRecoms-Input": {
+        "properties": {
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationRead"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          },
+          "active_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Active Contacts"
+          },
+          "contact_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Contact Requests"
+          }
+        },
+        "type": "object",
+        "required": ["recommendations", "active_contacts", "contact_requests"],
+        "title": "ContsNReqstsNRecoms"
+      },
+      "ContsNReqstsNRecoms-Output": {
+        "properties": {
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationRead"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          },
+          "active_contacts": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Active Contacts"
+          },
+          "contact_requests": {
+            "items": {
+              "$ref": "#/components/schemas/ContactRead"
+            },
+            "type": "array",
+            "title": "Contact Requests"
+          }
+        },
+        "type": "object",
+        "required": ["recommendations", "active_contacts", "contact_requests"],
+        "title": "ContsNReqstsNRecoms"
+      },
+      "DefinitionsRead-Input": {
+        "properties": {
+          "attitudes": {
+            "items": {
+              "$ref": "#/components/schemas/AttitudeRead"
+            },
+            "type": "array",
+            "title": "Attitudes"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/ValueRead"
+            },
+            "type": "array",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": ["attitudes", "values"],
+        "title": "DefinitionsRead"
+      },
+      "DefinitionsRead-Output": {
+        "properties": {
+          "attitudes": {
+            "items": {
+              "$ref": "#/components/schemas/AttitudeRead"
+            },
+            "type": "array",
+            "title": "Attitudes"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/ValueRead"
+            },
+            "type": "array",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": ["attitudes", "values"],
+        "title": "DefinitionsRead"
+      },
+      "EmailSchema": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": ["email"],
+        "title": "EmailSchema"
+      },
+      "EmailVerificationData": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "code": {
+            "type": "integer",
+            "exclusiveMaximum": 1000000,
+            "minimum": 0,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": ["email", "code"],
+        "title": "EmailVerificationData"
+      },
+      "ErrorResponseSchema": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra"
+          }
+        },
+        "type": "object",
+        "required": ["detail"],
+        "title": "ErrorResponseSchema"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MessageCreate": {
+        "properties": {
+          "receiver_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Receiver Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Text"
+          },
+          "client_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Id"
+          }
+        },
+        "type": "object",
+        "required": ["receiver_id", "text", "client_id"],
+        "title": "MessageCreate"
+      },
+      "MessageRead": {
+        "properties": {
+          "sender_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sender Id"
+          },
+          "sender_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Name"
+          },
+          "receiver_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Receiver Id"
+          },
+          "receiver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receiver Name"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Text"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "time": {
+            "type": "string",
+            "format": "time",
+            "title": "Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sender_id",
+          "sender_name",
+          "receiver_id",
+          "receiver_name",
+          "text",
+          "created_at",
+          "time"
+        ],
+        "title": "MessageRead"
+      },
+      "PersonalAspectCreate": {
+        "properties": {
+          "aspect_id": {
+            "type": "integer",
+            "title": "Aspect Id"
+          },
+          "included": {
+            "type": "boolean",
+            "title": "Included"
+          }
+        },
+        "type": "object",
+        "required": ["aspect_id", "included"],
+        "title": "PersonalAspectCreate"
+      },
+      "PersonalAspectRead": {
+        "properties": {
+          "aspect_id": {
+            "type": "integer",
+            "title": "Aspect Id"
+          },
+          "aspect_key_phrase": {
+            "type": "string",
+            "title": "Aspect Key Phrase"
+          },
+          "aspect_statement": {
+            "type": "string",
+            "title": "Aspect Statement"
+          },
+          "included": {
+            "type": "boolean",
+            "title": "Included"
+          }
+        },
+        "type": "object",
+        "required": [
+          "aspect_id",
+          "aspect_key_phrase",
+          "aspect_statement",
+          "included"
+        ],
+        "title": "PersonalAspectRead"
+      },
+      "PersonalAttitude": {
+        "properties": {
+          "attitude_id": {
+            "type": "integer",
+            "title": "Attitude Id"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "chosen": {
+            "type": "boolean",
+            "title": "Chosen"
+          }
+        },
+        "type": "object",
+        "required": ["attitude_id", "statement", "chosen"],
+        "title": "PersonalAttitude"
+      },
+      "PersonalValueCreate": {
+        "properties": {
+          "value_id": {
+            "type": "integer",
+            "title": "Value Id"
+          },
+          "polarity": {
+            "type": "string",
+            "enum": ["positive", "negative", "neutral"],
+            "title": "Polarity"
+          },
+          "user_order": {
+            "type": "integer",
+            "maximum": 11,
+            "minimum": 1,
+            "title": "User Order"
+          },
+          "aspects": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalAspectCreate"
+            },
+            "type": "array",
+            "title": "Aspects"
+          }
+        },
+        "type": "object",
+        "required": ["value_id", "polarity", "user_order", "aspects"],
+        "title": "PersonalValueCreate"
+      },
+      "PersonalValueRead": {
+        "properties": {
+          "value_id": {
+            "type": "integer",
+            "title": "Value Id"
+          },
+          "value_name": {
+            "type": "string",
+            "title": "Value Name"
+          },
+          "polarity": {
+            "type": "string",
+            "title": "Polarity"
+          },
+          "user_order": {
+            "type": "integer",
+            "title": "User Order"
+          },
+          "aspects": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalAspectRead"
+            },
+            "type": "array",
+            "title": "Aspects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value_id",
+          "value_name",
+          "polarity",
+          "user_order",
+          "aspects"
+        ],
+        "title": "PersonalValueRead"
+      },
+      "PersonalValuesCreateUpdate": {
+        "properties": {
+          "attitude_id": {
+            "type": "integer",
+            "title": "Attitude Id"
+          },
+          "value_links": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalValueCreate"
+            },
+            "type": "array",
+            "title": "Value Links"
+          }
+        },
+        "type": "object",
+        "required": ["attitude_id", "value_links"],
+        "title": "PersonalValuesCreateUpdate"
+      },
+      "PersonalValuesRead-Input": {
+        "properties": {
+          "initial": {
+            "type": "boolean",
+            "title": "Initial"
+          },
+          "attitudes": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalAttitude"
+            },
+            "type": "array",
+            "title": "Attitudes"
+          },
+          "value_links": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalValueRead"
+            },
+            "type": "array",
+            "title": "Value Links"
+          }
+        },
+        "type": "object",
+        "required": ["initial", "attitudes", "value_links"],
+        "title": "PersonalValuesRead"
+      },
+      "PersonalValuesRead-Output": {
+        "properties": {
+          "initial": {
+            "type": "boolean",
+            "title": "Initial"
+          },
+          "attitudes": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalAttitude"
+            },
+            "type": "array",
+            "title": "Attitudes"
+          },
+          "value_links": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalValueRead"
+            },
+            "type": "array",
+            "title": "Value Links"
+          }
+        },
+        "type": "object",
+        "required": ["initial", "attitudes", "value_links"],
+        "title": "PersonalValuesRead"
+      },
+      "ProfileRead": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages"
+          },
+          "distance_limit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Limit"
+          },
+          "recommend_me": {
+            "type": "boolean",
+            "title": "Recommend Me"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "languages",
+          "distance_limit",
+          "recommend_me",
+          "longitude",
+          "latitude"
+        ],
+        "title": "ProfileRead"
+      },
+      "ProfileUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "examples": ["John Doe"]
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "distance_limit": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20037509,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Limit"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages"
+          },
+          "recommend_me": {
+            "type": "boolean",
+            "title": "Recommend Me"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "longitude",
+          "latitude",
+          "distance_limit",
+          "languages",
+          "recommend_me"
+        ],
+        "title": "ProfileUpdate"
+      },
+      "RecommendationRead": {
+        "properties": {
+          "similarity": {
+            "type": "number",
+            "title": "Similarity"
+          },
+          "distance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": ["similarity", "distance", "user_id", "name"],
+        "title": "RecommendationRead"
+      },
+      "TargetUser": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": ["id"],
+        "title": "TargetUser"
+      },
+      "UnreadMessagesCount": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "contacts": {
+            "items": {
+              "$ref": "#/components/schemas/UnreadMessagesCountByContact"
+            },
+            "type": "array",
+            "title": "Contacts"
+          }
+        },
+        "type": "object",
+        "required": ["total", "contacts"],
+        "title": "UnreadMessagesCount"
+      },
+      "UnreadMessagesCountByContact": {
+        "properties": {
+          "sender_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sender Id"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": ["sender_id", "count"],
+        "title": "UnreadMessagesCountByContact"
+      },
+      "UserCredentials": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": ["email", "password"],
+        "title": "UserCredentials"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      },
+      "ValueRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "aspects": {
+            "items": {
+              "$ref": "#/components/schemas/AspectRead"
+            },
+            "type": "array",
+            "title": "Aspects"
+          }
+        },
+        "type": "object",
+        "required": ["id", "name", "aspects"],
+        "title": "ValueRead"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
