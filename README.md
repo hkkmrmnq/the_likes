@@ -54,7 +54,7 @@ In the third step, you'll choose a statement that characterizes your overall att
 
 # Введение
 
-The Likes позволяет найти новых знакомых на со схожими ценностями.
+The Likes позволяет найти новых знакомых со схожими ценностями.
 
 Я исхожу из следующего предположения.
 
