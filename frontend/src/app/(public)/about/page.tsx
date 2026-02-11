@@ -18,8 +18,7 @@ export default function AboutPage() {
         <div className="flex justify-center">
           <div className="p-2 max-w-[800px]">
             <p>
-              The Likes app allows you to find new connections based on your
-              personal values.
+              The Likes is an application for finding people with same values.
             </p>
             <p>I proceed from the following assumption.</p>
             <ol>
