@@ -120,20 +120,21 @@ The Likes позволяет найти новых знакомых со схо�
 
 # Tech details
 
-Authentication - JWT Bearer.
-Profile page.
-Complex multi-step questionnaire - user's 'moral profile', including drag-n-drop board.
-Postgress recommendations precalculation - materialized views, funcions, CTE's - designed to work with potentially big number of users.
-Contacts: send/accept/cancell/reject new contact request, block/unblock active user contact.
-Chat (WebSocket).
+- Authentication - JWT Bearer.
+- Profile page.
+- Complex multi-step questionnaire - user's 'moral profile', including drag-n-drop board.
+- Postgress recommendations precalculation - materialized views, funcions, CTE's - designed to work with potentially big number of users.
+- Contacts: send/accept/cancell/reject new contact request, block/unblock active user contact.
+- Chat (WebSocket).
 
 TODO:
-Deploy - https/wss.
-Adapt WebSocket to multy-instance gunicorn setup.
-Token refreshment.
-Error handling, logging.
-Proper emails.
-Admin panel.
+
+- Deploy - https/wss.
+- Adapt WebSocket to multy-instance gunicorn setup.
+- Token refreshment.
+- Error handling, logging.
+- Proper emails.
+- Admin panel.
 
 ### Backend stack:
 
