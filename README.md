@@ -1,4 +1,4 @@
-# The Likes.
+# The Likes
 
 The Likes is an application for finding people with same values. More detailed explanation below ([also in Russian](#введение)).
 
@@ -126,12 +126,14 @@ The Likes позволяет найти новых знакомых со схо�
 - Postgress recommendations precalculation - materialized views, funcions, CTE's - designed to work with potentially big number of users.
 - Contacts: send/accept/cancell/reject new contact request, block/unblock active user contact.
 - Chat (WebSocket).
+- Adding necessary data - Values, Aspects, Attitudes - from 'Basic data.xlsx' - which can be edited, so you can run an app with your oun set of definitions.
 
 TODO:
 
 - Fix Docker network, add frontend.
-- Deploy - https/wss.
 - Adapt WebSocket to multy-instance gunicorn setup.
+- Deploy - https/wss.
+- Bootstrap with UI translations.
 - Token refreshment.
 - Error handling, logging.
 - Proper emails.
