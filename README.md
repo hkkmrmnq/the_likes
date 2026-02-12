@@ -1,6 +1,6 @@
 # The Likes.
 
-The Likes is an application for finding people with same values. More detailed explanation below ([also in Russian: ](#введение)).
+The Likes is an application for finding people with same values. More detailed explanation below ([also in Russian](#введение)).
 
 # Introduction
 
@@ -17,9 +17,31 @@ Since, as a rule, different people put different meanings into the same words, I
 
 Due to this approach, finding suitable users may take quite a while — especially in the early stages, until a sufficient number of users participate. I hope this won't discourage you.
 
-If you want to know the reasons behind the choice of terms denoting values, here is the position from which I follow:
+# Usage
 
-1. Reality exists independently of us and is knowable through experience. It can be understood as a set of all possible descriptive statements that denote either the very fact of our experience, or logically necessarily follow from the totality of facts.
+After you signed up and signed in — check your Profile page.
+
+You may set your location and disatnce limit — to filter out the people who are to far from you. Or leave distance limit empty — if geographical distance doesn't matter for you.
+
+Then — go to Values page.
+
+Here I offer you a set of terms denoting possible abstract values: Pleasure, Comfort, Happiness, Love, Beauty, Wealth, Status, Power, Violence, Truth, Freedom.
+
+First — select components — Aspects — for each value. If you agree with the statement — check the box. Choose based on what the word means to you and/or what feelings it evokes in you.
+
+Important: each combination of Aspects is considered as an independent Value. That is, if you included the Aspect "objective quality" in Beauty, and someone else — not — we do not know how close or distant is your view on Beauty from the view of that other person.
+
+After Aspects for Values — also choose the Attitude — a statement that characterizes how you think you values should relate to other people in general.
+
+In the next step, distribute your Values ​​among three groups: positive, negative, and neutral. Initially, all Values ​​are in the neutral group. If you want more Beauty in your life, move it to the positive. If less, move it to the negative. Leave the values ​​you don't care about in the neutral group.
+Positive and negative Values ​​should be arranged hierarchically according to how you feel about them: the best at the very top, the worst at the very bottom. Neutral values ​​don't need to be sorted — their order doesn't matter.
+Though the values ​​can be ordered any way you like — all decisions will be taken into account — preference will be given to the first two positive and last two negative values. You can change Aspects and Values hierarchy later, but frequent changes will reduce chances of getting a recommendation.
+
+# Philosophy(?)
+
+If you want to read about my reasons behind the choice of terms denoting values — here is the position from which I follow.
+
+1. Reality exists independently of us and is knowable through experience. It can be understood as a set of all possible descriptive statements that denote either the very fact of our experience, or necessarily/logically follow from the totality of facts.
 2. Another type of statements are evaluative. We make evaluative statements about what we think reality should be like. Evaluative statements can take forms such as "X is good/bad, right/wrong" and "X should/should not be done".
 3. Along with this, there is the concept of "moral values" — something like guidelines, relying on which we make evaluative statements.
 4. Descriptive statements are logically connected with facts. Evaluative statements are also logically connected with moral values.
@@ -35,22 +57,6 @@ If you want to know the reasons behind the choice of terms denoting values, here
 8. When attempting to define (or choose) a hierarchy of one's values, a second (conscious) hierarchy of values ​​is created in addition to the first (real) one. How similar the real and conscious value hierarchies will be for any given person is a question that is hardly possible to answer.
 9. Since the real/unconscious is not completely isolated from the conscious, I propose that the unconscious value hierarchy can be changed through sustained conscious effort — through self-analysis and, most importantly, through discussion with people who share similar values.
    Therefore, despite the obstacles, I propose this approach.
-
-# Instructions
-
-I offer you a set of terms denoting possible abstract values: Pleasure, Comfort, Happiness, Love, Beauty, Wealth, Status, Power, Violence, Truth, Freedom.
-
-In the first step, you must select components — Aspects — for each value. If you agree that a statement should be included in the value definition, check the box next to it. For example, if you agree that Beauty is (partially or completely) an objective quality, include this aspect in the definition of beauty.
-
-Important: each combination of Aspects is considered as an independent Value. That is, if you included the Aspect "objective quality" in Beauty, and someone else — not — we do not know how close or distant is your view on Beauty from the view of that other person.
-
-In the second step, distribute your Values ​​among three groups: positive, negative, and neutral. Initially, all Values ​​are in the neutral group. If you want more Beauty in your life, move it to the positive. If less, move it to the negative. Leave the values ​​you don't care about in the neutral group.
-
-Positive and negative Values ​​should be arranged hierarchically according to how you feel about them: the best at the very top, the worst at the very bottom. Neutral values ​​don't need to be sorted — their order doesn't matter.
-
-Though the values ​​can be ordered any way you like — all decisions will be taken into account — preference will be given to the first two positive and last two negative values. You can change Aspects and Values hierarchy later, but frequent changes will reduce chances of getting a recommendation.
-
-In the third step, you'll choose a statement that characterizes your overall attitude toward values.
 
 # Введение
 
@@ -69,9 +75,33 @@ The Likes позволяет найти новых знакомых со схо�
 
 В связи с таким подходом, поиск подходящих пользователей может занять довольно продолжительное время — особенно на раннем этапе — пока не наберётся достаточное количество пользователей. Надеюсь, это вас не отпугнёт.
 
+# Как пользоваться
+
+После регистрации и авторизации перейдите в Профиль.
+
+Вы можете установить свое местоположение и ограничение по расстоянию, чтобы отфильтровать людей, которые находятся слишком далеко от вас. Или оставьте ограничение по расстоянию пустым, если оно не имеет для вас значения.
+
+Затем перейдите в Ценности.
+
+Предлагаю вам набор терминов, означающих возможные абстрактные ценности: Удовольствие, Комфорт, Счастье, Любовь, Красота, Богатство, Статус, Власть, Насилие, Истина, Свобода.
+
+На первом этапе для каждой ценности необходимо выбрать составляющие — Аспекты. Если вы согласны с утверждением — поставьте галочку рядом с ним. Выбирайте исходя из того, что значит это слово только для вас и/или какие у вас вызывает ощущения.
+
+Важно: каждая комбинация Аспектов рассматривается как самостоятельная Ценность. То есть, если вы включили Аспект "объективное качество" в Красоту, а кто-то другой — нет — то мы не знаем, насколько близко или далеко ваше понимание красоты от того, как её понимает тот другой человек.
+
+После Аспектов Ценностей — выберите также Отношение — утверждение, характеризующее то, как, по вашему мнению, ваши ценности относятся к другими людям в целом.
+
+Далее — распределите Цености между тремя группами: позитивные, негативные и нейтральные. Вначале все Ценности находятся в нейтральной группе. Если вы хотите больше Красоты в своей жизни — переместите её позитивные. Если меньше — в негативные. В нейтральной группе оставьте то, что вам безразлично.
+
+Позитивные и негативные Ценности нужно располжить иерархически, в соответствии с тем, как вы к ним относитесть: самое хорошее - на самом верху, самое плохое - в самом низу. Нейтральные ценнсти сортировать не нужно — их порядок не имеет значения.
+
+Хотя Ценности можно распределить как угодно — и все решения будут учтены — наибольший "вес" будут иметь две первые позитивные и две последние негативные Ценности. Аспекты и иерархию Ценностей можно будет изменить позже, но частые изменения понизят шансы получить рекоммендацию.
+
+# Философия(?)
+
 Если вы хотите узнать, чем обусловлен выбор терминов, обозначающих ценности — вот позиция, из которой я исхожу:
 
-1. Реальность существует независимо от нас и познаваема посредством опыта. Её можно понимать как совокупность всех возможных описательных утверждений, которые обозначают либо сам факт нашего опыта, либо логически необходимо следуют из всей совокупности фактов.
+1. Реальность существует независимо от нас и познаваема посредством опыта. Её можно понимать как совокупность всех возможных описательных утверждений, которые обозначают либо сам факт нашего опыта, либо необходимо/логически следуют из всей совокупности фактов.
 2. Ещё один тип утверждений — оценочные. Мы делаем оценочные утверждения о том, какой, по нашему мнению, должна быть реальность. Оценочные утверждения могут иметь такие формы, как «X — это хорошо/плохо, правильно/неправильно» и «следует / не следует сделать X».
 3. Вместе с этим существует понятие "моральные ценности" — нечто, вроде ориентиров, опираясь на которые мы и делаем оценочные утверждения.
 4. Описательные утверждения логически связаны с фактами. Оценочные утверждения — так же логически — связаны с моральными ценностями.
@@ -88,27 +118,10 @@ The Likes позволяет найти новых знакомых со схо�
 9. Поскольку реальное/бессознательное не в полной мере изолировано от сознательного, я предполагаю, что бессознательную иерархию ценностей можно изменить с помощью длительных сознательных усилий — через самоанализ и, что особенно важно, через обсуждение с людьми, имеющими схожие ценности.
    Поэтому, несмотря на препятствия, я предлагаю этот подход.
 
-# Инструкция
-
-Предлагаю вам набор терминов, означающих возможные абстрактные ценности: Удовольствие, Комфорт, Счастье, Любовь, Красота, Богатство, Статус, Власть, Насилие, Истина, Свобода.
-
-На первом этапе для каждой ценности необходимо выбрать составляющие — Аспекты. Если вы согласны с тем, что утверждение должно быть включено в определение ценности, — поставьте галочку рядом с ним. Например, если вы согласны, что Красота — это (частично или полностью) объективное качество — включите этот аспект в опредение красоты.
-
-Важно: каждая комбинация Аспектов рассматривается как самостоятельная Ценность. То есть, если вы включили Аспект "объективное качество" в Красоту, а кто-то другой — нет — то мы не знаем, насколько близко или далеко ваше понимание красоты от того, как её понимает тот другой человек.
-
-На втором этапе распределите Цености между тремя группами: позитивные, негативные и нейтральные. Вначале все Ценности находятся в нейтральной группе. Если вы хотите больше Красоты в своей жизни — переместите её позитивные. Если меньше — в негативные. В нейтральной группе оставьте то, что вам безразлично.
-
-Позитивные и негативные Ценности нужно располжить иерархически, в соответствии с тем, как вы к ним относитесть: самое хорошее - на самом верху, самое плохое - в самом низу. Нейтральные ценнсти сортировать не нужно — их порядок не имеет значения.
-
-Хотя Ценности можно распределить как угодно — и все решения будут учтены — наибольший "вес" будут иметь две первые позитивные и две последние негативные Ценности. Аспекты и иерархию Ценностей можно будет изменить позже, но частые изменения понизят шансы получить рекоммендацию.
-
-На третьем этапе выберете утверждение, которое характеризует ваше отношение к ценностям в целом.
-
 #### Backend stack:
 
 - Python 3.12
 - Fastapi 0.116.1
-- Fastapi-users (JWT) 14.0.1
 - Sqlalchemy 2.0.41
 - Alembic 1.16.4
 - Celery[redis] 5.5.3
