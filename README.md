@@ -118,7 +118,24 @@ The Likes позволяет найти новых знакомых со схо�
 9. Поскольку реальное/бессознательное не в полной мере изолировано от сознательного, я предполагаю, что бессознательную иерархию ценностей можно изменить с помощью длительных сознательных усилий — через самоанализ и, что особенно важно, через обсуждение с людьми, имеющими схожие ценности.
    Поэтому, несмотря на препятствия, я предлагаю этот подход.
 
-#### Backend stack:
+# Tech details
+
+Authentication - JWT Bearer.
+Profile page.
+Complex multi-step questionnaire - user's 'moral profile', including drag-n-drop board.
+Postgress recommendations precalculation - materialized views, funcions, CTE's - designed to work with potentially big number of users.
+Contacts: send/accept/cancell/reject new contact request, block/unblock active user contact.
+Chat (WebSocket).
+
+TODO:
+Deploy - https/wss.
+Adapt WebSocket to multy-instance gunicorn setup.
+Token refreshment.
+Error handling, logging.
+Proper emails.
+Admin panel.
+
+### Backend stack:
 
 - Python 3.12
 - Fastapi 0.116.1
@@ -129,7 +146,7 @@ The Likes позволяет найти новых знакомых со схо�
 - Nginx
 - Supervisor
 
-#### Frontend stack:
+### Frontend stack:
 
 - TypesScript 5
 - React 19.2.0
@@ -141,7 +158,7 @@ API documentation file - 'documentation.json' - in root folder. To read upload t
 
 You can also use your own set of Values, Aspects and Attitudes. For this - edit backend/Basic data.xlsx and adjust Settings.PERSONAL_VALUE_MAX_ORDER.
 
-#### To run backend:
+### To run backend:
 
 Clone project:
 
@@ -211,7 +228,7 @@ Run celery beat:
 uv run celery -A src.tasks beat --loglevel=info
 ```
 
-#### To run frontend:
+### To run frontend:
 
 Go to frontend directory and run with `pnpm dev`
 
