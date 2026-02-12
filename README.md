@@ -129,6 +129,7 @@ The Likes позволяет найти новых знакомых со схо�
 
 TODO:
 
+- Fix Docker network, add frontend.
 - Deploy - https/wss.
 - Adapt WebSocket to multy-instance gunicorn setup.
 - Token refreshment.
