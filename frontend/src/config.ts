@@ -1,3 +1,4 @@
+// const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_ORIGIN;
 export const CONSTANTS = {
   APP_NAME: "The Likes",
   APP_DESCRIPTION: "Find people with similar values",
@@ -28,7 +29,7 @@ export const CONSTANTS = {
 } as const;
 
 export const API_CFG = {
-  BASE_URL_REST: "http://localhost:8000/api",
+  BASE_URL_REST: "/api", // `${BACKEND_ORIGIN}/api`,
   PUBLIC: {
     ABOUT: "/about",
     GUIDE: "/guide",
@@ -53,9 +54,7 @@ export const API_CFG = {
     CONTACTS_OPTIONS: "/contacts-options",
     UNBLOCK_USER: "/unblock",
   },
-  WS_URL: "http://localhost:8000/ws",
+  WS_URL: "ws", // `${BACKEND_ORIGIN}/ws`,
   TIMEOUT: 10000,
   ACCESS_TOKEN_LIFETIME_MINUTES: 15,
 } as const;
-
-export const WS_PATH = "ws://localhost:8000/ws";

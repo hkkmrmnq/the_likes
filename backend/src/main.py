@@ -5,12 +5,10 @@ from fastapi.openapi.utils import get_openapi
 from src import endpoints
 from src.config import CFG
 from src.exceptions import exc, handlers
-from src.logger import logger
 from src.middleware import LanguageMiddleware
 
-app = FastAPI(root_path='/api')  # root_path='/api'
+app = FastAPI(root_path='/api')
 
-logger.info(f'{CFG.BACKEND_ORIGIN}, {CFG.FRONTEND_ORIGIN}')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[CFG.BACKEND_ORIGIN, CFG.FRONTEND_ORIGIN],

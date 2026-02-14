@@ -104,7 +104,7 @@ jobs:
       - name: Start app
         run: |
           cd backend
-          uv run fastapi dev src/main.py &
+          uv run fastapi dev ./src/main.py &
           sleep 10 &
           uv run celery -A src.tasks worker --loglevel=info &
           sleep 10 &

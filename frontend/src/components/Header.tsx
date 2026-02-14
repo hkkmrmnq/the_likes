@@ -7,8 +7,7 @@ import { useAuthStore } from "@/src/stores/auth";
 import {
   ToDoorstepButton,
   ToProfileButton,
-  ToAboutButton,
-  ToGuideButton,
+  ToAbout,
   ToContactsButton,
   ToValuesButton,
   LogOutButton,
@@ -34,8 +33,7 @@ function Navbar() {
             />
           </div>
           <div className="md:flex items-center space-x-6">
-            <ToAboutButton className={navbarClickable} />
-            <ToGuideButton className={navbarClickable} />
+            <ToAbout className={navbarClickable} />
             {token && <ToContactsButton className={navbarClickable} />}
             {token && <ToValuesButton className={navbarClickable} />}
             {token && <ToProfileButton className={navbarClickable} />}
@@ -81,8 +79,7 @@ function MobileMenu() {
               {token && <ToProfileButton className={mobileMenuClickable} />}
               {token && <ToContactsButton className={mobileMenuClickable} />}
               {token && <ToValuesButton className={mobileMenuClickable} />}
-              <ToAboutButton className={mobileMenuClickable} />
-              <ToGuideButton className={mobileMenuClickable} />
+              <ToAbout className={mobileMenuClickable} />
             </div>
           )}
         </div>

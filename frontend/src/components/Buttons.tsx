@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+
 import * as str from "@/src/stores";
 import { useClearStores, useWSClientContext } from "@/src/hooks";
 import { CONSTANTS as CNST } from "@/src/config";
@@ -107,13 +109,20 @@ export function ToRegisterButton({ text = "Sign Up", className = buttonMono }) {
   );
 }
 
-export function ToAboutButton({ text = "About", className = buttonMono }) {
+// export function ToAboutButton({ text = "About", className = buttonMono }) {
+//   return (
+//     <NavigationButton
+//       destination={CNST.ROUTES.PUBLIC.ABOUT}
+//       text={text}
+//       className={className}
+//     />
+//   );
+// }
+export function ToAbout({ className }: { className: string }) {
   return (
-    <NavigationButton
-      destination={CNST.ROUTES.PUBLIC.ABOUT}
-      text={text}
-      className={className}
-    />
+    <Link href="/about.html" className={className}>
+      About
+    </Link>
   );
 }
 
@@ -121,16 +130,6 @@ export function ToProfileButton({ text = "Profile", className = buttonMono }) {
   return (
     <NavigationButton
       destination={CNST.ROUTES.PRIVATE.PROFILE}
-      text={text}
-      className={className}
-    />
-  );
-}
-
-export function ToGuideButton({ text = "Guide", className = buttonMono }) {
-  return (
-    <NavigationButton
-      destination={CNST.ROUTES.PUBLIC.GUIDE}
       text={text}
       className={className}
     />

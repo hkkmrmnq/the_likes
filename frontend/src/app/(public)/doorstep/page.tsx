@@ -7,10 +7,9 @@ import { useAuthStore } from "@/src/stores";
 import {
   ToLoginButton,
   ToRegisterButton,
-  ToAboutButton,
+  ToAbout,
 } from "@/src/components/Buttons";
 import { useLoadingStore } from "@/src/stores";
-import { linkMediumMono } from "@/src/styles";
 import { CONSTANTS as CNST } from "@/src/config";
 
 export default function DoorstepPage() {
@@ -45,7 +44,7 @@ export default function DoorstepPage() {
         <div className="space-y-4 mt-8">
           <ToLoginButton />
           <ToRegisterButton />
-          <ToAboutButton className={linkMediumMono} />
+          <ToAbout className="flex justify-self-center py-2" />
         </div>
       </main>
     </div>
