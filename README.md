@@ -122,17 +122,16 @@ The Likes позволяет найти новых знакомых со схо�
 
 - Authentication - JWT Bearer.
 - Profile page.
-- Complex multi-step questionnaire - user's 'moral profile', including drag-n-drop board.
-- Postgress recommendations precalculation - materialized views, funcions, CTE's - designed to work with potentially big number of users.
+- Multi-step questionnaire - user's 'moral profile', including drag-n-drop board.
+- Postgres recommendations precalculation - materialized views, funcions, CTE's - designed to work with potentially big number of users.
 - Contacts: send/accept/cancell/reject new contact request, block/unblock active user contact.
 - Chat (WebSocket).
 - Adding necessary data - Values, Aspects, Attitudes - from 'Basic data.xlsx' - which can be edited, so you can run an app with your oun set of definitions.
 
 TODO:
 
-- Fix Docker network, add frontend.
 - Adapt WebSocket to multy-instance gunicorn setup.
-- Deploy - https/wss.
+- Deploy with https/wss.
 - Bootstrap with UI translations.
 - Token refreshment.
 - Error handling, logging.
@@ -162,18 +161,12 @@ API documentation file - 'documentation.json' - in root folder. To read upload t
 
 You can also use your own set of Values, Aspects and Attitudes. For this - edit backend/Basic data.xlsx and adjust Settings.PERSONAL_VALUE_MAX_ORDER.
 
-### To run backend:
+### To run:
 
 Clone project:
 
 ```bash
 git clone git@github.com:hkkmrmnq/the_likes.git
-```
-
-Go to backend directory:
-
-```bash
-cd backend
 ```
 
 Put .env file to /backend directory:
@@ -194,6 +187,34 @@ EMAIL_APP_NAME=...
 EMAIL_APP_PASSWORD=...
 ```
 
+#### To run in docker:
+
+(Assuming Docker is installed)
+
+In root folder:
+
+Run docker network
+
+```bash
+make devup
+```
+
+Stop, butt keep the valumes:
+
+```bash
+make devdown
+```
+
+Stop and remove the valumes:
+
+```bash
+make devfulldown
+```
+
+Access in browser: http://localhost
+
+#### To run out of docker:
+
 Install postgres if not installed.
 
 Add postgis extension:
@@ -201,6 +222,8 @@ Add postgis extension:
 ```sql
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
+
+cd to /backend
 
 Run migrations:
 
@@ -232,8 +255,6 @@ Run celery beat:
 uv run celery -A src.tasks beat --loglevel=info
 ```
 
-### To run frontend:
-
-Go to frontend directory and run with `pnpm dev`
+cd to /frontend and run with `pnpm dev`
 
 Access in browser: http://localhost:3000
