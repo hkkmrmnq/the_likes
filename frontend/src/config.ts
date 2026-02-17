@@ -1,4 +1,12 @@
-// const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_ORIGIN;
+import * as exc from "@/src/errors";
+
+const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_ORIGIN;
+if (BACKEND_ORIGIN === undefined) {
+  throw new exc.AppError({
+    message: "BACKEND_ORIGIN error",
+    code: "ENV_ERROR",
+  });
+}
 export const CONSTANTS = {
   APP_NAME: "The Likes",
   APP_DESCRIPTION: "Find people with similar values",
@@ -29,7 +37,7 @@ export const CONSTANTS = {
 } as const;
 
 export const API_CFG = {
-  BASE_URL_REST: "/api", // `${BACKEND_ORIGIN}/api`,
+  BASE_URL_REST: `${BACKEND_ORIGIN}/api`,
   PUBLIC: {
     ABOUT: "/about",
     GUIDE: "/guide",
@@ -54,7 +62,7 @@ export const API_CFG = {
     CONTACTS_OPTIONS: "/contacts-options",
     UNBLOCK_USER: "/unblock",
   },
-  WS_URL: "ws", // `${BACKEND_ORIGIN}/ws`,
+  WS_URL: `${BACKEND_ORIGIN}/ws`,
   TIMEOUT: 10000,
-  ACCESS_TOKEN_LIFETIME_MINUTES: 15,
+  ACCESS_TOKEN_LIFETIME_MINUTES: 30,
 } as const;

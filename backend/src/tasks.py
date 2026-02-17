@@ -12,7 +12,7 @@ from src.sessions import sync_engine, sync_session_factory
 
 celery_app = Celery(
     'scheduler_celery',
-    broker=CFG.REDIS_URL,
+    broker=CFG.REDIS_MAIN_URL,
     result_expires=timedelta(days=1),
 )
 

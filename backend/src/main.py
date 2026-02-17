@@ -5,9 +5,10 @@ from fastapi.openapi.utils import get_openapi
 from src import endpoints
 from src.config import CFG
 from src.exceptions import exc, handlers
+from src.lifespan import lifespan
 from src.middleware import LanguageMiddleware
 
-app = FastAPI(root_path='/api')
+app = FastAPI(lifespan=lifespan, root_path='/api')
 
 app.add_middleware(
     CORSMiddleware,

@@ -34,9 +34,12 @@ export const authStore = createStore<typ.AuthStore>()(
         if (expired) {
           set({ token: null, _timeoutId: null });
         } else {
-          const newTimeoutId = setTimeout(() => {
-            get().manageLifetime();
-          }, API_CFG.ACCESS_TOKEN_LIFETIME_MINUTES * 60);
+          const newTimeoutId = setTimeout(
+            () => {
+              get().manageLifetime();
+            },
+            API_CFG.ACCESS_TOKEN_LIFETIME_MINUTES * 60 * 1000,
+          );
           set({ _timeoutId: newTimeoutId });
         }
       },

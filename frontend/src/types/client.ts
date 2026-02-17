@@ -1,5 +1,6 @@
 import * as contactsService from "@/src/api";
 import { ChatPayload, Polarity } from "@/src/types/api";
+import { SelectedUser } from "@/src/types/stores";
 
 export type ValueNamesColumns = Record<Polarity, string[]>;
 
@@ -44,7 +45,7 @@ export interface WSManagerConfig {
   maxReconnectAttempts: number;
   onConnect: () => void;
   onDisconnect: (event: CloseEvent) => void;
-  onPayload: (payload: ChatPayload) => void;
+  onPayload: (payload: ChatPayload, selectedUser: SelectedUser | null) => void;
   onError: (error: string, payload?: ChatPayload) => void;
 }
 

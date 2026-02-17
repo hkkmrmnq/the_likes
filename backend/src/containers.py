@@ -54,5 +54,5 @@ class MessageRead:
 
 @dataclass
 class AuthResult:
-    subject: str
+    subject: str | None
     detail: ENM.AuthResultDetail

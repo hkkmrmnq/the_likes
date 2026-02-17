@@ -37,6 +37,17 @@ class Paths:
     PRIVATE: PrivatePaths = PrivatePaths()
 
 
+@dataclass(frozen=True)
+class ChatConfig:
+    MAX_CONNECTIONS: int = 2500
+    MAX_QUEUE: int = 20
+    RATE_NUMBER: int = 100
+    RATE_PERIOD_SECONDS: int = 60
+    MAX_MESSAGE_SIZE = 1024 * 1024
+    INACTIVITY_MAX_SECONDS = 300
+    CLOSE_INACTIVE_EVERY: int = 30
+
+
 default_language = getenv('DEFAULT_LANGUAGE')
 translate_to = getenv('TRANSLATE_TO')
 supported_languages = f'{default_language}, {translate_to}'
@@ -88,12 +99,11 @@ class Config:
     EMAIL_APP_PASSWORD: str = getenv('EMAIL_APP_PASSWORD')  # type: ignore
     REDIS_HOST: str = getenv('REDIS_HOST')  # type: ignore
     REDIS_PORT: int = int(getenv('REDIS_PORT'))  # type: ignore
-    REDIS_DB: int = int(getenv('REDIS_DB'))  # type: ignore
+    REDIS_MAIN_DB: int = int(getenv('REDIS_MAIN_DB'))  # type: ignore
+    REDIS_PUBSUB_DB: int = int(getenv('REDIS_PUBSUB_DB'))  # type: ignore
     LOG_PATH: str = getenv('LOG_PATH')  # type: ignore
     BACKEND_ORIGIN: str = getenv('BACKEND_ORIGIN')  # type: ignore
     FRONTEND_ORIGIN: str = getenv('FRONTEND_ORIGIN')  # type: ignore
-
-    model_config = {'env_file': '.env', 'env_file_encoding': 'utf-8'}
 
     ASYNC_DATABASE_URL: str = (
         f'postgresql+asyncpg://{POSTGRES_USER}:'
@@ -109,11 +119,16 @@ class Config:
         f'{POSTGRES_PORT}/{POSTGRES_DB}'
     )
 
-    REDIS_URL: str = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+    REDIS_MAIN_URL: str = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_MAIN_DB}'
+    REDIS_PUBSUB_URL: str = (
+        f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_PUBSUB_DB}'
+    )
 
     PERSONAL_VALUE_MAX_ORDER_CONSTRAINT_TEXT: str = (
         f'user_order <= {PERSONAL_VALUE_MAX_ORDER}'
     )
+
+    CHAT = ChatConfig()
 
 
 CFG = Config()

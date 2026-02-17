@@ -1,5 +1,6 @@
 import { chatPayloadSchema } from "@/src/schemas";
 import { API_CFG } from "@/src/config";
+import { selectedUserStore } from "@/src/stores";
 import * as typ from "@/src/types";
 
 export type WebSocketManager = {
@@ -36,7 +37,6 @@ export const createWebSocketManager = (): WebSocketManager => {
     }
   };
 
-  // eslint-disable-next-line
   const startHeartbeat = (): void => {
     clearHeartbeat();
     heartbeatInterval = setInterval(() => {
@@ -44,11 +44,13 @@ export const createWebSocketManager = (): WebSocketManager => {
 
       if (timeSinceLastReceived > 20000) {
         const timestamp = new Date().toISOString();
+
         sendPayload({
           payload_type: typ.ChatPayloadType.PING,
           related_content: { ping_timestamp: timestamp },
           timestamp: timestamp,
         });
+        console.debug("ping sent");
       }
 
       if (timeSinceLastReceived > 60000) {
@@ -103,9 +105,9 @@ export const createWebSocketManager = (): WebSocketManager => {
       try {
         const data = JSON.parse(event.data);
         const result = chatPayloadSchema.safeParse(data);
-
+        const { selectedUser } = selectedUserStore.getState();
         if (result.success) {
-          config.onPayload(result.data);
+          config.onPayload(result.data, selectedUser);
         } else {
           console.error("Invalid payload received:", result.error);
           config.onError("Invalid payload format");
@@ -119,13 +121,21 @@ export const createWebSocketManager = (): WebSocketManager => {
     };
 
     ws.onclose = (event) => {
-      console.log("WebSocket disconnected:", event.code, event.reason);
+      //
+      console.log({
+        code: event.code,
+        reason: event.reason || "No reason provided",
+        timestamp: new Date().toISOString(),
+        wasClean: event.wasClean,
+        pageVisibility: document.visibilityState,
+      });
+
       clearHeartbeat();
       isConnecting = false;
 
       config.onDisconnect?.(event);
-
-      if (event.code !== 1000 && config.autoReconnect) {
+      console.debug(`event.code=${event.code}`);
+      if (![1000, 1006].includes(event.code) && config.autoReconnect) {
         handleReconnect();
       }
     };

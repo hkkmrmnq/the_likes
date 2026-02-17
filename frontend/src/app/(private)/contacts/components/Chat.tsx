@@ -55,7 +55,7 @@ export function Chat() {
     const getMessages = async () => {
       try {
         const contactId = selectedUser.user_id;
-        if (!isConnected()) {
+        if (conversationMessages.length === 0) {
           const response = await messagesService.getMessages(contactId);
           const display_messages = response.data.map((msg) => ({
             ...msg,
@@ -74,7 +74,13 @@ export function Chat() {
     };
 
     getMessages();
-  }, [selectedUser, setConversationMessages, resetUnreadCount, isConnected]);
+  }, [
+    selectedUser,
+    conversationMessages,
+    setConversationMessages,
+    resetUnreadCount,
+    isConnected,
+  ]);
 
   useEffect(() => {
     const handleEnter = (event: KeyboardEvent) => {

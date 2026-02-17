@@ -11,7 +11,7 @@ import * as exc from "@/src/errors";
 
 const wsManager = createWebSocketManager();
 
-// Gives access to wsManager singleton, adds chat-specific behavior.
+// Gives access to wsManager instance, adds chat-specific behavior.
 export const useWSClient: () => typ.WSClient = () => {
   const { token } = str.useAuthStore();
   const { user_id, name } = str.useProfileStore();
@@ -20,8 +20,7 @@ export const useWSClient: () => typ.WSClient = () => {
   const { selectedUser } = str.useSelectedUserStore();
 
   const handleIncomingPayload = useCallback(
-    (payload: typ.ChatPayload) => {
-      console.log("handleIncomingPayload");
+    (payload: typ.ChatPayload, selectedUser: typ.SelectedUser | null) => {
       switch (payload.payload_type) {
         case typ.ChatPayloadType.NEW:
           const msgDisplay = {
@@ -56,6 +55,7 @@ export const useWSClient: () => typ.WSClient = () => {
           break;
 
         case typ.ChatPayloadType.PONG:
+          console.debug("pong received");
           break;
 
         case typ.ChatPayloadType.ERROR:
@@ -69,7 +69,7 @@ export const useWSClient: () => typ.WSClient = () => {
           toast.error(error);
       }
     },
-    [selectedUser, addMessage, markMessageAsSent, incrementUnreadCount],
+    [addMessage, markMessageAsSent, incrementUnreadCount],
   );
 
   const sendChatMessage = useCallback(
