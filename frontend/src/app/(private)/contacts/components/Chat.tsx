@@ -11,6 +11,7 @@ import * as messagesService from "@/src/api/messages";
 import { handleErrorInComponent } from "@/src/utils";
 import * as exc from "@/src/errors";
 import { useWSClientContext } from "@/src/hooks";
+import * as typ from "@/src/types";
 
 export function Chat() {
   const [waitingForApi, setWaitingForApi] = useState(true);
@@ -33,11 +34,14 @@ export function Chat() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
 
-  const submit = useCallback(() => {
-    const directInput = inputRef.current?.value || "";
-    sendChatMessage(directInput);
-    setMessageTextInput("");
-  }, [sendChatMessage]);
+  const submit = useCallback(
+    (selectedUser: typ.SelectedUser) => {
+      const directInput = inputRef.current?.value || "";
+      sendChatMessage(directInput, selectedUser);
+      setMessageTextInput("");
+    },
+    [sendChatMessage],
+  );
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,7 +89,7 @@ export function Chat() {
   useEffect(() => {
     const handleEnter = (event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        submit();
+        submit(selectedUser);
       }
     };
 
@@ -94,7 +98,7 @@ export function Chat() {
     return () => {
       window.removeEventListener("keydown", handleEnter);
     };
-  }, [submit]);
+  }, [selectedUser, submit]);
 
   if (waitingForApi) {
     return <LoadingScreen />;
@@ -184,7 +188,7 @@ export function Chat() {
                 {/* Send button */}
                 <button
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-cyan-800 hover:text-cyan-600 cursor-pointer"
-                  onClick={() => submit()}
+                  onClick={() => submit(selectedUser)}
                 >
                   <svg
                     className="w-6 h-6 transform rotate-90"

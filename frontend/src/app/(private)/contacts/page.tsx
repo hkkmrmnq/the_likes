@@ -1,6 +1,5 @@
 "use client";
 
-import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { PanelLeft } from "lucide-react";
 
@@ -23,7 +22,6 @@ export default function ContactsPage() {
         setContacts(response.data.active_contacts);
         setRequests(response.data.contact_requests);
         setRecommendations(response.data.recommendations);
-        toast.warning(response.message);
       } catch (err) {
         handleErrorInComponent(err, setError);
       } finally {

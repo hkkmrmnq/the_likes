@@ -11,7 +11,7 @@ export type ColumnToDropToProps = {
 };
 
 export interface ContentBoxProps {
-  sendChatMessage: (input: string) => void;
+  sendChatMessage: (input: string, selectedUser: SelectedUser) => void;
   isConnected: () => boolean;
 }
 
@@ -50,7 +50,7 @@ export interface WSManagerConfig {
 }
 
 export interface WSClient {
-  sendChatMessage: (text: string) => void;
+  sendChatMessage: (text: string, selectedUser: SelectedUser) => void;
   isConnected: () => boolean;
   disconnect: () => void;
 }

@@ -17,7 +17,6 @@ export const useWSClient: () => typ.WSClient = () => {
   const { user_id, name } = str.useProfileStore();
   const { incrementUnreadCount } = str.useContactsStore();
   const { addMessage, markMessageAsSent } = str.useMessagesStore();
-  const { selectedUser } = str.useSelectedUserStore();
 
   const handleIncomingPayload = useCallback(
     (payload: typ.ChatPayload, selectedUser: typ.SelectedUser | null) => {
@@ -73,7 +72,7 @@ export const useWSClient: () => typ.WSClient = () => {
   );
 
   const sendChatMessage = useCallback(
-    (text: string) => {
+    (text: string, selectedUser: typ.SelectedUser) => {
       if (selectedUser === null) {
         throw new exc.ComponentError({ message: "selectedUser === null" });
       }
@@ -101,7 +100,7 @@ export const useWSClient: () => typ.WSClient = () => {
       };
       addMessage(selectedUser.user_id, messageDisplay);
     },
-    [addMessage, selectedUser, user_id, name],
+    [addMessage, user_id, name],
   );
 
   useEffect(() => {
