@@ -43,7 +43,8 @@ jobs:
       TRANSLATE_TO: ru
       REDIS_HOST: localhost
       REDIS_PORT: 6379
-      REDIS_DB: 0
+      REDIS_MAIN_DB: 0
+      REDIS_PUBSUB_DB: 1
       EMAIL_APP_EMAIL: placeholder@example.com
       EMAIL_APP_NAME: placeholder@example.com
       EMAIL_APP_PASSWORD: placeholder
