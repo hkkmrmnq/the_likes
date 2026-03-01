@@ -67,7 +67,9 @@ export function Chat() {
             isIncoming: selectedUser.user_id === msg.sender_id,
             client_id: uuidv4(),
           }));
-          setConversationMessages(contactId, display_messages);
+          if (display_messages.length > 0) {
+            setConversationMessages(contactId, display_messages);
+          }
         }
         resetUnreadCount(contactId);
         setWaitingForApi(false);
@@ -76,7 +78,6 @@ export function Chat() {
         handleErrorInComponent(err, setError);
       }
     };
-
     getMessages();
   }, [
     selectedUser,

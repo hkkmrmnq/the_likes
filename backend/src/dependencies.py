@@ -107,7 +107,6 @@ async def get_current_active_and_virified_websocket_user(
             reason='Access token not provided.',
         )
     result = srv.validate_token(token)
-    logger.debug(f'{result.subject=} {result.detail=}')
     if result.detail == ENM.AuthResultDetail.ERROR:
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION,

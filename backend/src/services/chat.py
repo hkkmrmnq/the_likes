@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import time
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
@@ -78,19 +79,32 @@ class ChatManager:
         if self._pubsub is None:
             if self._redis_a is None:
                 self._redis_a = await redis_a.from_url(self._pubsub_url)
+            if self._redis_a is None:
+                raise exc.ServerError('ChatManager._redis_a is None.')
             self._pubsub = self._redis_a.pubsub()
         return self._pubsub
 
     async def _listen_for_messages(self):
         """Listen for messages from other workers."""
         pubsub = await self.pubsub
+        await pubsub.subscribe('keepalive')
         async for message in pubsub.listen():
-            if 'receiver_id' not in message:
-                logger.error('pubsub: no receiver_id in message, skipped.')
+            if message['type'] != 'message':
                 continue
+            chat_payload = message.get('data')
+            if isinstance(chat_payload, bytes):
+                data_str = message['data'].decode('utf-8')
+                chat_payload = json.loads(data_str)
+            content = chat_payload.get('related_content')
+            if not content:
+                logger.error('pubsub: no related_content, skipped.')
+                continue
+            if 'receiver_id' not in content:
+                logger.error('pubsub: no receiver_id, skipped.')
+                continue
+            target_user_id = UUID(content['receiver_id'])
             await self.validate_and_send_payload(
-                payload=json.loads(message),
-                target_user_id=message['receiver_id'],
+                payload=chat_payload, target_user_id=target_user_id
             )
 
     async def _disconnect_inactive(self):
@@ -107,10 +121,13 @@ class ChatManager:
                             )
                 await asyncio.sleep(CFG.CHAT.CLOSE_INACTIVE_EVERY)
         except Exception as e:
-            error_msg = e.args[0] if len(e.args) > 0 else 'Unknown'
-            logger.error(f'disconnect_inactive error: {error_msg=}')
+            error_msg = exc.get_error_msg(e)
+            logger.error(
+                f'worker {os.getpid()}, '
+                f'disconnect_inactive error: {error_msg=}'
+            )
 
-    async def create_tasks(self):
+    async def start_up(self):
         self._disconnect_inactive_task = asyncio.create_task(
             self._disconnect_inactive()
         )
@@ -119,7 +136,6 @@ class ChatManager:
     async def _cancel_task(
         self, task: asyncio.Task | None, name: str = 'task'
     ):
-        """Safely cancel and await a task"""
         if not task:
             return
 
@@ -129,25 +145,20 @@ class ChatManager:
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            error_msg = e.args[0] if len(e.args) > 0 else 'Unknown'
+            error_msg = exc.get_error_msg(e)
             logger.error(f'Error while cancelling {name}: {error_msg=}')
 
-    async def remove_tasks(self):
-        """Clean up all tasks and connections"""
-
-        # Stop receiving new messages
+    async def shut_down(self):
         if self._pubsub:
             await self._pubsub.unsubscribe()
 
-        # Cancel all tasks
         await self._cancel_task(
             self._disconnect_inactive_task, 'disconnect_inactive'
         )
         await self._cancel_task(self._listen_task, 'listen_task')
 
-        # Close connection
         if self._redis_a:
-            await self._redis_a.close()
+            await self._redis_a.aclose()
 
     async def add_connection(
         self, *, user_id: UUID, websocket: WebSocket
@@ -162,39 +173,36 @@ class ChatManager:
                     websocket=websocket, last_received=time.time()
                 )
                 self.connections[user_id] = connection
-            else:
-                logger.info(
-                    'add_connection: user_id in self.active_connections'
-                )
             pubsub = await self.pubsub
             await pubsub.subscribe(f'chat:{user_id}')
             await self.send_queued_validated_payloads(user_id=user_id)
             return True
 
     async def remove_connection(self, *, user_id: UUID, code: int):
+        f'worker {os.getpid()}: remove_connection called for user {user_id=}'
         pubsub = await self.pubsub
         await pubsub.unsubscribe(f'chat:{user_id}')
         async with self._lock:
             if user_id not in self.connections:
-                logger.info(
-                    f'remove_connection: user {user_id} not in connections'
-                )
                 return
             connection = self.connections[user_id]
             try:
                 await connection.ws.close(code=code)
-                logger.info(f'User {user_id} disconnected.')
             except RuntimeError:
-                logger.info(f'remove_connection: already closed? ({user_id=})')
+                logger.info(
+                    f'worker {os.getpid()}: remove_connection: '
+                    f'already closed? ({user_id=})'
+                )
                 self.connections.pop(user_id)
             except ConnectionError:
                 logger.warning(
-                    f'remove_connection: Network error? ({user_id=})'
+                    f'worker {os.getpid()}: remove_connection: '
+                    f'Network error? ({user_id=})'
                 )
             except Exception as e:
-                error_msg = e.args[0] if len(e.args) > 0 else 'Unknown'
+                error_msg = exc.get_error_msg(e)
                 logger.error(
-                    'ws.close attempt failed '
+                    f'worker {os.getpid()}: ws.close attempt failed '
                     f'({connection.ws.application_state=}) '
                     f'{error_msg=}'
                 )
@@ -222,8 +230,12 @@ class ChatManager:
                             )
                             await asession.commit()
                 else:
-                    redis = await self.redis
-                    await redis.publish(f'chat:{target_user_id}', valid_json)
+                    if isinstance(schema.related_content, sch.MessageRead):
+                        redis = await self.redis
+                        await redis.publish(
+                            f'chat:{target_user_id}', valid_json
+                        )
+
         except ValidationError as e:
             logger.error(f'Schema ValidationError(s): {len(e.errors())}')
             for i, error in enumerate(e.errors()):
@@ -235,7 +247,7 @@ class ChatManager:
                 logger.error(f'Type: {error["type"]}')
                 logger.error(f'Input: {error.get("input", "N/A")}')
         except Exception as e:
-            error_msg = e.args[0] if len(e.args) > 0 else 'Unknown'
+            error_msg = exc.get_error_msg(e)
             logger.error(
                 f'validate_and_send_payload general exception: '
                 f'{target_user_id=} {error_msg=}'
@@ -261,9 +273,6 @@ class ChatManager:
     async def update_last_received(self, user_id: UUID):
         async with self._lock:
             if user_id not in self.connections:
-                logger.info(
-                    f'update_last_received - no {user_id=} in connections'
-                )
                 return
             self.connections[user_id].last_received = time.time()
 
@@ -347,9 +356,10 @@ class ChatManager:
                 },
                 target_user_id=msg_cnt.receiver_id,
             )
+
         except Exception as e:
             # Report error to sender
-            error_message = 'Unexpected server error.'
+            error_msg = exc.get_error_msg(e)
             if isinstance(e, exc.BadRequest | exc.NotFound | exc.ServerError):
                 error_message = e.args[0]
             error_msg = e.args[0] if len(e.args) > 0 else 'Unknown'
@@ -398,8 +408,6 @@ class ChatManager:
                 )
                 return 'ping received'
             case ENM.ChatPayloadType.PONG:
-                msg = 'pong received'
-                logger.info(msg)
                 return 'pong received'
         error_msg = 'Unexpected chat payload type'
         await self.validate_and_send_payload(
@@ -432,7 +440,6 @@ class ChatManager:
                             },
                             target_user_id=user_id,
                         )
-                        # logger.debug('ping sent')
             except Exception:
                 logger.error('send_pings general exception.')
                 break
@@ -484,8 +491,9 @@ class ChatManager:
             )
             return 'Normal closure.'
         except Exception as e:
+            error_msg = exc.get_error_msg(e)
             logger.error(
-                f'WebSocket general Exception: {current_user.id=}, {e.args[0]}'
+                f'WebSocket general Exception: {current_user.id=}, {error_msg}'
             )
             await self.remove_connection(
                 user_id=current_user.id, code=status.WS_1011_INTERNAL_ERROR

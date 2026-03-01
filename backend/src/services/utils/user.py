@@ -6,7 +6,7 @@ from uuid import UUID
 import httpx
 import jwt
 from jwt.exceptions import ExpiredSignatureError
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
 from sqlalchemy.ext.asyncio import AsyncSession
 from zxcvbn import zxcvbn
 
@@ -17,7 +17,7 @@ from src.exceptions import exceptions as exc
 from src.logger import logger
 from src.redis_client import redis_client
 
-pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+password_hash = PasswordHash.recommended()
 
 
 def create_access_token(
@@ -33,11 +33,11 @@ def create_access_token(
 
 
 def verify_password(*, plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return password_hash.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return password_hash.hash(password)
 
 
 def validate_token(token: str) -> cnt.AuthResult:

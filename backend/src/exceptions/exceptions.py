@@ -65,3 +65,9 @@ class ServerError(Error):
         message: str = 'Something went wrong. Contact us.',
     ):
         super().__init__(message)
+
+
+def get_error_msg(e: Exception):
+    custom = getattr(e, 'message', None)
+    default = e.args[0] if len(e.args) > 0 else None
+    return custom or default or 'Something went wrong.'

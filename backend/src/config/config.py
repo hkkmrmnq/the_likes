@@ -76,34 +76,40 @@ class Config:
     END_COOLDOWNS_EVERY_HOURS: int = 24
     WS_PING_INTERVAL_SECONDS: int = 20
     RANDOM_PV_TEST_ATTEMPTS: int = 100
-    POSTGRES_USER: str = getenv('POSTGRES_USER')  # type: ignore
-    POSTGRES_PASSWORD: str = getenv('POSTGRES_PASSWORD')  # type: ignore
-    POSTGRES_HOST: str = getenv('POSTGRES_HOST')  # type: ignore
-    POSTGRES_PORT: int = int(getenv('POSTGRES_PORT'))  # type: ignore
-    POSTGRES_DB: str = getenv('POSTGRES_DB')  # type: ignore
+    POSTGRES_USER: str = getenv('POSTGRES_USER') or 1 / 0  # type: ignore
+    POSTGRES_PASSWORD: str = getenv('POSTGRES_PASSWORD') or 1 / 0  # type: ignore
+    POSTGRES_HOST: str = getenv('POSTGRES_HOST') or 1 / 0  # type: ignore
+    POSTGRES_PORT: int = int(getenv('POSTGRES_PORT') or 1 / 0)  # type: ignore
+    POSTGRES_DB: str = getenv('POSTGRES_DB') or 1 / 0  # type: ignore
     CONFIRMATION_CODE_LIFETIME_SECONDS = 60
     CONFIRMATION_CODE_LENGTH = 6
-    JWT_SECRET: str = getenv('JWT_SECRET')  # type: ignore
+    JWT_SECRET: str = getenv('JWT_SECRET') or 1 / 0  # type: ignore
     JWT_ACCESS_LIFETIME_MINUTES: int = int(
-        getenv('JWT_ACCESS_LIFETIME_MINUTES')  # type: ignore
+        getenv('JWT_ACCESS_LIFETIME_MINUTES') or 1 / 0  # type: ignore
     )
-    JWT_ALGORITHM: str = getenv('JWT_ALGORITHM')  # type: ignore
-    RESET_PASSWORD_TOKEN_SECRET: str = getenv(
-        'RESET_PASSWORD_TOKEN_SECRET'  # type: ignore
+    JWT_ALGORITHM: str = getenv('JWT_ALGORITHM') or 1 / 0  # type: ignore
+    RESET_PASSWORD_TOKEN_SECRET: str = (
+        getenv(
+            'RESET_PASSWORD_TOKEN_SECRET'  # type: ignore
+        )
+        or 1 / 0
     )
-    VERIFICATION_TOKEN_SECRET: str = getenv(
-        'VERIFICATION_TOKEN_SECRET'  # type: ignore
+    VERIFICATION_TOKEN_SECRET: str = (
+        getenv(
+            'VERIFICATION_TOKEN_SECRET'  # type: ignore
+        )
+        or 1 / 0
     )
-    EMAIL_APP_EMAIL: str = getenv('EMAIL_APP_EMAIL')  # type: ignore
-    EMAIL_APP_NAME: str = getenv('EMAIL_APP_NAME')  # type: ignore
-    EMAIL_APP_PASSWORD: str = getenv('EMAIL_APP_PASSWORD')  # type: ignore
-    REDIS_HOST: str = getenv('REDIS_HOST')  # type: ignore
-    REDIS_PORT: int = int(getenv('REDIS_PORT'))  # type: ignore
+    EMAIL_APP_EMAIL: str = getenv('EMAIL_APP_EMAIL') or 1 / 0  # type: ignore
+    EMAIL_APP_NAME: str = getenv('EMAIL_APP_NAME') or 1 / 0  # type: ignore
+    EMAIL_APP_PASSWORD: str = getenv('EMAIL_APP_PASSWORD') or 1 / 0  # type: ignore
+    REDIS_HOST: str = getenv('REDIS_HOST') or 1 / 0  # type: ignore
+    REDIS_PORT: int = int(getenv('REDIS_PORT')) or 1 / 0  # type: ignore
     REDIS_MAIN_DB: int = int(getenv('REDIS_MAIN_DB'))  # type: ignore
-    REDIS_PUBSUB_DB: int = int(getenv('REDIS_PUBSUB_DB'))  # type: ignore
-    LOG_PATH: str = getenv('LOG_PATH')  # type: ignore
-    BACKEND_ORIGIN: str = getenv('BACKEND_ORIGIN')  # type: ignore
-    FRONTEND_ORIGIN: str = getenv('FRONTEND_ORIGIN')  # type: ignore
+    REDIS_PUBSUB_DB: int = int(getenv('REDIS_PUBSUB_DB')) or 1 / 0  # type: ignore
+    LOG_PATH: str = getenv('LOG_PATH') or 1 / 0  # type: ignore
+    BACKEND_ORIGIN: str = getenv('BACKEND_ORIGIN') or 1 / 0  # type: ignore
+    FRONTEND_ORIGIN: str = getenv('FRONTEND_ORIGIN') or 1 / 0  # type: ignore
 
     ASYNC_DATABASE_URL: str = (
         f'postgresql+asyncpg://{POSTGRES_USER}:'
