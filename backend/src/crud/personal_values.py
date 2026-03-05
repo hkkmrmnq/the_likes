@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
 from src import db
+from src import exceptions as exc
 from src.config import CFG
 from src.crud.definitions import read_unique_values
-from src.exceptions import exc
 
 
 async def get_uniquevalue_id_by_value_id_and_aspect_ids(

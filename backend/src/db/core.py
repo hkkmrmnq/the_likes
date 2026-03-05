@@ -10,9 +10,9 @@ from sqlalchemy.orm import (
     relationship,
 )
 
+from src import exceptions as exc
 from src.config import CFG, CNST
 from src.context import get_current_language
-from src.exceptions import exc
 from src.logger import logger
 
 from .base import BaseWithIntPK

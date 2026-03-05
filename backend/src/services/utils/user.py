@@ -1,23 +1,22 @@
 import hashlib
 from datetime import datetime, timedelta, timezone
 from random import randint
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import httpx
 import jwt
-from jwt.exceptions import ExpiredSignatureError
 from pwdlib import PasswordHash
 from sqlalchemy.ext.asyncio import AsyncSession
 from zxcvbn import zxcvbn
 
 from src import containers as cnt
 from src import crud, db, tasks
-from src.config import CFG, CNST, ENM
-from src.exceptions import exceptions as exc
+from src import exceptions as exc
+from src.config import CFG, CNST
 from src.logger import logger
 from src.redis_client import redis_client
 
-password_hash = PasswordHash.recommended()
+value_hash = PasswordHash.recommended()
 
 
 def create_access_token(
@@ -32,31 +31,25 @@ def create_access_token(
     return jwt.encode(to_encode, CFG.JWT_SECRET, algorithm=CFG.JWT_ALGORITHM)
 
 
-def verify_password(*, plain_password: str, hashed_password: str) -> bool:
-    return password_hash.verify(plain_password, hashed_password)
+def verify_value_with_hash(*, plain: str, hashed: str) -> bool:
+    return value_hash.verify(plain, hashed)
 
 
-def get_password_hash(password: str) -> str:
-    return password_hash.hash(password)
+def get_value_hash(password: str) -> str:
+    return value_hash.hash(password)
 
 
-def validate_token(token: str) -> cnt.AuthResult:
+def decode_access_token(token: str) -> UUID:
+    """Returns user token subject (user id)."""
+    decoded = jwt.decode(token, CFG.JWT_SECRET, algorithms=[CFG.JWT_ALGORITHM])
+    raw_subject = decoded.get('sub')
+    if not raw_subject:
+        raise exc.BadRequest('sub not found in token.')
     try:
-        decoded = jwt.decode(
-            token, CFG.JWT_SECRET, algorithms=[CFG.JWT_ALGORITHM]
-        )
-        subject = decoded.get('sub')
-        if not subject:
-            raise exc.ServerError('Incorrect decoded subject format.')
-        return cnt.AuthResult(subject=subject, detail=ENM.AuthResultDetail.OK)
-    except ExpiredSignatureError:
-        return cnt.AuthResult(
-            subject='error', detail=ENM.AuthResultDetail.EXPIRED
-        )
+        subject = UUID(raw_subject)
     except Exception:
-        return cnt.AuthResult(
-            subject='error', detail=ENM.AuthResultDetail.ERROR
-        )
+        raise exc.ServerError('invalid token sub format.')
+    return subject
 
 
 async def _is_password_pwned(*, password: str) -> bool | None:
@@ -143,7 +136,7 @@ async def create_user(
     if existing_user is not None:
         raise exc.AlreadyExists('User already exists.')
     await validate_password(password=password, email=email)
-    hashed_password = get_password_hash(password)
+    hashed_password = get_value_hash(password)
     crud.create_user(
         email=email,
         hashed_password=hashed_password,
@@ -219,3 +212,76 @@ async def set_existing_user_to_verified(
         raise exc.ServerError('User not found, unexpectedly.')
     db_user.is_verified = True
     await asession.commit()
+
+
+def create_refresh_token(
+    *, user_id: UUID, now: datetime
+) -> tuple[str, db.RefreshToken]:
+    """Creates new refresh token, returns token and db.RefreshToken."""
+    expires_at = now + timedelta(seconds=CFG.REFRESH_TOKEN_LIFETIME_SECONDS)
+    jti = str(uuid4())
+    payload = {
+        'jti': jti,
+        'sub': str(user_id),
+        'type': 'refresh',
+        'iat': int(now.timestamp()),
+        'exp': int((now + timedelta(days=30)).timestamp()),
+    }
+    token = jwt.encode(payload, CFG.JWT_SECRET, algorithm=CFG.JWT_ALGORITHM)
+    token_hash = get_value_hash(token)
+    new_token = db.RefreshToken(
+        user_id=user_id,
+        jti=jti,
+        token_hash=token_hash,
+        expires_at=expires_at,
+        revoked_at=None,
+    )
+    return token, new_token
+
+
+def decode_refresh_token(token: str) -> cnt.DecodedRefreshToken:
+    decoded = jwt.decode(token, CFG.JWT_SECRET, algorithms=[CFG.JWT_ALGORITHM])
+    subject = decoded.get('sub')
+    if not subject:
+        raise exc.ServerError('Incorrect decoded subject format.')
+    raw_jti = decoded.get('jti')
+    if not raw_jti:
+        raise exc.ServerError('Incorrect decoded jti format.')
+    jti = UUID(raw_jti)
+    return cnt.DecodedRefreshToken(subject=subject, jti=jti)
+
+
+async def get_current_valid_refresh_token_for_user(
+    user_id: UUID, asession: AsyncSession
+) -> db.RefreshToken | None:
+    current_refresh_tokens = await crud.get_all_valid_refresh_tokens_for_user(
+        user_id=user_id, asession=asession
+    )
+    if not current_refresh_tokens:
+        return None
+    if len(current_refresh_tokens) > 1:
+        raise exc.ServerError(f'> 1 valid refresh token for {user_id=}')
+    return current_refresh_tokens[0]
+
+
+async def validate_db_refresh_token_for_user(
+    *, user_id: UUID, jti: UUID, asession: AsyncSession
+) -> db.RefreshToken:
+    current_valid_refresh_token = (
+        await get_current_valid_refresh_token_for_user(
+            user_id=user_id, asession=asession
+        )
+    )
+    if current_valid_refresh_token:
+        return current_valid_refresh_token
+    found = await crud.get_specific_refresh_token(jti=jti, asession=asession)
+    if not found:
+        raise exc.ServerError('Invalid refresh token.')  # TODO FAKE?
+    if found.user_id != user_id:
+        raise exc.ServerError('Invalid refresh token.')  # TODO STOLEN?
+    if found.revoked_at:
+        exc.Forbidden('Invalid refresh token.')  # TODO REUSE?
+    found.revoked_at = datetime.now(timezone.utc)
+    raise exc.Forbidden(
+        'Refresh token expired. Please sign in with your email and password.'
+    )

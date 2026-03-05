@@ -63,7 +63,7 @@ class ClientMessageId(str, Enum):
     SENT = 'sent'
 
 
-class AuthResultDetail(str, Enum):
+class DecodedTokenStatus(str, Enum):
     OK = 'OK'
     ERROR = 'ERROR'
     EXPIRED = 'EXPIRED'

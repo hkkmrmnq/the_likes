@@ -9,10 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, contains_eager
 
 from src import db
+from src import exceptions as exc
 from src import schemas as sch
 from src.config import CFG, ENM
 from src.crud import sql
-from src.exceptions import exc
 
 
 def create_profile(

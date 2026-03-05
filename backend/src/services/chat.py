@@ -17,10 +17,10 @@ from redis.asyncio.client import PubSub
 
 from src import containers as cnt
 from src import crud, db
+from src import exceptions as exc
 from src import schemas as sch
 from src import services as srv
 from src.config import CFG, ENM
-from src.exceptions import exc
 from src.logger import logger
 from src.sessions import asession_factory
 

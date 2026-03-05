@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies as dp
@@ -77,11 +77,56 @@ async def request_email_verification(
     ),
 )
 async def login(
+    response: Response,
     creds: sch.UserCredentials,
     asession: AsyncSession = Depends(dp.get_async_session),
 ) -> sch.ApiResponse[sch.AccessToken]:
-    access_token, srv_msg = await srv.authenticate_user(
+    access_token, refresh_token, srv_msg = await srv.authenticate_user(
         email=creds.email, password=creds.password, asession=asession
+    )
+    response.set_cookie(
+        key='refresh_token',
+        value=refresh_token,
+        httponly=True,
+        # secure=True,  # HTTPS only
+        samesite='strict',
+        max_age=CFG.REFRESH_TOKEN_LIFETIME_SECONDS,
+    )
+    token_schema = sch.AccessToken(access_token=access_token)
+    return sch.ApiResponse(data=token_schema, message=srv_msg)
+
+
+@router.post(
+    CFG.PATHS.PUBLIC.REFRESH_ACCESS,
+    responses=dp.with_common_responses(
+        extra_responses_to_iclude={
+            400: 'Refresh token cookie missing.',
+            403: 'Expired / revoked refresh token.',
+        },
+    ),
+    description="""
+    Token rotation.
+    Refresh token is read from the 'refresh_token' HttpOnly cookie.
+    New refresh token will be set in the response cookie
+    and new access token will be returned in response.
+    """,
+)
+async def refresh_access(
+    request: Request,
+    response: Response,
+    asession: AsyncSession = Depends(dp.get_async_session),
+) -> sch.ApiResponse[sch.AccessToken]:
+    refresh_token = request.cookies.get('refresh_token')
+    access_token, refresh_token, srv_msg = await srv.refresh_access(
+        token=refresh_token, asession=asession
+    )
+    response.set_cookie(
+        key='refresh_token',
+        value=refresh_token,
+        httponly=True,
+        # secure=True,  # HTTPS only
+        samesite='strict',
+        max_age=CFG.REFRESH_TOKEN_LIFETIME_SECONDS,
     )
     token_schema = sch.AccessToken(access_token=access_token)
     return sch.ApiResponse(data=token_schema, message=srv_msg)

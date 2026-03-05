@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import containers as cnt
 from src import crud, db
+from src import exceptions as exc
 from src import schemas as sch
 from src.config.enums import ContactStatus
-from src.exceptions import exc
 
 
 async def count_unread_messages(

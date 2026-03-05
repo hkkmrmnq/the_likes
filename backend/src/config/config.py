@@ -3,7 +3,16 @@ from os import getenv
 
 from dotenv import load_dotenv
 
+from src import exceptions as exc
+
 load_dotenv()
+
+
+def get_env_var_or_raise(var_name: str):
+    variable = getenv(var_name)
+    if not variable:
+        raise exc.ServerError(f'{var_name} env var not found.')
+    return variable
 
 
 @dataclass(frozen=True)
@@ -14,6 +23,7 @@ class PublicPaths:
     SET_NEW_PASSWORD: str = '/set-new-password'
     REQUEST_EMAIL_VERIFICATION: str = '/request-email-verification'
     LOGIN: str = '/login'
+    REFRESH_ACCESS: str = '/refresh-access'
     ABOUT: str = '/about'
     GUIDE: str = '/guide'
     DEFINITIONS: str = '/definitions'
@@ -48,8 +58,8 @@ class ChatConfig:
     CLOSE_INACTIVE_EVERY: int = 30
 
 
-default_language = getenv('DEFAULT_LANGUAGE')
-translate_to = getenv('TRANSLATE_TO')
+default_language = get_env_var_or_raise('DEFAULT_LANGUAGE')
+translate_to = get_env_var_or_raise('TRANSLATE_TO')
 supported_languages = f'{default_language}, {translate_to}'
 
 
@@ -58,10 +68,9 @@ class Config:
     PATHS: Paths = Paths()
     BASIC_DATA_PATH: str = 'Basic data.xlsx'
     PERSONAL_VALUE_MAX_ORDER: int = 11  # == total number of values
-    # Here and after - must raise.
-    DEFAULT_LANGUAGE: str = default_language  # type: ignore
+    DEFAULT_LANGUAGE: str = default_language
     TRANSLATE_TO: list[str] = field(
-        default_factory=lambda: translate_to.split(', ')  # type: ignore
+        default_factory=lambda: translate_to.split(', ')
     )
     SUPPORTED_LANGUAGES: list[str] = field(
         default_factory=lambda: supported_languages.split(', ')
@@ -76,40 +85,35 @@ class Config:
     END_COOLDOWNS_EVERY_HOURS: int = 24
     WS_PING_INTERVAL_SECONDS: int = 20
     RANDOM_PV_TEST_ATTEMPTS: int = 100
-    POSTGRES_USER: str = getenv('POSTGRES_USER') or 1 / 0  # type: ignore
-    POSTGRES_PASSWORD: str = getenv('POSTGRES_PASSWORD') or 1 / 0  # type: ignore
-    POSTGRES_HOST: str = getenv('POSTGRES_HOST') or 1 / 0  # type: ignore
-    POSTGRES_PORT: int = int(getenv('POSTGRES_PORT') or 1 / 0)  # type: ignore
-    POSTGRES_DB: str = getenv('POSTGRES_DB') or 1 / 0  # type: ignore
+    POSTGRES_USER: str = get_env_var_or_raise('POSTGRES_USER')
+    POSTGRES_PASSWORD: str = get_env_var_or_raise('POSTGRES_PASSWORD')
+    POSTGRES_HOST: str = get_env_var_or_raise('POSTGRES_HOST')
+    POSTGRES_PORT: int = int(get_env_var_or_raise('POSTGRES_PORT'))
+    POSTGRES_DB: str = get_env_var_or_raise('POSTGRES_DB')
     CONFIRMATION_CODE_LIFETIME_SECONDS = 60
     CONFIRMATION_CODE_LENGTH = 6
-    JWT_SECRET: str = getenv('JWT_SECRET') or 1 / 0  # type: ignore
+    JWT_SECRET: str = get_env_var_or_raise('JWT_SECRET')
     JWT_ACCESS_LIFETIME_MINUTES: int = int(
-        getenv('JWT_ACCESS_LIFETIME_MINUTES') or 1 / 0  # type: ignore
+        get_env_var_or_raise('JWT_ACCESS_LIFETIME_MINUTES')
     )
-    JWT_ALGORITHM: str = getenv('JWT_ALGORITHM') or 1 / 0  # type: ignore
-    RESET_PASSWORD_TOKEN_SECRET: str = (
-        getenv(
-            'RESET_PASSWORD_TOKEN_SECRET'  # type: ignore
-        )
-        or 1 / 0
+    JWT_ALGORITHM: str = get_env_var_or_raise('JWT_ALGORITHM')
+    REFRESH_TOKEN_LIFETIME_SECONDS: int = 2_592_000  # 30 days
+    RESET_PASSWORD_TOKEN_SECRET: str = get_env_var_or_raise(
+        'RESET_PASSWORD_TOKEN_SECRET'
     )
-    VERIFICATION_TOKEN_SECRET: str = (
-        getenv(
-            'VERIFICATION_TOKEN_SECRET'  # type: ignore
-        )
-        or 1 / 0
+    VERIFICATION_TOKEN_SECRET: str = get_env_var_or_raise(
+        'VERIFICATION_TOKEN_SECRET'
     )
-    EMAIL_APP_EMAIL: str = getenv('EMAIL_APP_EMAIL') or 1 / 0  # type: ignore
-    EMAIL_APP_NAME: str = getenv('EMAIL_APP_NAME') or 1 / 0  # type: ignore
-    EMAIL_APP_PASSWORD: str = getenv('EMAIL_APP_PASSWORD') or 1 / 0  # type: ignore
-    REDIS_HOST: str = getenv('REDIS_HOST') or 1 / 0  # type: ignore
-    REDIS_PORT: int = int(getenv('REDIS_PORT')) or 1 / 0  # type: ignore
-    REDIS_MAIN_DB: int = int(getenv('REDIS_MAIN_DB'))  # type: ignore
-    REDIS_PUBSUB_DB: int = int(getenv('REDIS_PUBSUB_DB')) or 1 / 0  # type: ignore
-    LOG_PATH: str = getenv('LOG_PATH') or 1 / 0  # type: ignore
-    BACKEND_ORIGIN: str = getenv('BACKEND_ORIGIN') or 1 / 0  # type: ignore
-    FRONTEND_ORIGIN: str = getenv('FRONTEND_ORIGIN') or 1 / 0  # type: ignore
+    EMAIL_APP_EMAIL: str = get_env_var_or_raise('EMAIL_APP_EMAIL')
+    EMAIL_APP_NAME: str = get_env_var_or_raise('EMAIL_APP_NAME')
+    EMAIL_APP_PASSWORD: str = get_env_var_or_raise('EMAIL_APP_PASSWORD')
+    REDIS_HOST: str = get_env_var_or_raise('REDIS_HOST')
+    REDIS_PORT: int = int(get_env_var_or_raise('REDIS_PORT'))
+    REDIS_MAIN_DB: int = int(get_env_var_or_raise('REDIS_MAIN_DB'))
+    REDIS_PUBSUB_DB: int = int(get_env_var_or_raise('REDIS_PUBSUB_DB'))
+    LOG_PATH: str = get_env_var_or_raise('LOG_PATH')
+    BACKEND_ORIGIN: str = get_env_var_or_raise('BACKEND_ORIGIN')
+    FRONTEND_ORIGIN: str = get_env_var_or_raise('FRONTEND_ORIGIN')
 
     ASYNC_DATABASE_URL: str = (
         f'postgresql+asyncpg://{POSTGRES_USER}:'

@@ -4,8 +4,8 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud, db
+from src import exceptions as exc
 from src.config import CFG
-from src.exceptions import exc
 
 
 async def read_first_user(asession: AsyncSession):

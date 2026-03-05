@@ -53,6 +53,6 @@ class MessageRead:
 
 
 @dataclass
-class AuthResult:
-    subject: str | None
-    detail: ENM.AuthResultDetail
+class DecodedRefreshToken:
+    subject: UUID
+    jti: UUID

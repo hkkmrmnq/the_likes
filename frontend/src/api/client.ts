@@ -119,5 +119,6 @@ apiClient.interceptors.response.use(
       throw error;
     }
     handleGeneralApiError(error);
+    return Promise.reject(error);
   },
 );

@@ -89,6 +89,30 @@ class User(Base):
         back_populates='user',
         cascade='all, delete-orphan',
     )
+    refresh_tokens: Mapped[list['RefreshToken']] = relationship(
+        'RefreshToken',
+        back_populates='user',
+        cascade='all, delete-orphan',
+    )
+
+
+class RefreshToken(BaseWithIntPK):
+    jti: Mapped[UUID] = mapped_column(SA_UUID(as_uuid=True), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE')
+    )
+    token_hash: Mapped[str] = mapped_column(String, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    revoked_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    user: Mapped['User'] = relationship(
+        'User',
+        back_populates='refresh_tokens',
+        uselist=False,
+    )
 
 
 class Profile(BaseWithIntPK):

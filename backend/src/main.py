@@ -3,10 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
 from src import endpoints
+from src import middleware as mdw
 from src.config import CFG
-from src.exceptions import exc, handlers
+
+# from src import exceptions as exc
 from src.lifespan import lifespan
-from src.middleware import LanguageMiddleware
 
 app = FastAPI(lifespan=lifespan, root_path='/api')
 
@@ -18,7 +19,9 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-app.add_middleware(LanguageMiddleware)
+app.add_middleware(mdw.LanguageMiddleware)
+app.add_middleware(mdw.ExceptionsMiddleware)
+app.add_middleware(mdw.EnsureCORSHeadersMiddleware)
 
 app.include_router(endpoints.auth_router, tags=['auth'])
 app.include_router(endpoints.core_router, tags=['definitions'])
@@ -28,12 +31,6 @@ app.include_router(endpoints.contacts_router, tags=['contacts'])
 app.include_router(endpoints.messages_router, tags=['messages'])
 app.include_router(endpoints.bootstrap_router, tags=['bootstrap'])
 
-app.add_exception_handler(exc.BadRequest, handlers.handle_bad_request)
-app.add_exception_handler(exc.Unauthorized, handlers.handle_unauthorized)
-app.add_exception_handler(exc.Forbidden, handlers.handle_forbidden)
-app.add_exception_handler(exc.NotFound, handlers.handle_not_found)
-app.add_exception_handler(exc.AlreadyExists, handlers.handle_conflict)
-app.add_exception_handler(exc.ServerError, handlers.handle_server_error)
 
 app.include_router(endpoints.chat_router)
 

@@ -186,7 +186,14 @@ export default function ProfilePage() {
                     type="number"
                     step="any"
                     value={(!!latitude && latitude.toString()) || ""}
-                    onChange={(e) => setLatitude(parseFloat(e.target.value))}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") {
+                        setLatitude(null);
+                      } else {
+                        setLatitude(parseFloat(value));
+                      }
+                    }}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 text-center"
                     placeholder="e.g., 28.359381"
                   />
@@ -209,7 +216,14 @@ export default function ProfilePage() {
                     type="number"
                     step="any"
                     value={(!!longitude && longitude.toString()) || ""}
-                    onChange={(e) => setLongitude(parseFloat(e.target.value))}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") {
+                        setLongitude(null);
+                      } else {
+                        setLongitude(parseFloat(value));
+                      }
+                    }}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 text-center"
                     placeholder="e.g., 129.595943"
                   />
@@ -236,7 +250,14 @@ export default function ProfilePage() {
                   type="number"
                   min="1"
                   value={!distance_limit ? "" : distance_limit}
-                  onChange={(e) => setDistanceLimit(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setDistanceLimit(null);
+                    } else {
+                      setDistanceLimit(parseFloat(value));
+                    }
+                  }}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 text-center"
                   placeholder="Enter distance in kilometers"
                 />

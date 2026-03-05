@@ -3,9 +3,9 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, db
+from src import exceptions as exc
 from src import schemas as sch
 from src.config import CNST, ENM
-from src.exceptions import exc
 
 from . import utils as utl
 

@@ -1,13 +1,12 @@
 from typing import Annotated, Any, AsyncGenerator
-from uuid import UUID
 
 from fastapi import Depends, HTTPException, Query, WebSocketException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt.exceptions import ExpiredSignatureError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, db
 from src import services as srv
-from src.config import ENM
 from src.logger import logger
 from src.schemas.descriptions import (
     COMMON_RESPONSES,
@@ -57,24 +56,23 @@ async def get_current_user_with_asession(
     asession: AsyncSession = Depends(get_async_session),
 ) -> tuple[db.User, AsyncSession]:
     token = credentials.credentials
-    result = srv.validate_token(token)
-    if result.detail == ENM.AuthResultDetail.ERROR:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Invalid token.',
-        )
-    elif result.detail == ENM.AuthResultDetail.EXPIRED:
+    try:
+        user_id = srv.decode_access_token(token)
+    except ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Expired token.',
         )
-    user = await crud.read_user_by_id(
-        user_id=UUID(result.subject), asession=asession
-    )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid token.',
+        )
+    user = await crud.read_user_by_id(user_id=user_id, asession=asession)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='User not found',
+            detail='User not found.',
         )
     return user, asession
 
@@ -106,22 +104,21 @@ async def get_current_active_and_virified_websocket_user(
             code=status.WS_1008_POLICY_VIOLATION,
             reason='Access token not provided.',
         )
-    result = srv.validate_token(token)
-    if result.detail == ENM.AuthResultDetail.ERROR:
+    try:
+        user_id = srv.decode_access_token(token)
+    except ExpiredSignatureError:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION, reason='Expired token.'
+        )
+    except Exception:
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION,
             reason='Invalid authentication credentials.',
         )
-    if result.detail == ENM.AuthResultDetail.EXPIRED:
-        raise WebSocketException(
-            code=status.WS_1008_POLICY_VIOLATION, reason='Expired token.'
-        )
     async with asession_factory() as asession:
-        user = await crud.read_user_by_id(
-            user_id=UUID(result.subject), asession=asession
-        )
+        user = await crud.read_user_by_id(user_id=user_id, asession=asession)
     if user is None:
-        logger.error(f'User ({result.subject=}) not found.')
+        logger.error(f'User ({user_id=}) not found.')
         raise WebSocketException(
             code=status.WS_1011_INTERNAL_ERROR, reason='User not found.'
         )

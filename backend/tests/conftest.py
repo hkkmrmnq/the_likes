@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 
 from src import crud, db
+from src import exceptions as exc
 from src import services as srv
 from src.config import CFG
-from src.exceptions import exc
 from src.services.utils import create_access_token
 
 

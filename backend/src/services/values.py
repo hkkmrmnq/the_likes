@@ -3,9 +3,9 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, db
+from src import exceptions as exc
 from src import schemas as sch
 from src.context import get_current_language
-from src.exceptions import exc
 from src.services.utils import other
 
 from .core import read_definitions
