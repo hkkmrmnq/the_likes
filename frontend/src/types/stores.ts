@@ -28,6 +28,7 @@ export interface AuthStore {
   _setHydrated: (value: boolean) => void;
   _timeoutId: NodeJS.Timeout | null;
   _clearTimeoutId: () => void;
+  _isRefreshing: boolean;
   manageLifetime: () => void;
   setCreds: (token: string) => void;
   clearCreds: () => void;

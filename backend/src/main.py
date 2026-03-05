@@ -5,8 +5,6 @@ from fastapi.openapi.utils import get_openapi
 from src import endpoints
 from src import middleware as mdw
 from src.config import CFG
-
-# from src import exceptions as exc
 from src.lifespan import lifespan
 
 app = FastAPI(lifespan=lifespan, root_path='/api')
@@ -21,7 +19,6 @@ app.add_middleware(
 
 app.add_middleware(mdw.LanguageMiddleware)
 app.add_middleware(mdw.ExceptionsMiddleware)
-app.add_middleware(mdw.EnsureCORSHeadersMiddleware)
 
 app.include_router(endpoints.auth_router, tags=['auth'])
 app.include_router(endpoints.core_router, tags=['definitions'])

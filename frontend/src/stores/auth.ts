@@ -2,7 +2,8 @@ import { createStore } from "zustand/vanilla";
 import { persist } from "zustand/middleware";
 import { useStore, create } from "zustand";
 
-import { API_CFG } from "@/src/config";
+import * as authService from "@/src/api/auth";
+import { API_CFG, CONSTANTS as CNST } from "@/src/config";
 import * as typ from "@/src/types";
 
 export const authStore = createStore<typ.AuthStore>()(
@@ -28,19 +29,37 @@ export const authStore = createStore<typ.AuthStore>()(
           clearTimeout(currentTimeoutId);
         }
       },
-      manageLifetime: () => {
+      _isRefreshing: false,
+      manageLifetime: async () => {
+        if (get()._isRefreshing) {
+          return;
+        }
+
         get()._clearTimeoutId();
-        const expired = Date.now() > get().expiresAt;
-        if (expired) {
-          set({ token: null, _timeoutId: null });
-        } else {
-          const newTimeoutId = setTimeout(
-            () => {
-              get().manageLifetime();
-            },
-            API_CFG.ACCESS_TOKEN_LIFETIME_MINUTES * 60 * 1000,
-          );
+
+        try {
+          const expired = Date.now() > get().expiresAt;
+          if (expired) {
+            set({ _isRefreshing: true });
+
+            try {
+              const new_token = await authService.refreshAuth();
+              get().setCreds(new_token);
+              console.log("new creds set");
+            } catch (error) {
+              console.error(error);
+              get().clearCreds();
+            } finally {
+              set({ _isRefreshing: false });
+            }
+          }
+          const newTimeoutId = setTimeout(() => {
+            get().manageLifetime();
+          }, CNST.CHECK_TOKEN_EVERY_SECONDS * 1000);
           set({ _timeoutId: newTimeoutId });
+        } catch (error) {
+          console.error("Token management failed:", error);
+          get().clearCreds();
         }
       },
       clearCreds: () => {

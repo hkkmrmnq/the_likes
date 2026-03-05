@@ -49,9 +49,16 @@ class ReentrantLock:
 
 
 class Connection:
-    def __init__(self, websocket: WebSocket, last_received: float = 0):
+    def __init__(
+        self,
+        *,
+        websocket: WebSocket,
+        last_received: float = 0,
+        expiration: datetime,
+    ):
         self.ws = websocket
         self.last_received = last_received
+        self.expiration = expiration
 
 
 class ChatManager:
@@ -169,8 +176,13 @@ class ChatManager:
                 return False
             await websocket.accept()
             if user_id not in self.connections:
+                expiration = datetime.now() + timedelta(
+                    seconds=CFG.JWT_ACCESS_LIFETIME_MINUTES * 60
+                )
                 connection = Connection(
-                    websocket=websocket, last_received=time.time()
+                    websocket=websocket,
+                    last_received=time.time(),
+                    expiration=expiration,
                 )
                 self.connections[user_id] = connection
             pubsub = await self.pubsub
@@ -206,6 +218,16 @@ class ChatManager:
                     f'({connection.ws.application_state=}) '
                     f'{error_msg=}'
                 )
+
+    async def check_connection_expiration(self, user_id: UUID) -> bool:
+        """
+        Returns True if connection is not yet expired.
+        Returns False if connection expired or no connection for this user_id.
+        """
+        async with self._lock:
+            if user_id not in self.connections:
+                return False
+            return datetime.now() < self.connections[user_id].expiration
 
     async def validate_and_send_payload(
         self,
@@ -450,53 +472,50 @@ class ChatManager:
         current_user: db.User,
         websocket: WebSocket,
     ) -> str:
-        ok = await self.add_connection(
-            user_id=current_user.id, websocket=websocket
-        )
+        user_id = current_user.id
+        ok = await self.add_connection(user_id=user_id, websocket=websocket)
         if not ok:
             return 'MAX_CONNECTIONS exceeded.'
-        expiration = datetime.now() + timedelta(
-            seconds=CFG.JWT_ACCESS_LIFETIME_MINUTES * 60
-        )
+
         # send_pings_task = asyncio.create_task(
         #     self._send_pings(
-        #         user_id=current_user.id,
+        #         user_id=user_id,
         #         interval=CFG.WS_PING_INTERVAL_SECONDS,
         #     )
         # )
         try:
             while True:
-                if not await self.check_rate_limit(current_user.id):
+                if not await self.check_rate_limit(user_id):
                     logger.warning('Rate limit exceeded.')
                     await self.remove_connection(
-                        user_id=current_user.id,
+                        user_id=user_id,
                         code=status.WS_1008_POLICY_VIOLATION,
                     )
                     return 'Rate limit exceeded.'
-                await self.update_last_received(user_id=current_user.id)
-                if datetime.now() > expiration:
+                if not self.check_connection_expiration(user_id):
                     await self.remove_connection(
-                        user_id=current_user.id,
+                        user_id=user_id,
                         code=status.WS_1008_POLICY_VIOLATION,
                     )
                     return 'Access token expired.'
+                await self.update_last_received(user_id=user_id)
                 payload = await websocket.receive_json()
                 await self.process_payload(
-                    current_user_id=current_user.id, payload=payload
+                    current_user_id=user_id, payload=payload
                 )
 
         except WebSocketDisconnect:
             await self.remove_connection(
-                user_id=current_user.id, code=status.WS_1000_NORMAL_CLOSURE
+                user_id=user_id, code=status.WS_1000_NORMAL_CLOSURE
             )
             return 'Normal closure.'
         except Exception as e:
             error_msg = exc.get_error_msg(e)
             logger.error(
-                f'WebSocket general Exception: {current_user.id=}, {error_msg}'
+                f'WebSocket general Exception: {user_id=}, {error_msg}'
             )
             await self.remove_connection(
-                user_id=current_user.id, code=status.WS_1011_INTERNAL_ERROR
+                user_id=user_id, code=status.WS_1011_INTERNAL_ERROR
             )
             return 'Internal error.'
         # finally:

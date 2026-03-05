@@ -79,3 +79,9 @@ export async function setNewPassword(
   );
   return response.data.message as typ.SetNewPasswordResponse;
 }
+
+export async function refreshAuth() {
+  const response = await apiClient.post(API_CFG.PUBLIC.REFRESH_ACCESS);
+  validateSchema<typ.LoginResponse>(sch.loginResponseSchema, response.data);
+  return response.data.data.access_token as string;
+}

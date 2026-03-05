@@ -12,6 +12,7 @@ export const CONSTANTS = {
   APP_DESCRIPTION: "Find people with similar values",
   SUPPORTED_LANGUAGES: ["en", "ru"],
   DEFAULT_LANGUAGE: "en",
+  CHECK_TOKEN_EVERY_SECONDS: 30,
   ROUTES: {
     PUBLIC: {
       ABOUT: "/about",
@@ -46,6 +47,7 @@ export const API_CFG = {
     VERIFY: "/verify-email",
     FORGOT_PASSWORD: "/forgot-password",
     SET_NEW_PASSWORD: "/set-new-password",
+    REFRESH_ACCESS: "/refresh-access",
   },
   PRIVATE: {
     PROFILE: "/profile",
@@ -64,5 +66,5 @@ export const API_CFG = {
   },
   WS_URL: `${BACKEND_ORIGIN}/ws`,
   TIMEOUT: 10000,
-  ACCESS_TOKEN_LIFETIME_MINUTES: 30,
+  ACCESS_TOKEN_LIFETIME_MINUTES: 1, //15
 } as const;

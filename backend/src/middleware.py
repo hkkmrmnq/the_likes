@@ -53,20 +53,8 @@ class ExceptionsMiddleware(BaseHTTPMiddleware):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={'detail': exc.get_error_msg(e)},
             )
-        # except (exc.ServerError, Exception):
-        #     return JSONResponse(
-        #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #         content={'detail': 'Something went wrong.'},
-        #     )
-
-
-class EnsureCORSHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        response = await call_next(request)
-
-        response.headers['Access-Control-Allow-Origin'] = CFG.FRONTEND_ORIGIN
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Allow-Methods'] = '*'
-        response.headers['Access-Control-Allow-Headers'] = '*'
-
-        return response
+        except (exc.ServerError, Exception):
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={'detail': 'Something went wrong.'},
+            )

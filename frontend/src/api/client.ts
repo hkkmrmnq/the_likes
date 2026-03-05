@@ -11,6 +11,7 @@ export const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 function handleGeneralApiError(error: AxiosError) {
