@@ -1,5 +1,5 @@
 import { chatPayloadSchema } from "@/src/schemas";
-import { API_CFG } from "@/src/config";
+import { API_CFG, CONSTANTS as CNST } from "@/src/config";
 import { selectedUserStore } from "@/src/stores";
 import * as typ from "@/src/types";
 
@@ -42,23 +42,22 @@ export const createWebSocketManager = (): WebSocketManager => {
     heartbeatInterval = setInterval(() => {
       const timeSinceLastReceived = Date.now() - lastReceived;
 
-      if (timeSinceLastReceived > 20000) {
+      if (timeSinceLastReceived > CNST.HEARTBEAT_INTERVAL_SECONDS * 1000) {
         const timestamp = new Date().toISOString();
 
         sendPayload({
           payload_type: typ.ChatPayloadType.PING,
-          related_content: { ping_timestamp: timestamp },
+          related_content: { origin: "FRONT" },
           timestamp: timestamp,
         });
-        console.debug("ping sent");
       }
 
-      if (timeSinceLastReceived > 60000) {
-        console.warn("Heartbeat timeout, reconnecting...");
+      if (timeSinceLastReceived > CNST.RECONNECT_AFTER_SECONDS * 1000) {
+        console.warn("Silence to long. Reconnecting...");
         disconnect();
         handleReconnect();
       }
-    }, 10000);
+    }, CNST.HEARTBEAT_INTERVAL_SECONDS * 1000);
   };
 
   const flushMessageQueue = (): void => {
@@ -79,8 +78,6 @@ export const createWebSocketManager = (): WebSocketManager => {
     reconnectAttempts++;
     const delay = config.reconnectDelay * Math.pow(1.5, reconnectAttempts - 1);
 
-    console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
-
     setTimeout(() => {
       if (ws?.readyState !== WebSocket.OPEN) {
         connect();
@@ -92,11 +89,10 @@ export const createWebSocketManager = (): WebSocketManager => {
     if (!ws) return;
 
     ws.onopen = () => {
-      console.log("WebSocket connected");
       isConnecting = false;
       reconnectAttempts = 0;
       lastReceived = Date.now();
-      // startHeartbeat();
+      startHeartbeat();
       flushMessageQueue();
       config.onConnect();
     };
@@ -121,20 +117,10 @@ export const createWebSocketManager = (): WebSocketManager => {
     };
 
     ws.onclose = (event) => {
-      //
-      console.log({
-        code: event.code,
-        reason: event.reason || "No reason provided",
-        timestamp: new Date().toISOString(),
-        wasClean: event.wasClean,
-        pageVisibility: document.visibilityState,
-      });
-
       clearHeartbeat();
       isConnecting = false;
 
       config.onDisconnect?.(event);
-      console.debug(`event.code=${event.code}`);
       if (![1000, 1006].includes(event.code) && config.autoReconnect) {
         handleReconnect();
       }
@@ -148,10 +134,6 @@ export const createWebSocketManager = (): WebSocketManager => {
 
   const connect = (): void => {
     if (ws?.readyState === WebSocket.OPEN || isConnecting || !config.token) {
-      console.log(
-        `ws connect() aborted: ws?.readyState: ${ws?.readyState}, 
-        isConnecting: ${isConnecting}, !!token: ${!!config.token}`,
-      );
       return;
     }
     isConnecting = true;
@@ -195,7 +177,6 @@ export const createWebSocketManager = (): WebSocketManager => {
       )
         return;
       messageQueue.push(jsonString);
-      console.log("Message queued, connection not ready");
     }
   };
 

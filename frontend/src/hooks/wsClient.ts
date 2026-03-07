@@ -43,18 +43,14 @@ export const useWSClient: () => typ.WSClient = () => {
           break;
 
         case typ.ChatPayloadType.PING:
-          const { ping_timestamp } = payload.related_content as {
-            ping_timestamp: string;
-          };
           wsManager.sendPayload({
             payload_type: typ.ChatPayloadType.PONG,
-            related_content: { ping_timestamp },
+            related_content: { origin: "FRONT" },
             timestamp: new Date().toISOString(),
           });
           break;
 
         case typ.ChatPayloadType.PONG:
-          console.debug("pong received");
           break;
 
         case typ.ChatPayloadType.ERROR:
@@ -105,13 +101,11 @@ export const useWSClient: () => typ.WSClient = () => {
 
   useEffect(() => {
     if (token) {
-      console.log("useWSClient hook: mounting");
       wsManager.config.onPayload = handleIncomingPayload;
       wsManager.config.token = token;
       wsManager.connect();
     }
     return () => {
-      console.log("useWSClient hook: unmounting");
       wsManager.disconnect();
     };
   }, [token, handleIncomingPayload]);

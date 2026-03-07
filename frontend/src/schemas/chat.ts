@@ -31,8 +31,8 @@ export const targetUserSchema = z.object({
   user_id: uuidSchema,
 });
 
-export const pingPongSchema = z.object({
-  ping_timestamp: z.string().datetime().nullable(), // only use for pong
+export const beatSchema = z.object({
+  origin: z.enum(["BACK", "FRONT"]),
 });
 
 export const chatPayloadSchema = z.discriminatedUnion("payload_type", [
@@ -48,12 +48,12 @@ export const chatPayloadSchema = z.discriminatedUnion("payload_type", [
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.PING),
-    related_content: pingPongSchema,
+    related_content: beatSchema,
     timestamp: z.string().datetime(),
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.PONG),
-    related_content: pingPongSchema,
+    related_content: beatSchema,
     timestamp: z.string().datetime(),
   }),
   z.object({

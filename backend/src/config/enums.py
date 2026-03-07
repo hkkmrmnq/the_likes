@@ -58,6 +58,11 @@ class ChatPayloadType(str, Enum):
     PONG = 'PONG'
 
 
+class BeatOrigin(str, Enum):
+    FRONT = 'FRONT'
+    BACK = 'BACK'
+
+
 class ClientMessageId(str, Enum):
     PENDING = 'pending'
     SENT = 'sent'

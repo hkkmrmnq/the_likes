@@ -201,10 +201,6 @@ class ChatManager:
             try:
                 await connection.ws.close(code=code)
             except RuntimeError:
-                logger.info(
-                    f'worker {os.getpid()}: remove_connection: '
-                    f'already closed? ({user_id=})'
-                )
                 self.connections.pop(user_id)
             except ConnectionError:
                 logger.warning(
@@ -283,7 +279,10 @@ class ChatManager:
         if 'payload_type' not in payload:
             logger.error('queue_payload error: no payload_type in payload.')
             return
-        if payload['payload_type'] == ENM.ChatPayloadType.PING:
+        if payload['payload_type'] in (
+            ENM.ChatPayloadType.PING,
+            ENM.ChatPayloadType.PONG,
+        ):
             return
         if target_user_id not in self.offline_messages:
             self.offline_messages[target_user_id] = []
@@ -421,8 +420,8 @@ class ChatManager:
                 await self.validate_and_send_payload(
                     payload={
                         'payload_type': ENM.ChatPayloadType.PONG,
-                        'related_content': sch.PingPongDetail(
-                            ping_timestamp=data.timestamp
+                        'related_content': sch.HeartbeatDetail(
+                            origin=ENM.BeatOrigin.BACK
                         ),
                         'timestamp': sch.get_now_timestamp_for_zod(),
                     },
@@ -455,8 +454,8 @@ class ChatManager:
                         await self.validate_and_send_payload(
                             payload={
                                 'payload_type': ENM.ChatPayloadType.PING,
-                                'related_content': sch.PingPongDetail(
-                                    ping_timestamp=None
+                                'related_content': sch.HeartbeatDetail(
+                                    origin=ENM.BeatOrigin.BACK
                                 ),
                                 'timestamp': sch.format_to_zod_timestamp(now),
                             },
@@ -477,12 +476,12 @@ class ChatManager:
         if not ok:
             return 'MAX_CONNECTIONS exceeded.'
 
-        # send_pings_task = asyncio.create_task(
-        #     self._send_pings(
-        #         user_id=user_id,
-        #         interval=CFG.WS_PING_INTERVAL_SECONDS,
-        #     )
-        # )
+        send_pings_task = asyncio.create_task(
+            self._send_pings(
+                user_id=user_id,
+                interval=CFG.WS_PING_INTERVAL_SECONDS,
+            )
+        )
         try:
             while True:
                 if not await self.check_rate_limit(user_id):
@@ -492,7 +491,7 @@ class ChatManager:
                         code=status.WS_1008_POLICY_VIOLATION,
                     )
                     return 'Rate limit exceeded.'
-                if not self.check_connection_expiration(user_id):
+                if not await self.check_connection_expiration(user_id):
                     await self.remove_connection(
                         user_id=user_id,
                         code=status.WS_1008_POLICY_VIOLATION,
@@ -517,9 +516,10 @@ class ChatManager:
             await self.remove_connection(
                 user_id=user_id, code=status.WS_1011_INTERNAL_ERROR
             )
+            raise e
             return 'Internal error.'
-        # finally:
-        #     send_pings_task.cancel()
+        finally:
+            send_pings_task.cancel()
 
 
 chat_manager = ChatManager()

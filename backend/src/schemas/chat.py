@@ -45,15 +45,8 @@ def get_now_timestamp_for_zod():
     return format_to_zod_timestamp(datetime.now(timezone.utc))
 
 
-class PingPongDetail(BaseModel):
-    ping_timestamp: str | None
-
-    @field_validator('ping_timestamp', mode='before')
-    @classmethod
-    def is_iso_formatted(cls, value: str | None) -> str | None:
-        if value is not None:
-            return validate_iso_timestamp_string(value)
-        return value
+class HeartbeatDetail(BaseModel):
+    origin: ENM.BeatOrigin
 
 
 TYPE_CONTENT_MAP = {
@@ -62,8 +55,8 @@ TYPE_CONTENT_MAP = {
     ENM.ChatPayloadType.SENT: MessageSent,
     ENM.ChatPayloadType.READ: TargetUser,
     ENM.ChatPayloadType.ERROR: MessageError,
-    ENM.ChatPayloadType.PING: PingPongDetail,
-    ENM.ChatPayloadType.PONG: PingPongDetail,
+    ENM.ChatPayloadType.PING: HeartbeatDetail,
+    ENM.ChatPayloadType.PONG: HeartbeatDetail,
 }
 
 
@@ -75,7 +68,7 @@ class ChatPayload(BaseModel):
         | MessageError
         | MessageSent
         | TargetUser
-        | PingPongDetail
+        | HeartbeatDetail
     )
     timestamp: str = Field(default_factory=lambda: get_now_timestamp_for_zod())
 
