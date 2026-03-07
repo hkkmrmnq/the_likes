@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, MouseEvent } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { useAuthStore } from "@/src/stores/auth";
@@ -48,8 +48,15 @@ function Navbar() {
 function MobileMenu() {
   const { token } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleMenuClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target instanceof Element && e.target.closest("button")) {
+      setIsMobileMenuOpen(!isMobileMenuOpen);
+    }
+  };
+
   return (
-    <>
+    <div onClick={handleMenuClick}>
       {/* Backdrop */}
       {isMobileMenuOpen && (
         <div
@@ -60,7 +67,7 @@ function MobileMenu() {
       <div className="fixed top-4 right-4 z-30">
         <div className="rounded-lg p-1 flex flex-col items-center gap-2">
           <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            // onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="cursor-pointer text-gray-500 hover:text-cyan-600"
           >
             {isMobileMenuOpen ? (
@@ -71,6 +78,8 @@ function MobileMenu() {
           </button>
           {isMobileMenuOpen && (
             <div>
+              {" "}
+              {/* Event listener added here */}
               {token ? (
                 <LogOutButton className={mobileMenuClickable} />
               ) : (
@@ -84,7 +93,7 @@ function MobileMenu() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
