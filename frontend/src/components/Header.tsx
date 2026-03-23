@@ -12,6 +12,7 @@ import {
   ToValuesButton,
   LogOutButton,
 } from "@/src/components/Buttons";
+// import { NotificationsDropdown } from "./notificationsMenu";
 import { navbarClickable, mobileMenuClickable } from "@/src/styles";
 import { CONSTANTS as CNST } from "@/src/config";
 
@@ -37,7 +38,8 @@ function Navbar() {
             {token && <ToContactsButton className={navbarClickable} />}
             {token && <ToValuesButton className={navbarClickable} />}
             {token && <ToProfileButton className={navbarClickable} />}
-            <div>{token ? <LogOutButton /> : <ToDoorstepButton />}</div>
+            {token ? <LogOutButton /> : <ToDoorstepButton />}
+            {/* {token && <NotificationsDropdown />} */}
           </div>
         </div>
       </div>
@@ -64,6 +66,7 @@ function MobileMenu() {
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
+
       <div className="fixed top-4 right-4 z-30">
         <div className="rounded-lg p-1 flex flex-col items-center gap-2">
           <button
@@ -79,16 +82,16 @@ function MobileMenu() {
           {isMobileMenuOpen && (
             <div>
               {" "}
-              {/* Event listener added here */}
+              {/* {token && <NotificationsDropdown />} */}
+              {token && <ToProfileButton className={mobileMenuClickable} />}
+              {token && <ToContactsButton className={mobileMenuClickable} />}
+              {token && <ToValuesButton className={mobileMenuClickable} />}
+              <ToAbout className={mobileMenuClickable} />
               {token ? (
                 <LogOutButton className={mobileMenuClickable} />
               ) : (
                 <ToDoorstepButton className={mobileMenuClickable} />
               )}
-              {token && <ToProfileButton className={mobileMenuClickable} />}
-              {token && <ToContactsButton className={mobileMenuClickable} />}
-              {token && <ToValuesButton className={mobileMenuClickable} />}
-              <ToAbout className={mobileMenuClickable} />
             </div>
           )}
         </div>

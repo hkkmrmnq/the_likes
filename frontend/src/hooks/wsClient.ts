@@ -1,13 +1,14 @@
 "use client";
 import { v4 as uuidv4 } from "uuid";
-
-import { useEffect, useCallback } from "react";
+import { useCallback, useEffect, useContext } from "react";
 import { toast } from "sonner";
 
 import { createWebSocketManager } from "@/src/api";
+import { WSClientContext } from "@/src/components";
+import * as exc from "@/src/errors";
+
 import * as str from "@/src/stores";
 import * as typ from "@/src/types";
-import * as exc from "@/src/errors";
 
 const wsManager = createWebSocketManager();
 
@@ -15,13 +16,19 @@ const wsManager = createWebSocketManager();
 export const useWSClient: () => typ.WSClient = () => {
   const { token } = str.useAuthStore();
   const { user_id, name } = str.useProfileStore();
-  const { incrementUnreadCount } = str.useContactsStore();
+  const { incrementUnreadCount, setRecommendations } = str.useContactsStore();
   const { addMessage, markMessageAsSent } = str.useMessagesStore();
 
   const handleIncomingPayload = useCallback(
-    (payload: typ.ChatPayload, selectedUser: typ.SelectedUser | null) => {
+    (
+      payload: typ.ChatPayload,
+      selectedUser: typ.SelectedUser | null,
+      storedRecommendations: typ.Recommendation[],
+    ) => {
+      // console.log("Received payload:");
+      // console.log(payload);
       switch (payload.payload_type) {
-        case typ.ChatPayloadType.NEW:
+        case typ.ChatPayloadType.NEW_MSG:
           const msgDisplay = {
             ...payload.related_content,
             pending: false,
@@ -37,7 +44,7 @@ export const useWSClient: () => typ.WSClient = () => {
           }
           break;
 
-        case typ.ChatPayloadType.SENT:
+        case typ.ChatPayloadType.MSG_SENT:
           const sentMessage = payload.related_content as typ.MessageSent;
           markMessageAsSent(sentMessage);
           break;
@@ -53,9 +60,24 @@ export const useWSClient: () => typ.WSClient = () => {
         case typ.ChatPayloadType.PONG:
           break;
 
-        case typ.ChatPayloadType.ERROR:
+        case typ.ChatPayloadType.MSG_ERROR:
           const errorContent = payload.related_content as { error: string };
           console.error("Server error:", errorContent.error);
+          break;
+
+        case typ.ChatPayloadType.NEW_RECOMM:
+          const newRecommendation = payload.related_content;
+          const recommendedIds = storedRecommendations.map((r) => r.user_id);
+          if (!recommendedIds.includes(newRecommendation.user_id)) {
+            console.log("adding...");
+            setRecommendations([newRecommendation, ...storedRecommendations]);
+            toast.info("You have new recommendation!");
+          }
+          break;
+
+        case typ.ChatPayloadType.NEW_REQUEST:
+        case typ.ChatPayloadType.NEW_CHAT:
+        case typ.ChatPayloadType.BLOCKED_BY:
           break;
 
         default:
@@ -64,7 +86,7 @@ export const useWSClient: () => typ.WSClient = () => {
           toast.error(error);
       }
     },
-    [addMessage, markMessageAsSent, incrementUnreadCount],
+    [addMessage, markMessageAsSent, incrementUnreadCount, setRecommendations],
   );
 
   const sendChatMessage = useCallback(
@@ -80,7 +102,7 @@ export const useWSClient: () => typ.WSClient = () => {
         client_id: uuidv4(),
       };
       wsManager.sendPayload({
-        payload_type: typ.ChatPayloadType.CREATE,
+        payload_type: typ.ChatPayloadType.CREATE_MSG,
         related_content: messagePaylod,
         timestamp: new Date().toISOString(),
       });
@@ -106,6 +128,7 @@ export const useWSClient: () => typ.WSClient = () => {
       wsManager.connect();
     }
     return () => {
+      // TODO ????????
       wsManager.disconnect();
     };
   }, [token, handleIncomingPayload]);
@@ -116,3 +139,13 @@ export const useWSClient: () => typ.WSClient = () => {
     disconnect: wsManager.disconnect,
   };
 };
+
+export function useWSClientContext() {
+  const wsClient = useContext(WSClientContext);
+  if (!wsClient) {
+    throw new Error(
+      "useWSClientContext must be used within WebSocketClientProvider",
+    );
+  }
+  return wsClient;
+}

@@ -21,7 +21,7 @@ from src import exceptions as exc
 from src import schemas as sch
 from src import services as srv
 from src.config import CFG, ENM
-from src.logger import logger
+from src.logger import async_catch, logger
 from src.sessions import asession_factory
 
 
@@ -91,55 +91,53 @@ class ChatManager:
             self._pubsub = self._redis_a.pubsub()
         return self._pubsub
 
-    async def _listen_for_messages(self):
+    async def _listen_for_payloads(self):
         """Listen for messages from other workers."""
         pubsub = await self.pubsub
         await pubsub.subscribe('keepalive')
-        async for message in pubsub.listen():
-            if message['type'] != 'message':
+        async for payload in pubsub.listen():
+            logger.info(f'hearing: {payload=}')
+            if payload['type'] != 'message':
                 continue
-            chat_payload = message.get('data')
+            channel = payload['channel']
+            if isinstance(channel, bytes):
+                channel = channel.decode('utf-8')
+            target_user_id = UUID(channel.replace('ws:', ''))
+            chat_payload = payload.get('data')
             if isinstance(chat_payload, bytes):
-                data_str = message['data'].decode('utf-8')
-                chat_payload = json.loads(data_str)
-            content = chat_payload.get('related_content')
-            if not content:
-                logger.error('pubsub: no related_content, skipped.')
-                continue
-            if 'receiver_id' not in content:
-                logger.error('pubsub: no receiver_id, skipped.')
-                continue
-            target_user_id = UUID(content['receiver_id'])
+                chat_payload = json.loads(payload['data'].decode('utf-8'))
             await self.validate_and_send_payload(
                 payload=chat_payload, target_user_id=target_user_id
             )
 
+    @async_catch(to_raise=False)
     async def _disconnect_inactive(self):
-        try:
-            while True:
-                current_time = time.time()
-                async with self._lock:
-                    for user_id, conn in self.connections.items():
-                        elapsed = current_time - conn.last_received
-                        if elapsed > CFG.CHAT.INACTIVITY_MAX_SECONDS:
-                            await self.remove_connection(
-                                user_id=user_id,
-                                code=status.WS_1000_NORMAL_CLOSURE,
-                            )
-                await asyncio.sleep(CFG.CHAT.CLOSE_INACTIVE_EVERY)
-        except Exception as e:
-            error_msg = exc.get_error_msg(e)
-            logger.error(
-                f'worker {os.getpid()}, '
-                f'disconnect_inactive error: {error_msg=}'
-            )
+        # try:
+        while True:
+            current_time = time.time()
+            async with self._lock:
+                for user_id, conn in self.connections.items():
+                    elapsed = current_time - conn.last_received
+                    if elapsed > CFG.CHAT.INACTIVITY_MAX_SECONDS:
+                        await self.remove_connection(
+                            user_id=user_id,
+                            code=status.WS_1000_NORMAL_CLOSURE,
+                        )
+            await asyncio.sleep(CFG.CHAT.CLOSE_INACTIVE_EVERY)
+        # except Exception:
+        #     error_msg = exc.get_error_msg(e)
+        #     logger.error(
+        #         f'worker {os.getpid()}, '
+        #         f'disconnect_inactive error: {error_msg=}'
+        #     )
 
     async def start_up(self):
         self._disconnect_inactive_task = asyncio.create_task(
             self._disconnect_inactive()
         )
-        self._listen_task = asyncio.create_task(self._listen_for_messages())
+        self._listen_task = asyncio.create_task(self._listen_for_payloads())
 
+    @async_catch(to_raise=False)
     async def _cancel_task(
         self, task: asyncio.Task | None, name: str = 'task'
     ):
@@ -151,9 +149,9 @@ class ChatManager:
             await task
         except asyncio.CancelledError:
             pass
-        except Exception as e:
-            error_msg = exc.get_error_msg(e)
-            logger.error(f'Error while cancelling {name}: {error_msg=}')
+        # except Exception as e:
+        #     error_msg = exc.get_error_msg(e)
+        #     logger.error(f'Error while cancelling {name}: {error_msg=}')
 
     async def shut_down(self):
         if self._pubsub:
@@ -186,14 +184,15 @@ class ChatManager:
                 )
                 self.connections[user_id] = connection
             pubsub = await self.pubsub
-            await pubsub.subscribe(f'chat:{user_id}')
+            await pubsub.subscribe(f'ws:{user_id}')
             await self.send_queued_validated_payloads(user_id=user_id)
             return True
 
+    @async_catch(to_raise=False)
     async def remove_connection(self, *, user_id: UUID, code: int):
-        f'worker {os.getpid()}: remove_connection called for user {user_id=}'
+        logger.info(f'{datetime.now()} remove_connection: {code=}')
         pubsub = await self.pubsub
-        await pubsub.unsubscribe(f'chat:{user_id}')
+        await pubsub.unsubscribe(f'ws:{user_id}')
         async with self._lock:
             if user_id not in self.connections:
                 return
@@ -207,13 +206,8 @@ class ChatManager:
                     f'worker {os.getpid()}: remove_connection: '
                     f'Network error? ({user_id=})'
                 )
-            except Exception as e:
-                error_msg = exc.get_error_msg(e)
-                logger.error(
-                    f'worker {os.getpid()}: ws.close attempt failed '
-                    f'({connection.ws.application_state=}) '
-                    f'{error_msg=}'
-                )
+            # except Exception:
+            #     logger.error(f'({connection.ws.application_state=}) ')
 
     async def check_connection_expiration(self, user_id: UUID) -> bool:
         """
@@ -250,9 +244,7 @@ class ChatManager:
                 else:
                     if isinstance(schema.related_content, sch.MessageRead):
                         redis = await self.redis
-                        await redis.publish(
-                            f'chat:{target_user_id}', valid_json
-                        )
+                        await redis.publish(f'ws:{target_user_id}', valid_json)
 
         except ValidationError as e:
             logger.error(f'Schema ValidationError(s): {len(e.errors())}')
@@ -274,22 +266,6 @@ class ChatManager:
                 user_id=target_user_id,
                 code=status.WS_1011_INTERNAL_ERROR,
             )
-
-    async def enqueue_payload(self, *, payload: dict, target_user_id: UUID):
-        if 'payload_type' not in payload:
-            logger.error('queue_payload error: no payload_type in payload.')
-            return
-        if payload['payload_type'] in (
-            ENM.ChatPayloadType.PING,
-            ENM.ChatPayloadType.PONG,
-        ):
-            return
-        if target_user_id not in self.offline_messages:
-            self.offline_messages[target_user_id] = []
-        queue = self.offline_messages[target_user_id]
-        if len(queue) > CFG.CHAT.MAX_QUEUE:
-            del queue[0]
-        queue.append(payload)
 
     async def update_last_received(self, user_id: UUID):
         async with self._lock:
@@ -327,6 +303,7 @@ class ChatManager:
         self.message_counts[user_id].append(now)
         return True
 
+    @async_catch(to_raise=False)
     async def process_chat_message(
         self,
         msg_data: cnt.MessageCreate,
@@ -357,7 +334,7 @@ class ChatManager:
             # Confirm to sender
             await self.validate_and_send_payload(
                 payload={
-                    'payload_type': ENM.ChatPayloadType.SENT,
+                    'payload_type': ENM.ChatPayloadType.MSG_SENT,
                     'related_content': {
                         'receiver_id': msg_cnt.receiver_id,
                         'client_id': msg_data.client_id,
@@ -371,7 +348,7 @@ class ChatManager:
             # Forward to recipient
             await self.validate_and_send_payload(
                 payload={
-                    'payload_type': ENM.ChatPayloadType.NEW,
+                    'payload_type': ENM.ChatPayloadType.NEW_MSG,
                     'related_content': msg_cnt,
                     'timestamp': received_timestamp,
                 },
@@ -380,26 +357,24 @@ class ChatManager:
 
         except Exception as e:
             # Report error to sender
-            error_msg = exc.get_error_msg(e)
-            if isinstance(e, exc.BadRequest | exc.NotFound | exc.ServerError):
-                error_message = e.args[0]
-            error_msg = e.args[0] if len(e.args) > 0 else 'Unknown'
-            logger.error(f'{error_msg=}')
             await self.validate_and_send_payload(
                 payload={
-                    'payload_type': ENM.ChatPayloadType.ERROR,
-                    'related_content': sch.MessageError(error=error_message),
+                    'payload_type': ENM.ChatPayloadType.MSG_ERROR,
+                    'related_content': sch.MessageError(
+                        error='Something went wrong.'
+                    ),
                     'timestamp': received_timestamp,
                 },
                 target_user_id=current_user_id,
             )
+            raise e
 
     async def process_payload(
         self, current_user_id: UUID, payload: dict
     ) -> str:
         data = sch.ChatPayload.model_validate(payload)
         match data.payload_type:
-            case ENM.ChatPayloadType.CREATE:
+            case ENM.ChatPayloadType.CREATE_MSG:
                 client_message = data.related_content
                 if not isinstance(client_message, sch.MessageCreate):
                     raise exc.ServerError(
@@ -433,7 +408,7 @@ class ChatManager:
         error_msg = 'Unexpected chat payload type'
         await self.validate_and_send_payload(
             payload={
-                'payload_type': ENM.ChatPayloadType.ERROR,
+                'payload_type': ENM.ChatPayloadType.MSG_ERROR,
                 'related_content': sch.MessageError(error=error_msg),
                 'timestamp': sch.get_now_timestamp_for_zod(),
             },
@@ -465,6 +440,7 @@ class ChatManager:
                 logger.error('send_pings general exception.')
                 break
 
+    @async_catch(to_raise=False)
     async def manage_chat(
         self,
         *,
@@ -476,12 +452,12 @@ class ChatManager:
         if not ok:
             return 'MAX_CONNECTIONS exceeded.'
 
-        send_pings_task = asyncio.create_task(
-            self._send_pings(
-                user_id=user_id,
-                interval=CFG.WS_PING_INTERVAL_SECONDS,
-            )
-        )
+        # send_pings_task = asyncio.create_task(
+        #     self._send_pings(
+        #         user_id=user_id,
+        #         interval=CFG.WS_PING_INTERVAL_SECONDS,
+        #     )
+        # )
         try:
             while True:
                 if not await self.check_rate_limit(user_id):
@@ -507,19 +483,16 @@ class ChatManager:
             await self.remove_connection(
                 user_id=user_id, code=status.WS_1000_NORMAL_CLOSURE
             )
+            logger.info('CLIENT DISCONNECTED')
             return 'Normal closure.'
         except Exception as e:
-            error_msg = exc.get_error_msg(e)
-            logger.error(
-                f'WebSocket general Exception: {user_id=}, {error_msg}'
-            )
             await self.remove_connection(
                 user_id=user_id, code=status.WS_1011_INTERNAL_ERROR
             )
+            logger.error('WS_1011_INTERNAL_ERROR')
             raise e
-            return 'Internal error.'
-        finally:
-            send_pings_task.cancel()
+        # finally:
+        #     send_pings_task.cancel()
 
 
 chat_manager = ChatManager()

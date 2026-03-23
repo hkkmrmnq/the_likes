@@ -49,13 +49,17 @@ SearchAllowedStatusPG = ENUM(
 
 
 class ChatPayloadType(str, Enum):
-    CREATE = 'CREATE'
-    NEW = 'NEW'
-    SENT = 'SENT'
-    ERROR = 'ERROR'
-    READ = 'READ'
+    CREATE_MSG = 'CREATE_MSG'
+    NEW_MSG = 'NEW_MSG'
+    MSG_SENT = 'MSG_SENT'
+    MSG_ERROR = 'MSG_ERROR'
+    MSG_READ = 'MSG_READ'
     PING = 'PING'
     PONG = 'PONG'
+    NEW_RECOMM = 'NEW_RECOMM'
+    NEW_REQUEST = 'NEW_REQUEST'
+    NEW_CHAT = 'NEW_CHAT'
+    BLOCKED_BY = 'BLOCKED_BY'
 
 
 class BeatOrigin(str, Enum):

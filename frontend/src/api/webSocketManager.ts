@@ -1,6 +1,6 @@
 import { chatPayloadSchema } from "@/src/schemas";
 import { API_CFG, CONSTANTS as CNST } from "@/src/config";
-import { selectedUserStore } from "@/src/stores";
+import { selectedUserStore, contactsStore } from "@/src/stores";
 import * as typ from "@/src/types";
 
 export type WebSocketManager = {
@@ -17,7 +17,7 @@ export const createWebSocketManager = (): WebSocketManager => {
   const messageQueue: string[] = [];
   let isConnecting = false;
   let heartbeatInterval: NodeJS.Timeout | null = null;
-  let lastReceived = 0;
+  let lastReceived = Date.now();
 
   const config: typ.WSManagerConfig = {
     token: "",
@@ -39,6 +39,7 @@ export const createWebSocketManager = (): WebSocketManager => {
 
   const startHeartbeat = (): void => {
     clearHeartbeat();
+    lastReceived = Date.now();
     heartbeatInterval = setInterval(() => {
       const timeSinceLastReceived = Date.now() - lastReceived;
 
@@ -102,8 +103,9 @@ export const createWebSocketManager = (): WebSocketManager => {
         const data = JSON.parse(event.data);
         const result = chatPayloadSchema.safeParse(data);
         const { selectedUser } = selectedUserStore.getState();
+        const { storedRecommendations } = contactsStore.getState();
         if (result.success) {
-          config.onPayload(result.data, selectedUser);
+          config.onPayload(result.data, selectedUser, storedRecommendations);
         } else {
           console.error("Invalid payload received:", result.error);
           config.onError("Invalid payload format");
@@ -117,6 +119,10 @@ export const createWebSocketManager = (): WebSocketManager => {
     };
 
     ws.onclose = (event) => {
+      console.log("WebSocket closed"); // TODO remove
+      console.log("Code:", event.code); // Close code (e.g., 1000, 1001, 1006)
+      console.log("Reason:", event.reason); // Close reason string
+      console.log("Was clean:", event.wasClean); // true if proper close
       clearHeartbeat();
       isConnecting = false;
 

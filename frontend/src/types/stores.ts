@@ -5,6 +5,7 @@ import {
   Attitude,
   MessageSent,
   Recommendation,
+  ChatPayloadType,
 } from "./api";
 import {
   MessageDisplay,
@@ -95,4 +96,18 @@ export interface SelectedUserStore {
   selectedUser: SelectedUser | null;
   setSelectedUser: (user: Recommendation | ContactRich) => void;
   clearSelectedUser: () => void;
+}
+
+export interface StoredNotification {
+  type:
+    | ChatPayloadType.NEW_RECOMM
+    | ChatPayloadType.NEW_REQUEST
+    | ChatPayloadType.NEW_CHAT;
+  user_id: string;
+}
+
+export interface NotificationsStore {
+  notifications: StoredNotification[];
+  addNotification: (notification: StoredNotification) => void;
+  clearNotification: (notification: StoredNotification) => void;
 }

@@ -80,7 +80,8 @@ async def _is_password_pwned(*, password: str) -> bool | None:
         httpx.TimeoutException,
         httpx.HTTPStatusError,
     ) as e:
-        logger.error(e)
+        error_msg = exc.get_error_msg(e)
+        logger.error(error_msg)
         return None
 
 

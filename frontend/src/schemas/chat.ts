@@ -1,15 +1,20 @@
 import { z } from "zod";
 
 import { uuidSchema, dataTimeShchema, timeSchema } from "./base";
+import { contactRichSchema, otherProfileSchema } from "./contacts";
 import { messageWriteSchema, messageReadSchema } from "./messages";
 
 export enum ChatPayloadType {
-  CREATE = "CREATE",
-  NEW = "NEW",
-  SENT = "SENT",
-  ERROR = "ERROR",
+  CREATE_MSG = "CREATE_MSG",
+  NEW_MSG = "NEW_MSG",
+  MSG_SENT = "MSG_SENT",
+  MSG_ERROR = "MSG_ERROR",
   PING = "PING",
   PONG = "PONG",
+  NEW_RECOMM = "NEW_RECOMM",
+  NEW_REQUEST = "NEW_REQUEST",
+  NEW_CHAT = "NEW_CHAT",
+  BLOCKED_BY = "BLOCKED_BY",
 }
 
 export const messageSentSchema = z
@@ -37,33 +42,53 @@ export const beatSchema = z.object({
 
 export const chatPayloadSchema = z.discriminatedUnion("payload_type", [
   z.object({
-    payload_type: z.literal(ChatPayloadType.CREATE),
+    payload_type: z.literal(ChatPayloadType.CREATE_MSG),
     related_content: messageWriteSchema,
-    timestamp: z.string().datetime(),
+    timestamp: dataTimeShchema,
   }),
   z.object({
-    payload_type: z.literal(ChatPayloadType.NEW),
+    payload_type: z.literal(ChatPayloadType.NEW_MSG),
     related_content: messageReadSchema,
-    timestamp: z.string().datetime(),
+    timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.PING),
     related_content: beatSchema,
-    timestamp: z.string().datetime(),
+    timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.PONG),
     related_content: beatSchema,
-    timestamp: z.string().datetime(),
+    timestamp: dataTimeShchema,
   }),
   z.object({
-    payload_type: z.literal(ChatPayloadType.SENT),
+    payload_type: z.literal(ChatPayloadType.MSG_SENT),
     related_content: messageSentSchema,
-    timestamp: z.string().datetime(),
+    timestamp: dataTimeShchema,
   }),
   z.object({
-    payload_type: z.literal(ChatPayloadType.ERROR),
+    payload_type: z.literal(ChatPayloadType.MSG_ERROR),
     related_content: messageErrorSchema,
-    timestamp: z.string().datetime(),
+    timestamp: dataTimeShchema,
+  }),
+  z.object({
+    payload_type: z.literal(ChatPayloadType.NEW_RECOMM),
+    related_content: otherProfileSchema,
+    timestamp: dataTimeShchema,
+  }),
+  z.object({
+    payload_type: z.literal(ChatPayloadType.NEW_REQUEST),
+    related_content: contactRichSchema,
+    timestamp: dataTimeShchema,
+  }),
+  z.object({
+    payload_type: z.literal(ChatPayloadType.NEW_CHAT),
+    related_content: contactRichSchema,
+    timestamp: dataTimeShchema,
+  }),
+  z.object({
+    payload_type: z.literal(ChatPayloadType.BLOCKED_BY),
+    related_content: contactRichSchema,
+    timestamp: dataTimeShchema,
   }),
 ]);

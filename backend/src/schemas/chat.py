@@ -10,7 +10,13 @@ from pydantic import (
 
 from src.config import ENM
 
-from .contact_n_message import MessageCreate, MessageRead, TargetUser
+from .contact_n_message import (
+    ContactRead,
+    MessageCreate,
+    MessageRead,
+    RecommendationRead,
+    TargetUser,
+)
 
 
 class MessageError(BaseModel):
@@ -50,13 +56,17 @@ class HeartbeatDetail(BaseModel):
 
 
 TYPE_CONTENT_MAP = {
-    ENM.ChatPayloadType.CREATE: MessageCreate,
-    ENM.ChatPayloadType.NEW: MessageRead,
-    ENM.ChatPayloadType.SENT: MessageSent,
-    ENM.ChatPayloadType.READ: TargetUser,
-    ENM.ChatPayloadType.ERROR: MessageError,
+    ENM.ChatPayloadType.CREATE_MSG: MessageCreate,
+    ENM.ChatPayloadType.NEW_MSG: MessageRead,
+    ENM.ChatPayloadType.MSG_SENT: MessageSent,
+    ENM.ChatPayloadType.MSG_READ: TargetUser,
+    ENM.ChatPayloadType.MSG_ERROR: MessageError,
     ENM.ChatPayloadType.PING: HeartbeatDetail,
     ENM.ChatPayloadType.PONG: HeartbeatDetail,
+    ENM.ChatPayloadType.NEW_RECOMM: RecommendationRead,
+    ENM.ChatPayloadType.NEW_REQUEST: ContactRead,
+    ENM.ChatPayloadType.NEW_CHAT: ContactRead,
+    ENM.ChatPayloadType.BLOCKED_BY: ContactRead,
 }
 
 
@@ -69,6 +79,8 @@ class ChatPayload(BaseModel):
         | MessageSent
         | TargetUser
         | HeartbeatDetail
+        | RecommendationRead
+        | ContactRead
     )
     timestamp: str = Field(default_factory=lambda: get_now_timestamp_for_zod())
 

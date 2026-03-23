@@ -56,3 +56,13 @@ class MessageRead:
 class DecodedRefreshToken:
     subject: UUID
     jti: UUID
+
+
+@dataclass
+class MatchToNotify:
+    similarity: float
+    distance: float | None
+    user_id: UUID
+    email: str
+    match_user_id: UUID
+    match_name: str | None

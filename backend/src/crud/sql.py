@@ -485,13 +485,35 @@ FROM ranked_recommendations rec;
 
 users_to_notify_of_match = text(f"""
 WITH matches as
-    (SELECT DISTINCT unnest(user_ids) as match_user_id
-    FROM limited_recommendations)
-SELECT match_user_id, email
-FROM matches
-JOIN users ON matches.match_user_id = users.id
-JOIN userdynamics ON matches.match_user_id = userdynamics.user_id
-JOIN profiles ON matches.match_user_id = profiles.user_id
+    (
+        SELECT
+            user_ids[1] as user_id,
+            profile_names[1] as profile_name,
+            user_ids[2] as match_user_id,
+            profile_names[2] as match_profile_name,
+            similarity,
+            distance
+        FROM limited_recommendations
+
+        UNION ALL
+
+        SELECT
+            user_ids[2] as user_id,
+            profile_names[2] as profile_name,
+            user_ids[1] as match_user_id,
+            profile_names[1] as match_profile_name,
+            similarity,
+            distance
+        FROM limited_recommendations
+    ),
+    emails as (
+        SELECT id, email FROM users
+    )
+SELECT *
+FROM userdynamics
+JOIN emails ON userdynamics.user_id = emails.id
+JOIN profiles ON userdynamics.user_id = profiles.user_id
+JOIN matches ON matches.user_id = userdynamics.user_id
 WHERE
     userdynamics.search_allowed_status IN (
         '{ENM.SearchAllowedStatus.OK.value}',

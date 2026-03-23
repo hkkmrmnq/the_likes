@@ -6,7 +6,7 @@ from src import crud, db
 from src import dependencies as dp
 from src import services as srv
 from src.config.config import CFG
-from src.logger import logger
+from src.logger import async_catch, logger
 
 
 def check_file_data_consistency(
@@ -169,7 +169,7 @@ def compare_db_to_file_data(
     logger.info('Data in DB matches input.')
 
 
-@logger.catch
+@async_catch(to_raise=True)
 async def prepare_db():
     """
     Manages basic data needed for app t work:

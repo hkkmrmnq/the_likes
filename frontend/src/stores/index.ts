@@ -5,3 +5,4 @@ export * from "./profile";
 export * from "./contacts";
 export * from "./moralProfile";
 export * from "./messages";
+export * from "./notifications";

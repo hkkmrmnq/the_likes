@@ -1,14 +1,9 @@
 from datetime import datetime, time, timedelta
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from src.config import CNST, ENM
-
-
-class UserToNotifyOfMatchRead(BaseModel):
-    user_id: UUID
-    email: EmailStr = Field(max_length=CNST.EMAIL_MAX_LENGTH)
 
 
 class SimilarityAndDistanceMixin(BaseModel):

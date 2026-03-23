@@ -8,9 +8,9 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, contains_eager
 
+from src import containers as cnt
 from src import db
 from src import exceptions as exc
-from src import schemas as sch
 from src.config import CFG, ENM
 from src.crud import sql
 
@@ -136,10 +136,17 @@ async def unsuspend(*, user_id: UUID, asession: AsyncSession):
 def read_users_to_notify_of_match(
     *,
     ssession: Session,
-) -> list[sch.UserToNotifyOfMatchRead]:
+) -> list[cnt.MatchToNotify]:
     results = ssession.execute(sql.users_to_notify_of_match)
     return [
-        sch.UserToNotifyOfMatchRead(user_id=r.match_user_id, email=r.email)
+        cnt.MatchToNotify(
+            similarity=r.similarity,
+            distance=r.distance,
+            user_id=r.user_id,
+            email=r.email,
+            match_user_id=r.match_user_id,
+            match_name=r.profile_name,
+        )
         for r in results
     ]
 
