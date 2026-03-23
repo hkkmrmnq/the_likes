@@ -94,9 +94,7 @@ def recommendations_chain():
     """Chain the tasks"""
     chain = (
         refresh_materialized_views.s()
-        | notify_matches.s().set(
-            countdown=5  # 60 ############################################################################
-        )
+        | notify_matches.s().set(countdown=60)
         | update_match_notification_counters.s().set(countdown=60)
     )
     return chain.apply_async()
@@ -222,8 +220,7 @@ celery_app.conf.beat_schedule = {
     'recommendations_chain': {
         'task': 'src.tasks.recommendations_chain',
         'schedule': timedelta(
-            # hours=CFG.REFRESH_MATERIALIZED_VIEWS_EVERY_HOURS   ################################
-            seconds=15
+            hours=CFG.REFRESH_MATERIALIZED_VIEWS_EVERY_HOURS
         ),
     },
     'end_cooldowns': {
