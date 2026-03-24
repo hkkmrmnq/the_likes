@@ -96,7 +96,6 @@ class ChatManager:
         pubsub = await self.pubsub
         await pubsub.subscribe('keepalive')
         async for payload in pubsub.listen():
-            logger.info(f'hearing: {payload=}')
             if payload['type'] != 'message':
                 continue
             channel = payload['channel']
@@ -112,7 +111,6 @@ class ChatManager:
 
     @async_catch(to_raise=False)
     async def _disconnect_inactive(self):
-        # try:
         while True:
             current_time = time.time()
             async with self._lock:
@@ -124,12 +122,6 @@ class ChatManager:
                             code=status.WS_1000_NORMAL_CLOSURE,
                         )
             await asyncio.sleep(CFG.CHAT.CLOSE_INACTIVE_EVERY)
-        # except Exception:
-        #     error_msg = exc.get_error_msg(e)
-        #     logger.error(
-        #         f'worker {os.getpid()}, '
-        #         f'disconnect_inactive error: {error_msg=}'
-        #     )
 
     async def start_up(self):
         self._disconnect_inactive_task = asyncio.create_task(

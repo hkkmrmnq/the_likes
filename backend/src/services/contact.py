@@ -6,6 +6,7 @@ from src import crud, db
 from src import exceptions as exc
 from src import schemas as sch
 from src.config import CNST, ENM
+from src.redis_client import redis_pubsub_client
 
 from . import utils as utl
 
@@ -30,7 +31,6 @@ async def get_contacts_and_requests(
         ],
         asession=asession,
     )
-    contacts = contacts
     message = (
         'Contacts and requests.'
         if contacts
@@ -184,6 +184,7 @@ async def agree_to_start(
     """
     if current_user.id == other_user_id:
         raise exc.BadRequest("Current user's id passed as target.")
+    # check if valid contact requested
     requested_profile = await crud.read_other_profile(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
@@ -191,19 +192,33 @@ async def agree_to_start(
     )
     if requested_profile is None or requested_profile.similarity == 0:
         raise exc.NotFound(f'Requested user not found: {other_user_id}.')
+
     await crud.reset_match_notifications_counter(
         user_id=current_user.id, asession=asession
     )
     await crud.unsuspend(user_id=current_user.id, asession=asession)
-    (my_contact, _), created = await utl.create_or_get_contact_pair(
+
+    (
+        (my_contact, others_contact),
+        created,
+    ) = await utl.create_or_get_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
     )
     match my_contact.status, created:
-        case ENM.ContactStatus.REQUESTED_BY_ME, _:
+        case ENM.ContactStatus.REQUESTED_BY_ME, _:  # new contact request
+            utl.notify_of_contact_change(
+                contact=others_contact,
+                change_type=ENM.ChatPayloadType.NEW_REQUEST,
+                redis_pubsub_client=redis_pubsub_client,
+            )
             message = 'Accepted. Waiting for the other user.'
-        case ENM.ContactStatus.REQUESTED_BY_OTHER, False:
+
+        case (  # contact request accepted
+            ENM.ContactStatus.REQUESTED_BY_OTHER,
+            False,
+        ):
             await utl.update_contact_pair(
                 my_user_id=current_user.id,
                 other_user_id=other_user_id,
@@ -214,7 +229,14 @@ async def agree_to_start(
                 user_ids=[current_user.id, other_user_id],
                 asession=asession,
             )
+            utl.notify_of_contact_change(
+                contact=others_contact,
+                change_type=ENM.ChatPayloadType.NEW_CHAT,
+                redis_pubsub_client=redis_pubsub_client,
+            )
             message = 'Chat started!'
+
+        # changed mind after contact request been cancelled/rejected
         case (
             ENM.ContactStatus.CANCELLED_BY_ME
             | ENM.ContactStatus.REJECTED_BY_ME,
@@ -226,7 +248,14 @@ async def agree_to_start(
                 my_contact_status=ENM.ContactStatus.REQUESTED_BY_ME,
                 asession=asession,
             )
+            utl.notify_of_contact_change(
+                contact=others_contact,
+                change_type=ENM.ChatPayloadType.NEW_REQUEST,
+                redis_pubsub_client=redis_pubsub_client,
+            )
             message = 'Accepted. Waiting for the other user.'
+
+        # requested contact have invalid status
         case _, _:
             message = f'Contact status is: {my_contact.status}.'
     await asession.commit()
@@ -253,7 +282,7 @@ async def cancel_contact_request(
         asession=asession,
         raise_not_found=True,
     )
-    my_contact, _ = contact_pair
+    my_contact, others_contact = contact_pair
     if my_contact.status != ENM.ContactStatus.REQUESTED_BY_ME:
         raise exc.BadRequest(
             'Only outgoing contact requests can be cancelled.'
@@ -268,6 +297,11 @@ async def cancel_contact_request(
     active_contacts_and_requests, _ = await get_contacts_and_requests(
         current_user=current_user,
         asession=asession,
+    )
+    utl.notify_of_contact_change(
+        contact=others_contact,
+        change_type=ENM.ChatPayloadType.REQUEST_CLOSED,
+        redis_pubsub_client=redis_pubsub_client,
     )
     return active_contacts_and_requests, 'Contact request cancelled.'
 
@@ -289,7 +323,7 @@ async def reject_contact_request(
         asession=asession,
         raise_not_found=True,
     )
-    my_contact, _ = contact_pair
+    my_contact, others_contact = contact_pair
     if my_contact.status != ENM.ContactStatus.REQUESTED_BY_OTHER:
         raise exc.BadRequest('Only received contact requests can be rejected.')
     await utl.update_contact_pair(
@@ -302,6 +336,11 @@ async def reject_contact_request(
     active_contacts_and_requests, _ = await get_contacts_and_requests(
         current_user=current_user,
         asession=asession,
+    )
+    utl.notify_of_contact_change(
+        contact=others_contact,
+        change_type=ENM.ChatPayloadType.REQUEST_CLOSED,
+        redis_pubsub_client=redis_pubsub_client,
     )
     return active_contacts_and_requests, 'Contact request rejected.'
 
@@ -323,7 +362,7 @@ async def block_contact(
         asession=asession,
         raise_not_found=True,
     )
-    my_contact, _ = contact_pair
+    my_contact, others_contact = contact_pair
     if my_contact.status not in (CNST.BLOCKABLE_CONTACT_STATUSES):
         raise exc.BadRequest(
             (
@@ -340,6 +379,11 @@ async def block_contact(
     await asession.commit()
     active_contacts_and_requests, _ = await get_contacts_and_requests(
         current_user=current_user, asession=asession
+    )
+    utl.notify_of_contact_change(
+        contact=others_contact,
+        change_type=ENM.ChatPayloadType.BLOCKED_BY,
+        redis_pubsub_client=redis_pubsub_client,
     )
     return active_contacts_and_requests, 'Contact blocked.'
 
@@ -358,7 +402,7 @@ async def unblock_contact(
         asession=asession,
         raise_not_found=True,
     )
-    my_contact, _ = contact_pair
+    my_contact, others_contact = contact_pair
     if my_contact.status != ENM.ContactStatus.BLOCKED_BY_ME:
         raise exc.BadRequest(
             f'Requested contact status is {my_contact.status}. '
@@ -373,6 +417,11 @@ async def unblock_contact(
     await asession.commit()
     active_contacts_and_requests, _ = await get_contacts_and_requests(
         current_user=current_user, asession=asession
+    )
+    utl.notify_of_contact_change(
+        contact=others_contact,
+        change_type=ENM.ChatPayloadType.UNBLOCKED_BY,
+        redis_pubsub_client=redis_pubsub_client,
     )
     return active_contacts_and_requests, 'Contact unblocked.'
 

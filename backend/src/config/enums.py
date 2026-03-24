@@ -58,8 +58,10 @@ class ChatPayloadType(str, Enum):
     PONG = 'PONG'
     NEW_RECOMM = 'NEW_RECOMM'
     NEW_REQUEST = 'NEW_REQUEST'
+    REQUEST_CLOSED = 'REQUEST_CLOSED'
     NEW_CHAT = 'NEW_CHAT'
     BLOCKED_BY = 'BLOCKED_BY'
+    UNBLOCKED_BY = 'UNBLOCKED_BY'
 
 
 class BeatOrigin(str, Enum):

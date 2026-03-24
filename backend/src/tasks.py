@@ -162,7 +162,6 @@ def notify_matches(previous_task_result=None):
         )
         valid_json = schema.model_dump_json()
         key = f'ws:{user_to_notify.user_id}'
-        logger.info(f'{key=}, {valid_json=}')
         redis_pubsub_client.publish(key, valid_json)
         send_match_email_notification.delay(
             email=user_to_notify.email, user_id=str(user_to_notify.user_id)

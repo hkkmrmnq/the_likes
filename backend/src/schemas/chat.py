@@ -65,8 +65,10 @@ TYPE_CONTENT_MAP = {
     ENM.ChatPayloadType.PONG: HeartbeatDetail,
     ENM.ChatPayloadType.NEW_RECOMM: RecommendationRead,
     ENM.ChatPayloadType.NEW_REQUEST: ContactRead,
+    ENM.ChatPayloadType.REQUEST_CLOSED: ContactRead,
     ENM.ChatPayloadType.NEW_CHAT: ContactRead,
     ENM.ChatPayloadType.BLOCKED_BY: ContactRead,
+    ENM.ChatPayloadType.UNBLOCKED_BY: ContactRead,
 }
 
 

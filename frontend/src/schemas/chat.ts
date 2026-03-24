@@ -13,8 +13,11 @@ export enum ChatPayloadType {
   PONG = "PONG",
   NEW_RECOMM = "NEW_RECOMM",
   NEW_REQUEST = "NEW_REQUEST",
+  REQUEST_CLOSED = "REQUEST_CLOSED",
   NEW_CHAT = "NEW_CHAT",
   BLOCKED_BY = "BLOCKED_BY",
+  UNBLOCKED_BY = "UNBLOCKED_BY",
+  CONTACT_CHANGED = "CONTACT_CHANGED",
 }
 
 export const messageSentSchema = z
@@ -82,12 +85,22 @@ export const chatPayloadSchema = z.discriminatedUnion("payload_type", [
     timestamp: dataTimeShchema,
   }),
   z.object({
+    payload_type: z.literal(ChatPayloadType.REQUEST_CLOSED),
+    related_content: contactRichSchema,
+    timestamp: dataTimeShchema,
+  }),
+  z.object({
     payload_type: z.literal(ChatPayloadType.NEW_CHAT),
     related_content: contactRichSchema,
     timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.BLOCKED_BY),
+    related_content: contactRichSchema,
+    timestamp: dataTimeShchema,
+  }),
+  z.object({
+    payload_type: z.literal(ChatPayloadType.UNBLOCKED_BY),
     related_content: contactRichSchema,
     timestamp: dataTimeShchema,
   }),

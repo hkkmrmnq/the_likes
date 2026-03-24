@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode } from "react"; // useEffect,
+import { createContext, ReactNode } from "react";
 
 import { useWSClient } from "@/src/hooks";
 import { WSClient } from "@/src/types";

@@ -3,6 +3,7 @@ import random
 from datetime import datetime, timezone
 from uuid import UUID
 
+import redis
 from async_lru import alru_cache
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
@@ -459,3 +460,34 @@ async def generate_random_personal_values(*, asession: AsyncSession) -> dict:
     pv_str = json.dumps(pv_dict)
     print(pv_str)
     return pv_dict
+
+
+def notify_of_contact_change(
+    *,
+    contact: cnt.RichContactRead,
+    change_type: ENM.ChatPayloadType,
+    redis_pubsub_client: redis.Redis,
+) -> None:
+    """
+    Used to notify user A when user B changes their contact
+    - when request is accepted/rejeced/cancelled/sent again
+    or active contact is blocked/unblocked.
+    Important. Only those ChatPayloadType's should be passed as change_type.
+    """
+    schema = sch.ChatPayload(
+        payload_type=change_type,
+        related_content=sch.ContactRead(
+            user_id=contact.other_user_id,
+            name=contact.other_name,
+            status=contact.status,
+            created_at=contact.created_at,
+            similarity=contact.similarity,
+            distance=contact.distance,
+            unread_messages=contact.unread_msg,
+            time_waiting=datetime.now(timezone.utc) - contact.created_at,
+        ),
+        timestamp=sch.get_now_timestamp_for_zod(),
+    )
+    valid_json = schema.model_dump_json()
+    key = f'ws:{contact.my_user_id}'
+    redis_pubsub_client.publish(key, valid_json)

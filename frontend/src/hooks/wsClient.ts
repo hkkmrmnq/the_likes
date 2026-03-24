@@ -16,7 +16,14 @@ const wsManager = createWebSocketManager();
 export const useWSClient: () => typ.WSClient = () => {
   const { token } = str.useAuthStore();
   const { user_id, name } = str.useProfileStore();
-  const { incrementUnreadCount, setRecommendations } = str.useContactsStore();
+  const {
+    incrementUnreadCount,
+    setRecommendations,
+    storedRequests,
+    setRequests,
+    storedContacts,
+    setContacts,
+  } = str.useContactsStore();
   const { addMessage, markMessageAsSent } = str.useMessagesStore();
 
   const handleIncomingPayload = useCallback(
@@ -25,8 +32,9 @@ export const useWSClient: () => typ.WSClient = () => {
       selectedUser: typ.SelectedUser | null,
       storedRecommendations: typ.Recommendation[],
     ) => {
-      // console.log("Received payload:");
-      // console.log(payload);
+      const currentRecommsIds = storedRecommendations.map((r) => r.user_id);
+      const currentRequestsIds = storedRequests.map((req) => req.user_id);
+      const currentChatsIds = storedContacts.map((cnt) => cnt.user_id);
       switch (payload.payload_type) {
         case typ.ChatPayloadType.NEW_MSG:
           const msgDisplay = {
@@ -67,26 +75,88 @@ export const useWSClient: () => typ.WSClient = () => {
 
         case typ.ChatPayloadType.NEW_RECOMM:
           const newRecommendation = payload.related_content;
-          const recommendedIds = storedRecommendations.map((r) => r.user_id);
-          if (!recommendedIds.includes(newRecommendation.user_id)) {
-            console.log("adding...");
+          if (!currentRecommsIds.includes(newRecommendation.user_id)) {
             setRecommendations([newRecommendation, ...storedRecommendations]);
-            toast.info("You have new recommendation!");
+            toast.info("New recommendation!");
           }
           break;
 
         case typ.ChatPayloadType.NEW_REQUEST:
+          const newRequest = payload.related_content;
+          if (currentRecommsIds.includes(newRequest.user_id)) {
+            const filteredRecomms = storedRecommendations.filter(
+              (rec) => rec.user_id !== newRequest.user_id,
+            );
+            setRecommendations(filteredRecomms);
+          }
+          if (!currentRequestsIds.includes(newRequest.user_id)) {
+            setRequests([...storedRequests, newRequest]);
+            toast.info("New chat request!");
+          }
+          break;
+
+        case typ.ChatPayloadType.REQUEST_CLOSED:
+          const closedRequest = payload.related_content;
+          if (currentRequestsIds.includes(closedRequest.user_id)) {
+            const filteredRequests = storedRequests.filter(
+              (rqst) => rqst.user_id !== closedRequest.user_id,
+            );
+            setRequests(filteredRequests);
+          }
+          break;
+
         case typ.ChatPayloadType.NEW_CHAT:
+          const newActiveContact = payload.related_content;
+          if (currentRequestsIds.includes(newActiveContact.user_id)) {
+            const filteredRequests = storedRequests.filter(
+              (rec) => rec.user_id !== newActiveContact.user_id,
+            );
+            setRequests(filteredRequests);
+          }
+          if (!currentChatsIds.includes(newActiveContact.user_id)) {
+            setContacts([...storedContacts, newActiveContact]);
+            toast.info("New chat started!");
+          }
+          break;
+
         case typ.ChatPayloadType.BLOCKED_BY:
+          const contactWhoBlocks = payload.related_content;
+          if (currentChatsIds.includes(contactWhoBlocks.user_id)) {
+            const filteredContacts = storedContacts.filter(
+              (contact) => contact.user_id !== contactWhoBlocks.user_id,
+            );
+            setContacts(filteredContacts);
+          }
+          break;
+
+        case typ.ChatPayloadType.UNBLOCKED_BY:
+          const contactWhoUnblocks = payload.related_content;
+          console.log("UNBLOCKED_BY");
+          console.log(contactWhoUnblocks);
+          console.log("activeChatsIds:");
+          console.log(currentChatsIds);
+          if (!currentChatsIds.includes(contactWhoUnblocks.user_id)) {
+            setContacts([...storedContacts, contactWhoUnblocks]);
+          }
           break;
 
         default:
-          const error = `Received unexpected payload: ${payload}`;
-          console.error(error);
-          toast.error(error);
+          const errMsg = "Received unexpected payload:";
+          console.error(errMsg);
+          console.error(payload);
+          toast.error(errMsg);
       }
     },
-    [addMessage, markMessageAsSent, incrementUnreadCount, setRecommendations],
+    [
+      addMessage,
+      markMessageAsSent,
+      incrementUnreadCount,
+      setRecommendations,
+      storedRequests,
+      setRequests,
+      storedContacts,
+      setContacts,
+    ],
   );
 
   const sendChatMessage = useCallback(
@@ -128,7 +198,6 @@ export const useWSClient: () => typ.WSClient = () => {
       wsManager.connect();
     }
     return () => {
-      // TODO ????????
       wsManager.disconnect();
     };
   }, [token, handleIncomingPayload]);
