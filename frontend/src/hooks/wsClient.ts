@@ -30,6 +30,7 @@ export const useWSClient: () => typ.WSClient = () => {
     (
       payload: typ.ChatPayload,
       selectedUser: typ.SelectedUser | null,
+      currentSection: typ.ContactsSectionName,
       storedRecommendations: typ.Recommendation[],
     ) => {
       const currentRecommsIds = storedRecommendations.map((r) => r.user_id);
@@ -46,6 +47,7 @@ export const useWSClient: () => typ.WSClient = () => {
           addMessage(msgDisplay.sender_id, msgDisplay);
           if (
             selectedUser === null ||
+            currentSection !== "chat" ||
             msgDisplay.sender_id !== selectedUser.user_id
           ) {
             incrementUnreadCount(msgDisplay.sender_id);

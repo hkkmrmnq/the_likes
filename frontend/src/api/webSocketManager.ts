@@ -1,6 +1,6 @@
 import { chatPayloadSchema } from "@/src/schemas";
 import { API_CFG, CONSTANTS as CNST } from "@/src/config";
-import { selectedUserStore, contactsStore } from "@/src/stores";
+import * as str from "@/src/stores";
 import * as typ from "@/src/types";
 
 export type WebSocketManager = {
@@ -102,10 +102,16 @@ export const createWebSocketManager = (): WebSocketManager => {
       try {
         const data = JSON.parse(event.data);
         const result = chatPayloadSchema.safeParse(data);
-        const { selectedUser } = selectedUserStore.getState();
-        const { storedRecommendations } = contactsStore.getState();
+        const { selectedUser } = str.selectedUserStore.getState();
+        const { selectedSection } = str.useSelectedSectionStore.getState();
+        const { storedRecommendations } = str.contactsStore.getState();
         if (result.success) {
-          config.onPayload(result.data, selectedUser, storedRecommendations);
+          config.onPayload(
+            result.data,
+            selectedUser,
+            selectedSection,
+            storedRecommendations,
+          );
         } else {
           console.error("Invalid payload received:", result.error);
           config.onError("Invalid payload format");

@@ -48,6 +48,7 @@ export interface WSManagerConfig {
   onPayload: (
     payload: ChatPayload,
     selectedUser: SelectedUser | null,
+    currentSection: ContactsSectionName,
     storedRecommendations: Recommendation[],
   ) => void;
   onError: (error: string, payload?: ChatPayload) => void;
