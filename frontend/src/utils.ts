@@ -25,22 +25,18 @@ export function handleErrorInComponent(
   setError: (msg: string) => void,
   setFieldErrors?: (fieldErrors: Record<string, string>) => void,
 ) {
-  let msg = `Error: ${error}`;
+  const msg = `Error: ${error}`;
   if (error instanceof ValidationError) {
     if (!!setFieldErrors) {
       setFieldErrors(error.errors);
     }
-    msg = error.message;
-    console.error(msg);
-    console.error(error.errors);
+    setError(error.message);
   } else if (error instanceof Error) {
-    msg = error.message;
-    console.error(msg);
-    setError(msg);
+    setError(error.message);
   } else {
-    console.error(msg);
     setError(msg);
   }
+  console.error(msg);
 }
 
 type T1 = Record<string, unknown>;

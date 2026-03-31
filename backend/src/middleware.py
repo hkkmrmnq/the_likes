@@ -5,27 +5,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from src import exceptions as exc
 from src.config import CFG
 from src.context import set_current_language
-
-
-class LanguageMiddleware(BaseHTTPMiddleware):
-    """Parses request header and sets current language ContextVar."""
-
-    async def dispatch(self, request: Request, call_next):
-        accept_language_header = request.headers.get('accept-language')
-        if not accept_language_header:
-            set_current_language(CFG.DEFAULT_LANGUAGE)
-        else:
-            lan_code = accept_language_header.split(',')[0][:2].lower()
-            if lan_code in CFG.SUPPORTED_LANGUAGES:
-                set_current_language(lan_code)
-            else:
-                set_current_language(CFG.DEFAULT_LANGUAGE)
-        response = await call_next(request)
-        return response
+from src.logger import logger
 
 
 class ExceptionsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
+        logger.info('ExceptionsMiddleware called')
         try:
             return await call_next(request)
         except exc.NotFound as e:
@@ -58,3 +43,21 @@ class ExceptionsMiddleware(BaseHTTPMiddleware):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={'detail': 'Something went wrong.'},
             )
+
+
+class LanguageMiddleware(BaseHTTPMiddleware):
+    """Parses request header and sets current language ContextVar."""
+
+    async def dispatch(self, request: Request, call_next):
+        logger.info('LanguageMiddleware called')
+        accept_language_header = request.headers.get('accept-language')
+        if not accept_language_header:
+            set_current_language(CFG.DEFAULT_LANGUAGE)
+        else:
+            lan_code = accept_language_header.split(',')[0][:2].lower()
+            if lan_code in CFG.SUPPORTED_LANGUAGES:
+                set_current_language(lan_code)
+            else:
+                set_current_language(CFG.DEFAULT_LANGUAGE)
+        response = await call_next(request)
+        return response

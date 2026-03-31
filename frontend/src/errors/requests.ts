@@ -5,7 +5,7 @@ export class BadRequestError extends AppError {
     params: {
       message?: string;
       originalError?: Error;
-    } = {}
+    } = {},
   ) {
     const { message = "Bad Request.", originalError } = params;
 
@@ -24,7 +24,7 @@ export class Unauthorized extends AppError {
     params: {
       message?: string;
       originalError?: Error;
-    } = {}
+    } = {},
   ) {
     const { message = "Unauthorized.", originalError } = params;
 
@@ -43,7 +43,7 @@ export class ServerError extends AppError {
     params: {
       message?: string;
       originalError?: Error;
-    } = {}
+    } = {},
   ) {
     const { message = "Unexpected backend error", originalError } = params;
 
@@ -62,7 +62,7 @@ export class ForbiddenError extends AppError {
     params: {
       message?: string;
       originalError?: Error;
-    } = {}
+    } = {},
   ) {
     const { message = "Access denied", originalError } = params;
 
@@ -73,5 +73,24 @@ export class ForbiddenError extends AppError {
     });
 
     this.name = "ForbiddenError";
+  }
+}
+
+export class NotFound extends AppError {
+  constructor(
+    params: {
+      message?: string;
+      originalError?: Error;
+    } = {},
+  ) {
+    const { message = "Not found", originalError } = params;
+
+    super({
+      message,
+      code: "NOTFOUND",
+      originalError,
+    });
+
+    this.name = "NotFound";
   }
 }

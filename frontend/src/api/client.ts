@@ -15,6 +15,7 @@ export const apiClient = axios.create({
 });
 
 function handleGeneralApiError(error: AxiosError) {
+  console.log(error);
   if (!error.response) {
     console.error("No response.");
     throw new exc.AppError({
@@ -52,6 +53,12 @@ function handleGeneralApiError(error: AxiosError) {
       });
     case 403:
       toast.error(message || "Access denied.");
+      throw new exc.ForbiddenError({
+        message,
+        originalError: error,
+      });
+    case 404:
+      toast.error(message || "Not found.");
       throw new exc.ForbiddenError({
         message,
         originalError: error,

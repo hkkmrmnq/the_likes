@@ -9,6 +9,8 @@ from src.lifespan import lifespan
 
 app = FastAPI(lifespan=lifespan, root_path='/api')
 
+app.add_middleware(mdw.LanguageMiddleware)
+app.add_middleware(mdw.ExceptionsMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[CFG.BACKEND_ORIGIN, CFG.FRONTEND_ORIGIN],
@@ -16,9 +18,6 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-
-app.add_middleware(mdw.LanguageMiddleware)
-app.add_middleware(mdw.ExceptionsMiddleware)
 
 app.include_router(endpoints.auth_router, tags=['auth'])
 app.include_router(endpoints.core_router, tags=['definitions'])

@@ -125,10 +125,6 @@ export const createWebSocketManager = (): WebSocketManager => {
     };
 
     ws.onclose = (event) => {
-      console.log("WebSocket closed"); // TODO remove
-      console.log("Code:", event.code); // Close code (e.g., 1000, 1001, 1006)
-      console.log("Reason:", event.reason); // Close reason string
-      console.log("Was clean:", event.wasClean); // true if proper close
       clearHeartbeat();
       isConnecting = false;
 
