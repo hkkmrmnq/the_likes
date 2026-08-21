@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useAuthStore } from "@/src/stores";
 import {
   ToLoginButton,
@@ -29,14 +30,16 @@ export default function DoorstepPage() {
     <div className="flex min-h-screen items-center justify-center font-sans">
       <main className="max-w-md w-full mx-4">
         <div className="text-center">
-          <Image
-            src="/logo.png"
-            alt="The Likes"
-            width={240}
-            height={40}
-            className="h-8 w-auto mx-auto inline-block"
-            priority
-          />
+          <Link href={CNST.ROUTES.PUBLIC.DOORSTEP}>
+            <Image
+              src="/logo.png"
+              alt="The Likes"
+              width={240}
+              height={40}
+              className="h-8 w-auto mx-auto inline-block"
+              priority
+            />
+          </Link>
 
           <p className="mt-2">Find people with similar values</p>
         </div>

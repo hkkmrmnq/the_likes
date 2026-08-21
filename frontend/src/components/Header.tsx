@@ -2,6 +2,7 @@
 
 import { useState, useEffect, MouseEvent } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useAuthStore } from "@/src/stores/auth";
 import {
@@ -12,7 +13,6 @@ import {
   ToValuesButton,
   LogOutButton,
 } from "@/src/components/Buttons";
-// import { NotificationsDropdown } from "./notificationsMenu";
 import { navbarClickable, mobileMenuClickable } from "@/src/styles";
 import { CONSTANTS as CNST } from "@/src/config";
 
@@ -24,14 +24,16 @@ function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Image
-              src="/logo.png"
-              alt="The Likes"
-              width={120}
-              height={40}
-              className="h-7 w-auto"
-              priority
-            />
+            <Link href={CNST.ROUTES.PUBLIC.DOORSTEP}>
+              <Image
+                src="/logo.png"
+                alt="The Likes"
+                width={120}
+                height={40}
+                className="h-7 w-auto"
+                priority
+              />
+            </Link>
           </div>
           <div className="md:flex items-center space-x-6">
             <ToAbout className={navbarClickable} />
@@ -39,7 +41,6 @@ function Navbar() {
             {token && <ToValuesButton className={navbarClickable} />}
             {token && <ToProfileButton className={navbarClickable} />}
             {token ? <LogOutButton /> : <ToDoorstepButton />}
-            {/* {token && <NotificationsDropdown />} */}
           </div>
         </div>
       </div>
@@ -69,10 +70,7 @@ function MobileMenu() {
 
       <div className="fixed top-4 right-4 z-30">
         <div className="rounded-lg p-1 flex flex-col items-center gap-2">
-          <button
-            // onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="cursor-pointer text-gray-500 hover:text-cyan-600"
-          >
+          <button className="cursor-pointer text-gray-500 hover:text-cyan-600">
             {isMobileMenuOpen ? (
               <X className="w-6 h-6" />
             ) : (
@@ -82,7 +80,6 @@ function MobileMenu() {
           {isMobileMenuOpen && (
             <div>
               {" "}
-              {/* {token && <NotificationsDropdown />} */}
               {token && <ToProfileButton className={mobileMenuClickable} />}
               {token && <ToContactsButton className={mobileMenuClickable} />}
               {token && <ToValuesButton className={mobileMenuClickable} />}
