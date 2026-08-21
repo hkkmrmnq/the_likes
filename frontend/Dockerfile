@@ -13,7 +13,7 @@ ENV PNPM_SCRIPT_SKIP=true
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml tsconfig.json ./
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN pnpm install -g corepack@latest && corepack enable pnpm && pnpm install --frozen-lockfile
 
 
 # Rebuild the source code only when needed
