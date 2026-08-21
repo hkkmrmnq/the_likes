@@ -1,6 +1,7 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM node:20-alpine AS base
+FROM node:26-alpine AS base
+RUN npm install -g corepack@latest
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -13,8 +14,7 @@ ENV PNPM_SCRIPT_SKIP=true
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml tsconfig.json ./
-RUN npm install -g pnpm@8.15.5 && pnpm install --frozen-lockfile
-
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -28,7 +28,7 @@ COPY . .
 # ENV NEXT_TELEMETRY_DISABLED=1
 
 ENV NEXT_PUBLIC_BACKEND_ORIGIN=""
-RUN pnpm run build
+RUN corepack enable pnpm && pnpm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner

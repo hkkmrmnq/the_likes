@@ -23,7 +23,7 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "baseUrl": ".",
+    // "baseUrl": ".",
     "noUncheckedIndexedAccess": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
