@@ -14,34 +14,17 @@ const ContactStatus = [
   "blocked by the other user",
 ];
 
-const nameSchema = z.string().nullable();
+export const nameSchema = z.string().nullable();
 const statusSchema = z.enum(ContactStatus);
 const distanceKmSchema = z.number().nullable();
 
 export const durationSchema = z.string().duration(); // .iso.duration(): build error
 export const nonNegativeIntSchema = z.number().int().nonnegative();
 
-export const contactRequestSchema = z
-  .object({
-    user_id: uuidSchema,
-    name: nameSchema,
-    status: statusSchema,
-    created_at: dataTimeShchema,
-    time_waiting: durationSchema,
-  })
-  .describe("contactRequestSchema");
-
 export const contactSchema = z.object({
   user_id: uuidSchema,
   name: nameSchema,
-  status: statusSchema,
-  created_at: dataTimeShchema,
-  unread_messages: nonNegativeIntSchema,
-});
-
-export const contactRichSchema = z.object({
-  user_id: uuidSchema,
-  name: nameSchema,
+  alias: nameSchema,
   status: statusSchema,
   created_at: dataTimeShchema,
   similarity: z.number(),
@@ -50,48 +33,11 @@ export const contactRichSchema = z.object({
   time_waiting: durationSchema.nullable(),
 });
 
-export const contactsArraySchema = z.array(contactRichSchema);
-
-export const recommendationSchema = z
-  .object({
-    user_id: uuidSchema,
-    name: nameSchema,
-    similarity: z.number(),
-    distance: distanceKmSchema,
-  })
-  .describe("recommendationSchema");
-
-export const contactsAndRequestsSchema = z.object({
-  active_contacts: contactsArraySchema,
-  contact_requests: contactsArraySchema,
-});
-
-export const otherProfileSchema = z
-  .object({
-    user_id: uuidSchema,
-    name: nameSchema,
-    similarity: z.number(),
-    distance: distanceKmSchema,
-  })
-  .describe("otherProfileSchema");
-
-export const otherProfileResponseSchema = z
-  .object({
-    data: otherProfileSchema,
-    message: z.string(),
-  })
-  .describe("otherProfileResponseSchema");
-
-export const contactsAndRequestsResponseSchema = z
-  .object({
-    data: contactsAndRequestsSchema,
-    message: z.string(),
-  })
-  .describe("contactsAndRequestsResponseSchema");
+export const contactsArraySchema = z.array(contactSchema);
 
 export const contsNReqstsNRecomsSchema = z
   .object({
-    recommendations: z.array(recommendationSchema),
+    recommendations: contactsArraySchema,
     active_contacts: contactsArraySchema,
     contact_requests: contactsArraySchema,
   })
@@ -116,3 +62,10 @@ export const contactsOptionsResponseSchema = z
     message: z.string(),
   })
   .describe("contactsOptionsResponseSchema");
+
+export const updateContactAliasResponseSchema = z
+  .object({
+    data: contactSchema,
+    message: z.string(),
+  })
+  .describe("updateContactAliasResponseSchema");

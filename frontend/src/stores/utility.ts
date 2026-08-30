@@ -5,8 +5,7 @@ import * as typ from "@/src/types";
 export const selectedUserStore = createStore<typ.SelectedUserStore>()(
   (set) => ({
     selectedUser: null,
-    setSelectedUser: (user: typ.Recommendation | typ.ContactRich) =>
-      set({ selectedUser: user }),
+    setSelectedUser: (user: typ.Contact) => set({ selectedUser: user }),
     clearSelectedUser: () => set({ selectedUser: null }),
   }),
 );

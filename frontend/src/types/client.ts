@@ -1,6 +1,6 @@
 import * as contactsService from "@/src/api";
-import { ChatPayload, Polarity, Recommendation } from "@/src/types/api";
-import { SelectedUser } from "@/src/types/stores";
+import { ChatPayload, Polarity } from "@/src/types/api";
+import { Contact } from "@/src/types";
 
 export type ValueNamesColumns = Record<Polarity, string[]>;
 
@@ -11,7 +11,7 @@ export type ColumnToDropToProps = {
 };
 
 export interface ContentBoxProps {
-  sendChatMessage: (input: string, selectedUser: SelectedUser) => void;
+  sendChatMessage: (input: string, selectedUser: Contact) => void;
   isConnected: () => boolean;
 }
 
@@ -47,15 +47,15 @@ export interface WSManagerConfig {
   onDisconnect: (event: CloseEvent) => void;
   onPayload: (
     payload: ChatPayload,
-    selectedUser: SelectedUser | null,
+    selectedUser: Contact | null,
     currentSection: ContactsSectionName,
-    storedRecommendations: Recommendation[],
+    storedRecommendations: Contact[],
   ) => void;
   onError: (error: string, payload?: ChatPayload) => void;
 }
 
 export interface WSClient {
-  sendChatMessage: (text: string, selectedUser: SelectedUser) => void;
+  sendChatMessage: (text: string, selectedUser: Contact) => void;
   isConnected: () => boolean;
   disconnect: () => void;
 }

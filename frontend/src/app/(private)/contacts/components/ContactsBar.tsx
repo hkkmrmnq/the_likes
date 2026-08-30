@@ -3,12 +3,12 @@ import { SquareArrowUpRight, SquareArrowDownLeft } from "lucide-react";
 import { truncate } from "@/src/utils";
 import { CONSTANTS as CNST } from "@/src/config";
 import * as str from "@/src/stores";
-import { ContactRich, OtherProfile } from "@/src/types";
+import { Contact } from "@/src/types";
 
 function RecommendationsBox({
   recommendations,
 }: {
-  recommendations: OtherProfile[];
+  recommendations: Contact[];
 }) {
   const { selectedUser, setSelectedUser } = str.useSelectedUserStore();
   const { setSelectedSection } = str.useSelectedSectionStore();
@@ -38,7 +38,7 @@ function RecommendationsBox({
   );
 }
 
-function RequestsBox({ requests }: { requests: ContactRich[] }) {
+function RequestsBox({ requests }: { requests: Contact[] }) {
   const { selectedUser, setSelectedUser } = str.useSelectedUserStore();
   const { setSelectedSection } = str.useSelectedSectionStore();
   if (requests.length === 0) return null;
@@ -78,7 +78,7 @@ function RequestsBox({ requests }: { requests: ContactRich[] }) {
   );
 }
 
-function ContactsBox({ constacts }: { constacts: ContactRich[] }) {
+function ContactsBox({ constacts }: { constacts: Contact[] }) {
   const { selectedUser, setSelectedUser } = str.useSelectedUserStore();
   const { setSelectedSection } = str.useSelectedSectionStore();
   return (
@@ -98,7 +98,10 @@ function ContactsBox({ constacts }: { constacts: ContactRich[] }) {
           }}
         >
           <span className="flex-1">
-            {truncate(contact.name || "User", CNST.SMALL_USERNAME)}
+            {truncate(
+              contact.alias || contact.name || "User",
+              CNST.SMALL_USERNAME,
+            )}
           </span>
           {!!contact.unread_messages && (
             <span className="px-2 p-3 py-1 text-xs font-semibold text-cyan-500 rounded-full">

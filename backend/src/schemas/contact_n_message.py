@@ -33,8 +33,11 @@ class RecommendationRead(SimilarityAndDistanceMixin, BaseModel):
 class ContactReadBase(BaseModel):
     user_id: UUID
     name: str | None
+    alias: str | None
     status: ENM.ContactStatus
     created_at: datetime
+
+    model_config = {'from_attributes': True}
 
 
 class ContactRead(SimilarityAndDistanceMixin, ContactReadBase):
@@ -59,6 +62,11 @@ class ContsNReqstsNRecoms(BaseModel):
 
 class TargetUser(BaseModel):
     id: UUID  # TODO change to user_id
+
+
+class UpdateContactAlias(BaseModel):
+    user_id: UUID
+    new_alias: str | None
 
 
 class UnreadMessagesCountByContact(BaseModel):

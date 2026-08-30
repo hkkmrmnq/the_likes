@@ -266,7 +266,7 @@ async def get_contact_pair(
     other_user_id: UUID,
     asession: AsyncSession,
     raise_not_found: bool = False,
-) -> tuple[list[cnt.RichContactRead], str]:
+) -> tuple[list[cnt.ContactRead], str]:
     """
     Returns a tuple with results and message.
     Results:
@@ -307,7 +307,7 @@ async def create_or_get_contact_pair(
     my_contact_status: str = ENM.ContactStatus.REQUESTED_BY_ME,
     other_user_contact_status: str = ENM.ContactStatus.REQUESTED_BY_OTHER,
     asession: AsyncSession,
-) -> tuple[list[cnt.RichContactRead], bool]:
+) -> tuple[list[cnt.ContactRead], bool]:
     """
     Creates a pair of mirrored contacts if this pair is not already exist.
     Returns a tuple: pair ('my' first), created (boolean).
@@ -338,30 +338,31 @@ async def update_contact_pair(
     my_contact_status: ENM.ContactStatus,
     asession: AsyncSession,
 ) -> None:
-    my_contact = cnt.ContactWrite(
+    await crud.update_contact_status(
         my_user_id=my_user_id,
-        other_user_id=other_user_id,
-        status=my_contact_status,
+        target_user_id=other_user_id,
+        new_status=my_contact_status,
+        asession=asession,
     )
-    other_contact = cnt.ContactWrite(
-        my_user_id=other_user_id,
-        other_user_id=my_user_id,
-        status=CNST.OTHER_CONTACT_STATUS[my_contact_status],
+    await crud.update_contact_status(
+        my_user_id=my_user_id,
+        target_user_id=other_user_id,
+        new_status=CNST.OTHER_CONTACT_STATUS[my_contact_status],
+        asession=asession,
     )
-    await crud.update_contact(contact=my_contact, asession=asession)
-    await crud.update_contact(contact=other_contact, asession=asession)
 
 
-def rich_contact_to_schema(*, contact: cnt.RichContactRead) -> sch.ContactRead:
+def rich_contact_to_schema(*, contact: cnt.ContactRead) -> sch.ContactRead:
     """Prepares ContactRead schema."""
     data = {
-        'user_id': contact.other_user_id,
-        'name': contact.other_name,
+        'user_id': contact.user_id,
+        'name': contact.name,
+        'alias': contact.alias,
         'status': contact.status,
         'created_at': contact.created_at,
         'distance': contact.distance,
         'similarity': contact.similarity,
-        'unread_messages': contact.unread_msg,
+        'unread_messages': contact.unread_messages,
         'time_waiting': None
         if contact.status == ENM.ContactStatus.ONGOING
         else datetime.now(timezone.utc) - contact.created_at,
@@ -391,7 +392,7 @@ async def get_recommendations(
     other_user_id: UUID | None = None,
     asession: AsyncSession,
 ) -> list[sch.RecommendationRead]:
-    """Reads user recommendations, returns as OtherProfileRead schema."""
+    """Reads user recommendations, returns as RecommendationRead schema."""
     recommendations = await crud.read_user_recommendations(
         my_user_id=my_user_id,
         other_user_id=other_user_id,
@@ -464,7 +465,8 @@ async def generate_random_personal_values(*, asession: AsyncSession) -> dict:
 
 def notify_of_contact_change(
     *,
-    contact: cnt.RichContactRead,
+    id_of_user_to_notify: UUID,
+    contact: cnt.ContactRead,
     change_type: ENM.ChatPayloadType,
     redis_pubsub_client: redis.Redis,
 ) -> None:
@@ -477,17 +479,18 @@ def notify_of_contact_change(
     schema = sch.ChatPayload(
         payload_type=change_type,
         related_content=sch.ContactRead(
-            user_id=contact.other_user_id,
-            name=contact.other_name,
+            user_id=contact.user_id,
+            name=contact.name,
+            alias=contact.alias,
             status=contact.status,
             created_at=contact.created_at,
             similarity=contact.similarity,
             distance=contact.distance,
-            unread_messages=contact.unread_msg,
+            unread_messages=contact.unread_messages,
             time_waiting=datetime.now(timezone.utc) - contact.created_at,
         ),
         timestamp=sch.get_now_timestamp_for_zod(),
     )
     valid_json = schema.model_dump_json()
-    key = f'ws:{contact.my_user_id}'
+    key = f'ws:{id_of_user_to_notify}'
     redis_pubsub_client.publish(key, valid_json)

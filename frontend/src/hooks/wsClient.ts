@@ -29,9 +29,9 @@ export const useWSClient: () => typ.WSClient = () => {
   const handleIncomingPayload = useCallback(
     (
       payload: typ.ChatPayload,
-      selectedUser: typ.SelectedUser | null,
+      selectedUser: typ.Contact | null,
       currentSection: typ.ContactsSectionName,
-      storedRecommendations: typ.Recommendation[],
+      storedRecommendations: typ.Contact[],
     ) => {
       const currentRecommsIds = storedRecommendations.map((r) => r.user_id);
       const currentRequestsIds = storedRequests.map((req) => req.user_id);
@@ -162,7 +162,7 @@ export const useWSClient: () => typ.WSClient = () => {
   );
 
   const sendChatMessage = useCallback(
-    (text: string, selectedUser: typ.SelectedUser) => {
+    (text: string, selectedUser: typ.Contact) => {
       if (selectedUser === null) {
         throw new exc.ComponentError({ message: "selectedUser === null" });
       }

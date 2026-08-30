@@ -28,6 +28,9 @@ class Contact(Base):
     other_user: Mapped[User] = relationship(
         User, foreign_keys=[other_user_id], uselist=False
     )
+    alias: Mapped[str] = mapped_column(
+        String(CNST.USER_NAME_MAX_LENGTH), nullable=True
+    )
     __table_args__ = (
         UniqueConstraint(
             'my_user_id',

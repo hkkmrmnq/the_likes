@@ -35,7 +35,7 @@ export function Chat() {
   const [error, setError] = useState("");
 
   const submit = useCallback(
-    (selectedUser: typ.SelectedUser) => {
+    (selectedUser: typ.Contact) => {
       const directInput = inputRef.current?.value || "";
       sendChatMessage(directInput, selectedUser);
       setMessageTextInput("");

@@ -16,7 +16,6 @@ router = APIRouter()
         common_response_codes=[401],
         extra_responses_to_iclude={
             403: 'Temporarily unavailable.',
-            # 404: ('Profile values have not yet been set.'),
             500: (
                 'Profile not found. / '
                 'Contact not found right after creation. / '
@@ -39,7 +38,7 @@ async def check_for_alike(
 
 
 @router.post(
-    '/agree-to-start',
+    CFG.PATHS.PRIVATE.AGREE_TO_START,
     responses=dp.with_common_responses(
         common_response_codes=[400, 401, 403],
         extra_responses_to_iclude={404: 'Requested user not found.'},
@@ -62,7 +61,7 @@ async def agree_to_start(
 
 
 @router.get(
-    '/active-contacts-and-requests',
+    CFG.PATHS.PRIVATE.ACTIVE_CONTACTS_AND_REQUESTS,
     responses=dp.with_common_responses(common_response_codes=[401, 403]),
 )
 async def contacts(
@@ -250,31 +249,6 @@ async def unblock_contact(
 
 
 @router.get(
-    '/other-profile/{user_id}',
-    responses=dp.with_common_responses(
-        common_response_codes=[401, 403],
-        extra_responses_to_iclude={
-            404: 'Requested user not found in contacts/recommendations.'
-        },
-    ),
-)
-async def get_contact_profile(
-    *,
-    user_and_asession: tuple[db.User, AsyncSession] = Depends(
-        dp.get_current_active_and_virified_user_with_asession
-    ),
-    target_user: sch.TargetUser,
-) -> sch.ApiResponse[sch.RecommendationRead]:
-    current_user, asession = user_and_asession
-    profile_model, message = await srv.get_other_profile(
-        current_user=current_user,
-        other_user_id=target_user.id,
-        asession=asession,
-    )
-    return sch.ApiResponse(data=profile_model, message=message)
-
-
-@router.get(
     '/contacts-options',
     responses=dp.with_common_responses(common_response_codes=[401, 403]),
 )
@@ -289,3 +263,27 @@ async def get_additional_contacts_options(
         current_user=current_user, asession=asession
     )
     return sch.ApiResponse(data=results, message=message)
+
+
+@router.post(
+    '/update-alias',
+    responses=dp.with_common_responses(
+        common_response_codes=[401, 403]  # TODO
+    ),
+)
+async def update_contact_alias(
+    *,
+    user_and_asession: tuple[db.User, AsyncSession] = Depends(
+        dp.get_current_active_and_virified_user_with_asession
+    ),
+    target_contact: sch.UpdateContactAlias,
+) -> sch.ApiResponse[sch.ContactRead]:
+    current_user, asession = user_and_asession
+    updated_contact, message = await srv.upadate_contact_alias(
+        current_user=current_user,
+        asession=asession,
+        target_user_id=target_contact.user_id,
+        new_alias=target_contact.new_alias,
+    )
+    data = srv.rich_contact_to_schema(contact=updated_contact)
+    return sch.ApiResponse(data=data, message=message)

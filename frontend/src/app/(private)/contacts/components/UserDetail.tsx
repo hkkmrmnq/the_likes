@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { toast } from "sonner";
 
 import {
   useLoadingStore,
@@ -10,46 +11,51 @@ import {
 import { ComponentError } from "@/src/errors";
 import * as contactsService from "@/src/api/contacts";
 import { handleErrorInComponent } from "@/src/utils";
-import { LoadingScreen } from "@/src/components";
 import * as actn from "./userActions";
-import { OtherProfile } from "@/src/types/api";
 
 export function UserDetail() {
   const { selectedSection } = useSelectedSectionStore();
-  const [contactProfile, setContactProfile] = useState<OtherProfile | null>(
-    null,
-  );
+  const [alias, setAlias] = useState<string>("");
   const [error, setError] = useState("");
-  const { selectedUser } = useSelectedUserStore();
+  const { selectedUser, setSelectedUser } = useSelectedUserStore();
   const { stopLoading } = useLoadingStore();
 
-  useEffect(() => {
-    const provideContactProfile = async () => {
-      try {
-        if (selectedUser === null) {
-          throw new ComponentError({
-            message: "Chat component error: selectedContact === null.",
-          });
-        }
-        try {
-          setContactProfile(selectedUser);
-        } catch (err) {
-          console.log(err);
-          handleErrorInComponent(err, setError);
-          const response = await contactsService.getContactProfile(
-            selectedUser.user_id,
-          );
-          setContactProfile(response.data);
-        }
-      } catch (err) {
-        handleErrorInComponent(err, setError);
-      } finally {
-        stopLoading();
-      }
-    };
+  if (selectedUser === null) {
+    throw new ComponentError({
+      message: "Chat component error: selectedUser === null.",
+    });
+  }
 
-    provideContactProfile();
-  }, [selectedUser, stopLoading]);
+  const saveAlias = async () => {
+    setError("");
+    try {
+      const updatedContact = await contactsService.updateContactAlias(
+        selectedUser?.user_id,
+        alias,
+      );
+      selectedUser.alias = updatedContact.alias;
+      setSelectedUser(selectedUser);
+    } catch (err) {
+      toast.error("Something went wrong...");
+      handleErrorInComponent(err, setError);
+    }
+  };
+
+  const handleBlur = () => {
+    if (selectedUser.alias === alias) return;
+    saveAlias();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      (e.currentTarget as HTMLInputElement).blur();
+    }
+  };
+
+  useEffect(() => {
+    setAlias((!!selectedUser.alias && selectedUser.alias) || "");
+    stopLoading();
+  }, [stopLoading]);
 
   const params = {
     chat: { message: "error", buttonGroup: actn.ErrorDummy },
@@ -78,21 +84,31 @@ export function UserDetail() {
     return <div className="text-red-500 text-sm mt-1">{error}</div>;
   }
 
-  if (contactProfile === null) return <LoadingScreen />;
-
   const usernameRow =
-    (contactProfile.name !== null && `Name: ${contactProfile.name}`) || "";
+    (!!selectedUser.name && `Name: ${selectedUser.name}`) || "";
   const distanceRow =
-    (contactProfile.distance !== null &&
-      `Distance: ${contactProfile.distance}`) ||
-    "";
+    (!!selectedUser.distance && `Distance: ${selectedUser.distance}`) || "";
 
   return (
     <div className="flex flex-col h-full w-full items-center text-center text-lg py-8">
       {params[selectedSection]["message"]}
       <div className="py-4 space-y-4">
         <div>{usernameRow}</div>
-        <div>Similarity score: {contactProfile.similarity}</div>
+        <div>
+          Alias:
+          <input
+            id="alias"
+            name="alias"
+            type="text"
+            value={alias}
+            onChange={(e) => setAlias(e.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 text-center"
+            placeholder="Alias if needed..."
+          />
+        </div>
+        <div>Similarity score: {selectedUser.similarity}</div>
         <div>{distanceRow}</div>
         <ActionComponent
           userId={(!!selectedUser && selectedUser.user_id) || ""}

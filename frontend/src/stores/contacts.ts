@@ -2,19 +2,19 @@ import { createStore } from "zustand/vanilla";
 import { persist } from "zustand/middleware";
 import { useStore } from "zustand";
 
-import { ContactRich, ContactsStore } from "@/src/types";
+import { Contact, ContactsStore } from "@/src/types";
 import * as exc from "@/src/errors";
 
 export const contactsStore = createStore<ContactsStore>()(
   persist(
     (set, get) => ({
       storedContacts: [],
-      setContacts: (new_contacts: ContactRich[]) =>
+      setContacts: (new_contacts: Contact[]) =>
         set({
           storedContacts: new_contacts,
         }),
       storedRequests: [],
-      setRequests: (new_requests: ContactRich[]) =>
+      setRequests: (new_requests: Contact[]) =>
         set({
           storedRequests: new_requests,
         }),

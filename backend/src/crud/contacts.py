@@ -15,7 +15,7 @@ async def read_user_recommendations(
     my_user_id: UUID,
     other_user_id: UUID | None = None,
     asession: AsyncSession,
-) -> list[cnt.ContactRead]:
+) -> list[cnt.ContactBase]:
     results = await asession.execute(
         crud.sql.read_user_recommendations.bindparams(
             bindparam('my_user_id', value=my_user_id, type_=SA_UUID),
@@ -23,7 +23,7 @@ async def read_user_recommendations(
         )
     )
     recommendations = [
-        cnt.ContactRead(
+        cnt.ContactBase(
             user_id=r.user_id,
             name=r.name,
             similarity=r.similarity,
@@ -64,7 +64,7 @@ async def read_contacts(
     other_user_id: UUID | None = None,
     statuses: list[str] | None = None,
     asession: AsyncSession,
-) -> list[cnt.RichContactRead]:
+) -> list[cnt.ContactRead]:
     """
     Reads contacts with added other user's profile data.
     my_user_id: optional, if only one subject ('me') needed;
@@ -81,54 +81,43 @@ async def read_contacts(
         )
     )
     return [
-        cnt.RichContactRead(
-            my_user_id=r.my_user_id,
-            other_user_id=r.other_user_id,
-            my_name=r.my_profile_name,
-            other_name=r.other_profile_name,
+        cnt.ContactRead(
+            user_id=r.other_user_id,
+            name=r.other_profile_name,
+            alias=r.alias,
             status=r.status,
             distance=r.distance,
             similarity=r.similarity,
-            unread_msg=r.unread_messages,
+            unread_messages=r.unread_messages,
             created_at=r.created_at,
         )
         for r in results.all()
     ]
 
 
-async def update_contact(
-    contact: cnt.ContactWrite, asession: AsyncSession
+async def update_contact_status(
+    my_user_id: UUID,
+    target_user_id: UUID,
+    new_status: ENM.ContactStatus,
+    asession: AsyncSession,
 ) -> None:
     await asession.execute(
         update(db.Contact)
-        .where(db.Contact.my_user_id == contact.my_user_id)
-        .where(db.Contact.other_user_id == contact.other_user_id)
-        .values(status=contact.status)
-        .returning(db.Contact)
+        .where(db.Contact.my_user_id == my_user_id)
+        .where(db.Contact.other_user_id == target_user_id)
+        .values(status=new_status)
     )
 
 
-async def read_other_profile(
-    *,
+async def update_contact_alias(
     my_user_id: UUID,
-    other_user_id: UUID,
+    target_user_id: UUID,
+    new_alias: str | None,
     asession: AsyncSession,
-) -> cnt.ContactRead | None:
-    """
-    Compare current and other user's data
-    by quereing Profile and moral_profiles materialized view.
-    Returns user_id, name, similarity and distance.
-    """
-    result = await asession.execute(
-        crud.sql.read_other_profile,
-        {'my_user_id': my_user_id, 'other_user_id': other_user_id},
-    )
-    r = result.one_or_none()
-    if r is None:
-        return None
-    return cnt.ContactRead(
-        user_id=r.user_id,
-        name=r.name,
-        similarity=r.similarity,
-        distance=r.distance,
+) -> None:
+    await asession.execute(
+        update(db.Contact)
+        .where(db.Contact.my_user_id == my_user_id)
+        .where(db.Contact.other_user_id == target_user_id)
+        .values(alias=new_alias)
     )

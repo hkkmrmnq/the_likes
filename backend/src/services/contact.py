@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import containers as cnt
 from src import crud, db
 from src import exceptions as exc
 from src import schemas as sch
@@ -133,7 +134,7 @@ async def check_for_alike(
     contacts = await crud.read_contacts(
         my_user_id=current_user.id, asession=asession
     )
-    contacts_user_ids = [c.other_user_id for c in contacts]
+    contacts_user_ids = [c.user_id for c in contacts]
     matches = [
         r for r in recommendations if r.user_id not in contacts_user_ids
     ]
@@ -185,13 +186,23 @@ async def agree_to_start(
     if current_user.id == other_user_id:
         raise exc.BadRequest("Current user's id passed as target.")
     # check if valid contact requested
-    requested_profile = await crud.read_other_profile(
+    # requested_profile = await crud.read_contact(
+    #     my_user_id=current_user.id,
+    #     other_user_id=other_user_id,
+    #     asession=asession,
+    # )
+    result, message = await utl.get_contact_pair(
         my_user_id=current_user.id,
         other_user_id=other_user_id,
         asession=asession,
+        raise_not_found=True,
     )
-    if requested_profile is None or requested_profile.similarity == 0:
-        raise exc.NotFound(f'Requested user not found: {other_user_id}.')
+    # if len(requested_contacts) > 0:
+    #     raise exc.ServerError(
+    #         f'> 1 contacts found for {current_user.id=}, {other_user_id=}'
+    #     )
+    # if len(requested_contacts) == 0 or requested_contacts[0].similarity == 0:
+    #     raise exc.NotFound(f'Requested user not found: {other_user_id}.')
 
     await crud.reset_match_notifications_counter(
         user_id=current_user.id, asession=asession
@@ -209,6 +220,7 @@ async def agree_to_start(
     match my_contact.status, created:
         case ENM.ContactStatus.REQUESTED_BY_ME, _:  # new contact request
             utl.notify_of_contact_change(
+                id_of_user_to_notify=other_user_id,
                 contact=others_contact,
                 change_type=ENM.ChatPayloadType.NEW_REQUEST,
                 redis_pubsub_client=redis_pubsub_client,
@@ -230,6 +242,7 @@ async def agree_to_start(
                 asession=asession,
             )
             utl.notify_of_contact_change(
+                id_of_user_to_notify=other_user_id,
                 contact=others_contact,
                 change_type=ENM.ChatPayloadType.NEW_CHAT,
                 redis_pubsub_client=redis_pubsub_client,
@@ -249,6 +262,7 @@ async def agree_to_start(
                 asession=asession,
             )
             utl.notify_of_contact_change(
+                id_of_user_to_notify=other_user_id,
                 contact=others_contact,
                 change_type=ENM.ChatPayloadType.NEW_REQUEST,
                 redis_pubsub_client=redis_pubsub_client,
@@ -299,6 +313,7 @@ async def cancel_contact_request(
         asession=asession,
     )
     utl.notify_of_contact_change(
+        id_of_user_to_notify=other_user_id,
         contact=others_contact,
         change_type=ENM.ChatPayloadType.REQUEST_CLOSED,
         redis_pubsub_client=redis_pubsub_client,
@@ -338,6 +353,7 @@ async def reject_contact_request(
         asession=asession,
     )
     utl.notify_of_contact_change(
+        id_of_user_to_notify=other_user_id,
         contact=others_contact,
         change_type=ENM.ChatPayloadType.REQUEST_CLOSED,
         redis_pubsub_client=redis_pubsub_client,
@@ -381,6 +397,7 @@ async def block_contact(
         current_user=current_user, asession=asession
     )
     utl.notify_of_contact_change(
+        id_of_user_to_notify=other_user_id,
         contact=others_contact,
         change_type=ENM.ChatPayloadType.BLOCKED_BY,
         redis_pubsub_client=redis_pubsub_client,
@@ -419,55 +436,12 @@ async def unblock_contact(
         current_user=current_user, asession=asession
     )
     utl.notify_of_contact_change(
+        id_of_user_to_notify=other_user_id,
         contact=others_contact,
         change_type=ENM.ChatPayloadType.UNBLOCKED_BY,
         redis_pubsub_client=redis_pubsub_client,
     )
     return active_contacts_and_requests, 'Contact unblocked.'
-
-
-async def get_other_profile(
-    *,
-    current_user: db.User,
-    other_user_id: UUID,
-    asession: AsyncSession,
-) -> tuple[sch.RecommendationRead, str]:
-    """
-    Reads profile of a conact user.
-    Returns as tuple[OtherProfileRead schema, info message].
-    """
-    contacts = await crud.read_contacts(
-        my_user_id=current_user.id,
-        other_user_id=other_user_id,
-        asession=asession,
-    )
-    if not contacts:
-        recommendations = await crud.read_user_recommendations(
-            my_user_id=current_user.id,
-            other_user_id=other_user_id,
-            asession=asession,
-        )
-        if not recommendations:
-            raise exc.NotFound(
-                'Requested user not found in contacts/recommendations.'
-            )
-    if len(contacts) > 1:
-        raise exc.ServerError(
-            (
-                'Inconsistent number of contacts found '
-                f'for {current_user.id}, {other_user_id}'
-            )
-        )
-    other_profile = await crud.read_other_profile(
-        my_user_id=current_user.id,
-        other_user_id=other_user_id,
-        asession=asession,
-    )
-    if other_profile is None:
-        raise exc.ServerError('Moral profile not found.')
-    return sch.RecommendationRead.model_validate(
-        other_profile
-    ), 'Other user profile.'
 
 
 async def get_additional_contacts_options(
@@ -504,3 +478,27 @@ async def get_additional_contacts_options(
         ],
     )
     return options_schema, message
+
+
+async def upadate_contact_alias(
+    current_user: db.User,
+    asession: AsyncSession,
+    target_user_id: UUID,
+    new_alias: str | None,
+) -> tuple[cnt.ContactRead, str]:
+    await crud.update_contact_alias(
+        my_user_id=current_user.id,
+        asession=asession,
+        target_user_id=target_user_id,
+        new_alias=new_alias,
+    )
+    await asession.commit()
+    results = await crud.read_contacts(
+        my_user_id=current_user.id,
+        other_user_id=target_user_id,
+        asession=asession,
+    )
+    if not len(results) == 1:
+        raise exc.ServerError(f'{len(results)} result(s) found instead od 1.')
+    updated_contact = results[0]
+    return updated_contact, 'Updated contact.'

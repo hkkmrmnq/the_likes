@@ -65,6 +65,7 @@ export const API_CFG = {
     CONTS_N_REQSTS_RECOMS: "/contacts-and-recommendations",
     CONTACTS_OPTIONS: "/contacts-options",
     UNBLOCK_USER: "/unblock",
+    UPDATE_ALIAS: "/update-alias",
   },
   WS_URL: `${BACKEND_ORIGIN}/ws`,
   TIMEOUT: 10000,

@@ -5,12 +5,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from src import exceptions as exc
 from src.config import CFG
 from src.context import set_current_language
-from src.logger import logger
 
 
 class ExceptionsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
-        logger.info('ExceptionsMiddleware called')
         try:
             return await call_next(request)
         except exc.NotFound as e:
@@ -49,7 +47,6 @@ class LanguageMiddleware(BaseHTTPMiddleware):
     """Parses request header and sets current language ContextVar."""
 
     async def dispatch(self, request: Request, call_next):
-        logger.info('LanguageMiddleware called')
         accept_language_header = request.headers.get('accept-language')
         if not accept_language_header:
             set_current_language(CFG.DEFAULT_LANGUAGE)

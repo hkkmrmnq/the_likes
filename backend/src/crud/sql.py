@@ -564,7 +564,8 @@ FROM my_mp_table my_mp
 read_contacts = text("""
 WITH
 filtered_contacts AS (
-SELECT * FROM contacts WHERE
+SELECT * FROM contacts
+WHERE
 (my_user_id = :my_user_id OR :my_user_id is NULL)
 AND
 (other_user_id = :other_user_id OR :other_user_id is NULL)

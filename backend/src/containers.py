@@ -6,31 +6,27 @@ from src.config import ENM
 
 
 @dataclass
-class RichContactRead:
-    my_user_id: UUID
-    other_user_id: UUID
-    my_name: str | None
-    other_name: str | None
-    status: ENM.ContactStatus
+class ContactBase:
+    user_id: UUID
+    name: str | None
     distance: float | None
     similarity: float
-    unread_msg: int
-    created_at: datetime
 
 
 @dataclass
-class ContactRead:
-    user_id: UUID
-    name: UUID
-    similarity: float
-    distance: float
+class ContactRead(ContactBase):
+    alias: str | None
+    status: ENM.ContactStatus
+    unread_messages: int
+    created_at: datetime
 
 
 @dataclass
 class ContactWrite:
     my_user_id: UUID
-    other_user_id: UUID
+    target_user_id: UUID
     status: ENM.ContactStatus
+    alias: str | None
 
 
 @dataclass

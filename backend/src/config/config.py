@@ -33,12 +33,13 @@ class PublicPaths:
 class PrivatePaths:
     PROFILE: str = '/profile'
     VALUES: str = '/values'
-    CONTACTS: str = '/contacts'
+    ACTIVE_CONTACTS_AND_REQUESTS: str = '/contacts'
     BOOTSTRAP: str = '/bootstrap'
     RECOMMENDATIONS: str = '/check-for-alike'
+    AGREE_TO_START: str = '/agree-to-start'
     UNREAD_MESSAGES_COUNT: str = '/messages/unread-count'
     MESSAGES: str = '/messages'
-    CHAT: str = '/ws'  # '/ws/{token}'
+    CHAT: str = '/ws'
 
 
 @dataclass(frozen=True)

@@ -1,10 +1,8 @@
 import {
-  ContactRich,
-  OtherProfile,
+  Contact,
   ValueLinks,
   Attitude,
   MessageSent,
-  Recommendation,
   ChatPayloadType,
 } from "./api";
 import {
@@ -52,12 +50,12 @@ export interface MoralProfileStore {
 }
 
 export interface ContactsStore {
-  storedContacts: ContactRich[];
-  setContacts: (contacts: ContactRich[]) => void;
-  storedRequests: ContactRich[];
-  setRequests: (contacts: ContactRich[]) => void;
-  storedRecommendations: OtherProfile[];
-  setRecommendations: (newRecommendations: OtherProfile[]) => void;
+  storedContacts: Contact[];
+  setContacts: (contacts: Contact[]) => void;
+  storedRequests: Contact[];
+  setRequests: (contacts: Contact[]) => void;
+  storedRecommendations: Contact[];
+  setRecommendations: (newRecommendations: Contact[]) => void;
   incrementUnreadCount: (contactId: string, by?: number) => void;
   resetUnreadCount: (contactId: string) => void;
   clearContactsStore: () => void;
@@ -85,16 +83,9 @@ export interface AuthStepsStore {
   setAuthStep: (step: AuthStep) => void;
 }
 
-export interface SelectedUser {
-  user_id: string;
-  name: string | null;
-  similarity: number;
-  distance: number | null;
-}
-
 export interface SelectedUserStore {
-  selectedUser: SelectedUser | null;
-  setSelectedUser: (user: Recommendation | ContactRich) => void;
+  selectedUser: Contact | null;
+  setSelectedUser: (user: Contact) => void;
   clearSelectedUser: () => void;
 }
 

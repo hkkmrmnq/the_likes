@@ -25,7 +25,7 @@ export function useContactAction() {
     (
       serviceMethod: (
         userId: string,
-      ) => Promise<typ.ContactsAndRequestsResponse>,
+      ) => Promise<typ.ContsNReqstsNRecomsSchemaResponse>,
     ) => {
       return async (userId: string, setError?: (error: string) => void) => {
         try {

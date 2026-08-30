@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { uuidSchema, dataTimeShchema, timeSchema } from "./base";
-import { contactRichSchema, otherProfileSchema } from "./contacts";
+import { contactSchema } from "./contacts";
 import { messageWriteSchema, messageReadSchema } from "./messages";
 
 export enum ChatPayloadType {
@@ -76,32 +76,32 @@ export const chatPayloadSchema = z.discriminatedUnion("payload_type", [
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.NEW_RECOMM),
-    related_content: otherProfileSchema,
+    related_content: contactSchema,
     timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.NEW_REQUEST),
-    related_content: contactRichSchema,
+    related_content: contactSchema,
     timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.REQUEST_CLOSED),
-    related_content: contactRichSchema,
+    related_content: contactSchema,
     timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.NEW_CHAT),
-    related_content: contactRichSchema,
+    related_content: contactSchema,
     timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.BLOCKED_BY),
-    related_content: contactRichSchema,
+    related_content: contactSchema,
     timestamp: dataTimeShchema,
   }),
   z.object({
     payload_type: z.literal(ChatPayloadType.UNBLOCKED_BY),
-    related_content: contactRichSchema,
+    related_content: contactSchema,
     timestamp: dataTimeShchema,
   }),
 ]);

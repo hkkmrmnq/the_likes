@@ -182,7 +182,7 @@ class ChatManager:
 
     @async_catch(to_raise=False)
     async def remove_connection(self, *, user_id: UUID, code: int):
-        logger.info(f'{datetime.now()} remove_connection: {code=}')
+        # logger.info(f'{datetime.now()} remove_connection: {code=}')
         pubsub = await self.pubsub
         await pubsub.unsubscribe(f'ws:{user_id}')
         async with self._lock:
@@ -475,7 +475,7 @@ class ChatManager:
             await self.remove_connection(
                 user_id=user_id, code=status.WS_1000_NORMAL_CLOSURE
             )
-            logger.info('CLIENT DISCONNECTED')
+            # logger.info('CLIENT DISCONNECTED')
             return 'Normal closure.'
         except Exception as e:
             await self.remove_connection(

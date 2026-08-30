@@ -32,16 +32,9 @@ export type MessageRead = z.infer<typeof sch.messageReadSchema>;
 export type MessagesGetResponse = z.infer<typeof sch.messagesGetResponseSchema>;
 export type MessageWrite = z.infer<typeof sch.messageWriteSchema>;
 export type MessagePostResponse = z.infer<typeof sch.messagePostResponseSchema>;
-export type OtherProfile = z.infer<typeof sch.otherProfileSchema>;
-export type OtherProfileResponse = z.infer<
-  typeof sch.otherProfileResponseSchema
->;
-export type Recommendation = z.infer<typeof sch.recommendationSchema>;
-export type ContactRequest = z.infer<typeof sch.contactRequestSchema>;
 export type Contact = z.infer<typeof sch.contactSchema>;
-export type ContactRich = z.infer<typeof sch.contactRichSchema>;
-export type ContactsAndRequestsResponse = z.infer<
-  typeof sch.contactsAndRequestsResponseSchema
+export type UpdateContactAliasResponseSchema = z.infer<
+  typeof sch.updateContactAliasResponseSchema
 >;
 export type ContsNReqstsNRecomsSchemaResponse = z.infer<
   typeof sch.contsNReqstsNRecomsSchemaResponseSchema

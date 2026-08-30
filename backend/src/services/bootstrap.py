@@ -30,7 +30,7 @@ async def bootstrap(
     ud = await crud.read_user_dynamics(user_id=my_user.id, asession=asession)
     if ud.search_allowed_status != ENM.SearchAllowedStatus.COOLDOWN:
         contacts_user_ids = [
-            req.user_id
+            req.other_user_id
             for req in [
                 *active_contacts_and_requests.contact_requests,
                 *active_contacts_and_requests.active_contacts,
